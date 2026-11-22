@@ -1,0 +1,27 @@
+---
+title: Image hotspot
+description: Explore or find spots on an image.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+Explore or find spots on an image.
+
+## Usage
+
+```ts
+hotspotImage('map-1', { title: 'Map' }, 'map-asset', [
+  { id: 'h1', x: 0.3, y: 0.4, label: 'Ankara', correct: true },
+], 'find');
+```
+
+## Embedded Example
+
+<LernoPlayer document={contentTypeDemos['hotspot']} />
+
+## How It Is Built
+
+It is not a separate engine; it is a recipe that assembles the right nodes:
+
+- A `hotspot` node (explore / find)

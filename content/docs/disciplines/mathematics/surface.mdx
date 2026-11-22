@@ -1,0 +1,38 @@
+---
+title: Surface plot
+description: Surfaces for z = f(u, v), height-based coloring, and serializable height data.
+---
+
+import { SurfaceDemo } from '@/components/react/three/SurfaceDemo';
+import { VisualDemo } from '@/components/react/VisualDemo';
+
+A function surface is sampled on a grid of `u` and `v` and split into triangles. Vertex colors are computed from height, so slopes read without extra annotation.
+
+<VisualDemo id="surface">
+  <SurfaceDemo />
+</VisualDemo>
+
+## Serialization
+
+A geometry that carries a function cannot be written to JSON. When it must be saved, the grid is sampled and the data stored:
+
+```ts
+import { sampleHeightfield, surfaceFromHeightfield } from '@medu/lerno-three';
+
+const data = sampleHeightfield((u, v) => u * u - v * v, { uSegments: 32, vSegments: 32 });
+const mesh = surfaceFromHeightfield(data);
+```
+
+`data.heights` is a flat array of numbers. It can travel in a document, a database, or across the network to another client.
+
+## Bindings
+
+A surface behaves like any other 3D object. A variable bound to a group node rotates the whole surface from one control:
+
+```ts
+group('surface', [mesh], { bindings: { 'rotation.y': 'spin' } });
+```
+
+## Limit
+
+Height runs along the Y axis only; the built-in geometries are used for closed surfaces such as spheres and tori. The color ramp runs between two endpoints; for a three-stop scale, the `buildSurfaceGeometry` output is colored separately.

@@ -1,0 +1,65 @@
+---
+title: CoordinatePlane
+description: Matematik ve piksel koordinatları arasındaki dönüşüm, ızgara verisi ve eğri çizimi.
+---
+
+`CoordinatePlane`, bir matematik ekseni ile piksel uzayı arasında tek bir eşleme kurar. `xRange`,
+`yRange`, `width`, `height` ve `padding` bir kez tanımlanır; sonraki tüm dönüşümler bu eşlemeyi
+kullanır. Böylece bir grafiği çizen, eksenleri etiketleyen ve noktayı işaretleyen kod aynı eksen
+tanımını paylaşır.
+
+Dönüşüm **tersinirdir**: `toCoords` pikseli matematiğe geri götürür, dolayısıyla fare konumu model
+uzayına çevrilebilir.
+
+## Constructor
+
+<TypeTable type={{
+    "new CoordinatePlane(options?)": { description: <><code>CoordinateOptions</code> ile ekseni kurar. Eksik alanlar varsayılana düşer.</> },
+}} />
+
+`CoordinateOptions` alanları:
+
+<TypeTable type={{
+    "xRange": { type: "[number, number]", default: "[-10, 10]", description: "Yatay matematik aralığı." },
+    "yRange": { type: "[number, number]", default: "[-6, 6]", description: "Dikey matematik aralığı." },
+    "width": { type: "number", default: "960", description: "Tuval genişliği, piksel." },
+    "height": { type: "number", default: "540", description: "Tuval yüksekliği, piksel." },
+    "padding": { type: "number", default: "80", description: "Her kenarda boşluk; eksen çizim alanı bu kadar daralır." },
+    "stepX": { type: "number", default: "1", description: "Yatay ızgara adımı." },
+    "stepY": { type: "number", default: "1", description: "Dikey ızgara adımı." },
+    "grid": { type: "boolean", default: "true", description: "Izgara çizilsin mi." },
+}} />
+
+## Properties
+
+<TypeTable type={{
+    "xRange, yRange":  { type: "[number, number]", description: "Matematik aralıkları; çalışma sırasında değiştirilebilir." },
+    "width, height, padding":  { type: "number", description: "Tuval ölçüleri ve kenar boşluğu." },
+    "stepX, stepY":  { type: "number", description: <>Izgara adımları; <code>renderSvgElements</code> bunları kullanır.</> },
+    "grid": { type: "boolean", description: "Izgara çizim anahtarı." },
+}} />
+
+## Metodlar
+
+<TypeTable type={{
+    "toPixels(x, y)": { type: "{ px, py }", description: "Matematik koordinatını piksele çevirir." },
+    "toCoords(px, py)": { type: "{ x, y }", description: "Pikseli matematik koordinatına çevirir; işaretçi olayları için kullanılır." },
+    "renderSvgElements()": { type: "{ gridLines, ticks, xAxis, yAxis, origin }", description: "Izgara çizgilerini, eksenleri ve etiket konumlarını düz veri olarak döndürür." },
+}} />
+
+`gridLines` ve `ticks` elemanları `{ x1, y1, x2, y2 }` ve `{ px, py, label, axis }` şeklindedir;
+çizim yapan bileşen bunları okur, hesap yapmaz.
+
+## Eğri çizimi
+
+Eğriler ayrı bir sınıf tarafından işlenir:
+
+<TypeTable type={{
+    "new FunctionPlotter(options)": { description: <><code>fn</code>, <code>domain</code>, <code>samples</code>, <code>color</code>, <code>strokeWidth</code> ve <code>drawProgress</code> alanlarıyla eğriyi tanımlar.</> },
+    "generatePath(plane)": { description: <><code>&#123; pathData, points &#125;</code> döndürür.<code>drawProgress</code> eğrinin çizilme oranıdır; <code>0</code> ile animasyonu bekler.</> },
+}} />
+
+## İlgili
+
+- Kavramsal arka plan: [Model-View Dönüşümü](/tr/docs/concepts/model-view)
+- Kullanım örneği: [Fonksiyon Grafiği](/tr/docs/disciplines/mathematics/function-graph)

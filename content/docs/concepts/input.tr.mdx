@@ -1,0 +1,39 @@
+---
+title: Input ve Etkileşim
+description: InputListener ve DragListener ile sahne düğümlerinin etkileşimli yapılması.
+---
+
+Bir düğüm `addInputListener` ile etkileşim kazanır. Display, pointer olaylarını bu dinleyicilere iletir.
+
+```ts
+import { CircleNode, DragListener, v2 } from '@medu/lerno';
+
+const handle = new CircleNode(100, 100, 16, { fill: 'var(--accent)' });
+
+handle.addInputListener(
+  new DragListener({
+    start: () => { /* basıldı */ },
+    drag: (pointer) => {
+      if (pointer.delta) handle.translation = handle.translation.plus(pointer.delta);
+    },
+    end: () => { /* bırakıldı */ },
+  }),
+);
+```
+
+## InputListener
+
+```ts
+interface InputListener {
+  down?(pointer: PointerInfo): void;
+  move?(pointer: PointerInfo): void;
+  up?(pointer: PointerInfo): void;
+}
+```
+
+`PointerInfo`: `{ x, y, delta?, originalEvent? }`.
+
+## Özel Etkileşim
+
+`DragListener` yalnızca bir yardımcıdır. Herhangi bir `InputListener` uygulayarak tıklama, çizim,
+ölçüm, zoom gibi custom etkileşimler kurabilirsiniz.

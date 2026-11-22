@@ -1,0 +1,39 @@
+---
+title: First simulation
+description: Separating model, view, and time; createScreen, Sim, and step.
+---
+
+import { FallingBallExample } from '@/components/react/examples/FallingBallExample';
+
+A simulation adds a time dimension. The model is advanced through `step(dt)`; the view only reads
+the model.
+
+## Example
+
+The component below models and draws a freely falling object. **Preview** is the simulation itself,
+**Code** the code that builds the model and the view, and **JSON** the output of `toRender()` on
+the view at its initial state.
+
+<FallingBallExample />
+
+## Consequences of the separation
+
+- The model does not know the view. The `FallModel` class never mentions `CircleNode`.
+- The only source of time is `sim.step(dt)`. `dt` is supplied from outside; the same sequence of
+  `dt` values always produces the same result.
+- `useSimStep` only sets up the `requestAnimationFrame` loop and re-renders React.
+
+Because of this separation, the same model can be attached to WebGL instead of SVG, or to a headless
+test.
+
+## What the JSON tab contains
+
+The JSON is `toRender()` on the root returned by `createView()`: a single `circle` element wrapped in
+a `group`. `ball.centerY` comes from the model's initial `height`; once animation starts the JSON
+**does not change**, because the scene graph is redrawn each frame and the JSON records only the
+state at construction.
+
+## Next step
+
+For interaction, the [Mental model](/docs/getting-started/mental-model) page summarises four
+rules.

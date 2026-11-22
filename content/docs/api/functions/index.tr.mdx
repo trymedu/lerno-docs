@@ -1,0 +1,88 @@
+---
+title: Functions
+description: '@medu/lerno''nun export ettiği her fonksiyon, ait olduğu katmana göre gruplanmış.'
+---
+
+Fonksiyonlar giriş noktalarıdır: belge kurar, oturum açar, uzantı kaydeder, cevap puanlar.
+Hiçbiri çağrılar arasında durum tutmaz: durum bir oturumda ya da bir sınıfta yaşar.
+
+## Belgeler
+
+<TypeTable type={{
+    "defineDocument(input)": { type: "LernoDocument", description: "Ham girdiyi zod ile doğrular, varsayılanları uygular, hâlükârda LernoValidationError fırlatır." },
+    "parseDocument(input)": { type: "{ success, data } | { success, issues }", description: "defineDocument'ın fırlatmayan varyantı." },
+    "getNode(document, nodeId)": { type: "LernoNode | undefined", description: "Düğümü kimliğine göre arar." },
+    "getNodeIndex(document, nodeId)": { type: "number", description: "Düğümün belge sırasındaki konumu, yoksa -1." },
+    "collectQuestions(document)": { type: "QuestionRef[]", description: "Belgeden erişilebilir her soru, düğüm kimliğiyle." },
+    "getNodePoints(node)": { type: "number", description: "Düğümün katkıda bulunduğu puan." },
+    "getDocumentPoints(document)": { type: "number", description: "Belgede ulaşılabilir toplam puan." },
+}} />
+
+## Preset'ler
+
+Her preset doğru düğümleri ve akışı bir araya getirir; hiçbiri kendi motoruna sahip değildir.
+
+<TypeTable type={{
+    "questionSet(id, metadata, items, options?)": { type: "LernoDocument", description: "Doğrusal değerlendirme. Düğüm kimlikleri q1, q2…" },
+    "coursePresentation(id, metadata, slides, options?)": { type: "LernoDocument", description: "Bloklu slaytlar." },
+    "interactiveBook(id, metadata, pages, options?)": { type: "LernoDocument", description: "Doğrusal akışlı sayfalı kitap." },
+    "interactiveVideo(id, metadata, media, options?)": { type: "LernoDocument", description: "Zaman damgalı çapalı video." },
+    "branchingScenario(id, metadata, nodes, options?)": { type: "LernoDocument", description: "Dal seçimleriyle sürülen graf akışı." },
+    "cardsDeck(id, metadata, cards, mode, options?)": { type: "LernoDocument", description: "Çevirme, eşleştirme veya sıralama destesi." },
+    "hotspotImage(id, metadata, image, hotspots, options?)": { type: "LernoDocument", description: "Görsel üzerindeki noktalar." },
+    "infoPage(id, metadata, panels, options?)": { type: "LernoDocument", description: "Statik paneller." },
+    "virtualLab(id, metadata, steps, options?)": { type: "LernoDocument", description: "Sıralı laboratuvar adımları." },
+}} />
+
+## Değerlendirme
+
+<TypeTable type={{
+    "defineQuestion(config)": { type: "QuestionDefinition", description: "Bir tip kaydeder: madde şeması, cevap şeması ve grade işlevi. grade çalışmadan önce doğrulanır; bozuk veri görmez." },
+    "ungradedOutcome(detail?)": { type: "GradeOutcome", description: "Bir tipin değerlendiricisi olmadığında dönen sonuç." },
+}} />
+
+Çalışan bir örnek için [Özel Değerlendirici](/tr/docs/grading/custom-grader) sayfasına bakın.
+
+## Geometri
+
+Şekil geçişleri ve kademeli çizim. İkisi de safdır: komut listesini okur ve yeni bir `Shape`
+döner; bu yüzden başsız ortamda da tarayıcı da aynı rahatlıkla çalışır. Çalışan bölümler için
+[Şekiller](/tr/docs/concepts/shapes) sayfasına bakın.
+
+<TypeTable type={{
+    "morphShape(from, to, ratio)": { type: "Shape | null", description: "Her operandı `from`'daki değerinden `to`'daki değerine ara değerler. Komut dizileri farklıysa null." },
+    "canMorph(from, to)": { type: "boolean", description: "İki şeklin komut dizileri eşleşiyor mu; böylece bir sahne animasyondan önce yedek seçebilir." },
+    "revealShape(shape, ratio)": { type: "Shape", description: <>Bir yolun görünür öneki: tam komutlar sırayla, sınırı aşan komut de Casteljau ile bölünür; böylece kısmi eğriler orijinal yolda kalır.</> },
+}} />
+
+## Uzantılar
+
+<TypeTable type={{
+    "createLerno(options?)": { type: "LernoInstance", description: "İçeri hazır olanlarla önceden doldurulmuş registry, host ve uzantılar." },
+    "createRegistry()": { type: "LernoRegistry", description: "Boş bir registry." },
+    "defineExtension(extension)": { type: "LernoExtension", description: "Uzantıya tipini veren kimlik yardımcısı." },
+    "createHost(partial?)": { type: "LernoHost", description: "Yalnızca verdiğiniz adaptörlerin değiştiği host; kalanı boş davranış kalır." },
+}} />
+
+## Oturum
+
+<TypeTable type={{
+    "createSession(document, options?)": { type: "LernoSession", description: <>Çalışma zamanı: imleç, cevaplama, puanlama ve abonelik. <a href="/tr/docs/api/functions/session">Tam referans</a>.</> },
+}} />
+
+### Akış ve medya yardımcıları
+
+<TypeTable type={{
+    "linearFlow(document)": { type: "string | null", description: "Belge sırasındaki sonraki düğüm kimliği." },
+    "graphFlow(document, state, nodeId)": { type: "string | null", description: "Graf kipi için sonraki düğüm kimliği; açık next işaretlerini izler." },
+    "getExplicitNext(node)": { type: "string | null", description: "Düğümün kendi next işareti varsa." },
+    "crossedAnchors(anchors, time)": { type: "MediaAnchor[]", description: "Zaman damgası verilen anda geçilmiş çapalar." },
+    "firstUnseenAnchor(anchors, seen)": { type: "MediaAnchor | null", description: "Öğrencinin henüz ulaşmadığı ilk çapa." },
+    "findCrossedAnchor(anchors, time)": { type: "MediaAnchor | null", description: "En son geçilen çapa." },
+}} />
+
+## İlgili
+
+- [Sınıflar](/tr/docs/api/classes): durum taşıyan exportlar
+- [Tipler](/tr/docs/api/types): arayüzler ve tip takma adları
+- [Uzantılar](/tr/docs/extensions): registry ve host sözleşmesi

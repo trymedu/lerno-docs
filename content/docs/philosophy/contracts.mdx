@@ -1,0 +1,42 @@
+---
+title: Behavior guarantees
+description: Determinism, seek-safe time, pure models, and serialization.
+---
+
+This page lists the guarantees Lerno gives and the guarantees it expects. When these rules are not
+followed while writing a simulation or visual, testing, video export, and caching break.
+
+## Determinism
+
+The same input and the same sequence of `dt` values always produce the same output. The core contains no
+`Date.now()`, no `Math.random()`, and no global state. When randomness is required, it is injected through
+`host.random` and seeded.
+
+## Seek-safe time
+
+A simulation is advanced through `step(dt)` and can jump to any moment with `runTo(t)`. Models that
+integrate time but derive their state from the current time satisfy this rule. Models that cache a value
+tied to the previous frame do not, and they drift during video export.
+
+## Pure models
+
+A model does not know the view and does not touch the DOM. A model class never mentions `document`,
+`window`, `Node`, or `React`. This rule is what lets one model drive two renderers and be tested
+headlessly.
+
+## Serialization
+
+Content documents (`LernoDocument`) and variable snapshots (`VariableStore.snapshot`) are written to JSON.
+The state of a simulation should be shippable or saveable. Functions, class instances, and DOM nodes do
+not belong in a document.
+
+## Shell boundary
+
+React owns the DOM; Lerno does not. `Display` and `ThreeCanvas` create a container element and leave the
+rest to React. Browser APIs (`requestAnimationFrame`, `devicePixelRatio`) are called only in the renderer
+shell, never in the core.
+
+## Compatibility
+
+When these contracts change, the package version is incremented. A `CHANGELOG` file is kept at the root of
+each package.

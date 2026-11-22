@@ -1,0 +1,64 @@
+---
+title: Installation
+description: Packages, environment requirements, and the first import.
+---
+
+This page describes the installation of the Lerno packages and the environment requirements.
+
+## Core
+
+The core package is installed with the following command:
+
+```bash
+bun add @medu/lerno
+```
+
+The core is not bound to the DOM. It runs in the browser and in Node; testing and video export share
+the same code for this reason.
+
+## React layer
+
+The following packages are installed for the React components:
+
+```bash
+bun add @medu/lerno-react @heroui/react @heroui/styles
+```
+
+`@medu/lerno-react` components are drawn with HeroUI v3. The consuming application loads the HeroUI
+styles and the theme variables:
+
+```css
+@import 'tailwindcss';
+@import '@heroui/styles';
+
+/* include the built lerno-react package in the Tailwind scan */
+@source 'node_modules/@medu/lerno-react/dist';
+```
+
+## 3D and animation extensions
+
+3D modeling and Motion-based animation are provided as separate packages:
+
+```bash
+bun add @medu/lerno-three @medu/lerno-motion
+```
+
+`three` is a peer dependency of `@medu/lerno-three`; the version is chosen by the consumer.
+
+## First import
+
+The following lines import the core and the React layer:
+
+```ts
+import { Property, Node, CircleNode, ModelViewTransform2 } from '@medu/lerno';
+```
+
+```tsx
+import { Display, useProperty } from '@medu/lerno-react';
+```
+
+## Environment requirements
+
+- Browser: SVG alone is sufficient for 2D scenes; 3D requires a current browser with WebGL2.
+- Node: tests, data generation, and headless rendering run in this environment.
+- TypeScript is required. Types are consistent under `strict`; no API exposes `any`.

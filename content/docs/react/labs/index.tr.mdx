@@ -1,0 +1,31 @@
+---
+title: Genel Bakış
+description: Kendi kendine çalışan, kontrolleri hazır beş canlı laboratuvar.
+---
+
+Laboratuvarlar, tek bir kavramı değiştirebilir kontrollerle gösteren bileşenlerdir. Her laboratuvar
+kendi durumunu tutar, kendi sahnesini kurar ve doğrudan sayfaya gömülebilir; ek ayar gerektirmez.
+
+| Sayfa | Gösterir |
+| --- | --- |
+| [Fonksiyon Keşfi](/tr/docs/react/labs/function-explorer) | Fonksiyon ailesi ve çizim animasyonu |
+| [Türev Keşfi](/tr/docs/react/labs/derivative-explorer) | Bir noktadaki anlık eğim |
+| [Riemann Toplamı](/tr/docs/react/labs/riemann-sum) | Dikdörtgen sayısı arttıkça yakınsama |
+| [Eğik Atış Laboratuvarı](/tr/docs/react/labs/projectile-lab) | Hız ve açıya göre uçuş |
+| [Molekül Görüntüleyici](/tr/docs/react/labs/molecule-viewer) | Geçişli molekül geometrileri |
+
+## Gömme
+
+Tek satır yeterlidir:
+
+```tsx
+import { ProjectileLab } from '@medu/lerno-react';
+
+<ProjectileLab />;
+```
+
+## Düzenleme
+
+Laboratuvar bir şablon değildir; kendi bileşeninizde aynı desen tekrarlanır: `useState` ile kontrol
+değeri, `useMemo` ile sahne, `Display` ile çizim. İşleyişi [Primitif Bileşenler](/tr/docs/react/components/primitives)
+sayfasındaki parçalarla kurmak mümkündür.

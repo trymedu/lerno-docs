@@ -1,0 +1,66 @@
+---
+title: Vector2
+description: 'Immutable 2D vector: arithmetic, length, angle, and module functions.'
+---
+
+`Vector2` is an **immutable** pair of numbers. No method mutates the receiver; every operation
+returns a new instance. That is what makes shared values safe inside the scene graph: the same
+vector can sit on several nodes and nothing can overwrite it.
+
+The cost of immutability is allocation in hot loops, which is why drawing and animation loops use the
+mutable `Vector2D` instead. See [Math](/docs/concepts/math).
+
+## Constructor
+
+<TypeTable type={{
+    "new Vector2(x?, y?)": { description: <>Uses <code>0</code> for missing components.</> },
+    "v2(x?, y?)": { description: "Produces the same value without importing the class." },
+}} />
+
+## Properties
+
+<TypeTable type={{
+    "x": { type: "number", description: "Horizontal component, read-only." },
+    "y": { type: "number", description: "Vertical component, read-only." },
+    "magnitude": { type: "number", description: <>Length: <code>√(x² + y²)</code>.</> },
+    "magnitudeSquared": { type: "number", description: "Squared length; avoids the square root in comparisons." },
+    "angle": { type: "number", description: "Direction from the positive x-axis, in radians." },
+    "ZERO, X_UNIT, Y_UNIT":  { type: "Vector2", description: "Class constants. They are shared, so they must not be mutated." },
+}} />
+
+## Methods
+
+<TypeTable type={{
+    "plus(other)": { type: "Vector2", description: "Vector addition." },
+    "minus(other)": { type: "Vector2", description: <><code>this - other</code>.</> },
+    "times(scalar)": { type: "Vector2", description: "Multiplies both components." },
+    "dividedBy(scalar)": { type: "Vector2", description: "Divides both components." },
+    "negated()": { type: "Vector2", description: "Negated vector, mirrored through the origin." },
+    "dot(other)": { type: "number", description: "Dot product; equal to the product of the lengths and the cosine of the angle." },
+    "cross(other)": { type: "number", description: <>2D cross product; positive when <code>other</code> lies counter-clockwise.</> },
+    "normalized()": { type: "Vector2", description: <>Unit vector; returns <code>(0, 0)</code> when the length is zero.</> },
+    "withMagnitude(magnitude)": { type: "Vector2", description: "Rescales to the requested length." },
+    "rotated(radians)": { type: "Vector2", description: "Rotates around the origin; positive is counter-clockwise." },
+    "perpendicular()": { type: "Vector2", description: "Rotates 90 degrees counter-clockwise." },
+    "lerp(other, ratio)": { type: "Vector2", description: <>Linear interpolation.<code>ratio</code> is not clamped: <code>0</code> returns this vector, <code>1</code> the target.</> },
+    "distance(other)": { type: "number", description: "Euclidean distance." },
+    "distanceSquared(other)": { type: "number", description: <>Squared distance; cheaper than <code>distance</code> in comparisons.</> },
+    "equals(other, epsilon?)": { type: "boolean", description: "Compares both components with a tolerance; default is exact." },
+    "toArray()": { type: "[number, number]", description: <>Returns <code>[x, y]</code>, suited to JSON and cloning.</> },
+    "copy()": { type: "Vector2", description: "Independent copy." },
+}} />
+
+## Module functions
+
+<TypeTable type={{
+    "degreesToRadians(degrees)": { type: "number", description: "Converts degrees to radians." },
+    "radiansToDegrees(radians)": { type: "number", description: "Converts radians to degrees." },
+    "clamp(value, min, max)": { type: "number", description: "Keeps a value in range; returns the violated bound when it is not." },
+    "lerp(a, b, ratio)": { type: "number", description: "Linear interpolation between two numbers." },
+    "easeInOutRatio(ratio)": { type: "number", description: "Applies an ease-in-out curve to progress; values are clamped." },
+}} />
+
+## See also
+
+- Transforms: [Matrix3](/docs/api/classes/matrix3)
+- Usage context: [Math](/docs/concepts/math)

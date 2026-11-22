@@ -1,0 +1,27 @@
+---
+title: Bölümlü Okuma
+description: Bölüm bölüm ilerleyen okuma akışı.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+Bölüm bölüm ilerleyen okuma akışı.
+
+## Kullanım
+
+```ts
+interactiveBook('kitap-1', { title: 'Limitler' }, [
+  { title: 'Bölüm 1', blocks: [{ type: 'text', markdown: 'Yaklaşma kavramı.' }] },
+]);
+```
+
+## Gömülü Örnek
+
+<LernoPlayer document={contentTypeDemos['interactive-book']} />
+
+## Nasıl Kurulur
+
+Ayrı bir motor değildir; doğru düğümleri bir araya getiren bir reçetedir:
+
+- `slide` dizisi (tip: book)

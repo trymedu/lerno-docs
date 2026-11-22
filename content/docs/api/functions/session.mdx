@@ -1,0 +1,92 @@
+---
+title: createSession
+description: 'The content runtime: cursor, answering, scoring, and subscription over one document.'
+---
+
+`createSession` turns a `LernoDocument` into a running session. It owns the cursor, grades answers
+through the registry, keeps the score, and notifies subscribers. Persistence, telemetry, and flow
+resolution arrive from host adapters, so the same session works in a browser, in a test, or on a
+server.
+
+## Signature
+
+<TypeTable type={{
+    "createSession(document, options?)": { type: "LernoSession", description: "Opens a session over a validated document." },
+}} />
+
+### Options
+
+<TypeTable type={{
+    "host": { type: "LernoHost", description: "Adapters for storage, telemetry, media, and identity. Defaults to createHost(): every adapter no-op." },
+    "registry": { type: "LernoRegistry", description: "Where question kinds are looked up. Defaults to createRegistry(), which is preloaded with the built-in kinds." },
+    "state": { type: "LernoSessionState", description: "A previously saved snapshot to resume from. When omitted, storage is consulted, then a fresh state is built." },
+}} />
+
+## Methods
+
+<TypeTable type={{
+    "getState()": { type: "LernoSessionState", description: "Plain snapshot: documentId, cursor, visited, answers, status. Serializable." },
+    "currentNode()": { type: "LernoNode | undefined", description: "Node under the cursor; undefined when the session has no cursor." },
+    "answer(questionId, response)": { type: "AnswerRecord", description: "Validates the response against the kind's schema, grades it, and stores it. Returns the record." },
+    "choose(nodeId, choiceId)": { type: "string | null", description: "Follows a branch choice; null when the target does not resolve." },
+    "next()": { type: "string | null", description: "Moves forward in document order; null at the end." },
+    "back()": { type: "string | null", description: "Returns to the previous node in history; null when there is none." },
+    "goTo(nodeId)": { type: "void", description: "Jumps to an arbitrary node. Unknown ids are ignored." },
+    "score()": { type: "SessionScore", description: "Earned, max, ratio, and the passing flag computed from graded answers." },
+    "subscribe(listener)": { type: "() => void", description: "Called after every mutation with the new state. Returns the unsubscribe function." },
+    "reset()": { type: "void", description: "Clears answers and history and returns the cursor to the first node." },
+}} />
+
+<TypeTable type={{
+    "session.document": { type: "LernoDocument", description: "The document this session was opened over." },
+}} />
+
+## Result types
+
+<TypeTable type={{
+    "AnswerRecord": { type: "interface", description: "questionId, nodeId, response, outcome, answeredAt." },
+    "GradeOutcome": { type: "interface", description: "status, score, maxScore, optional detail and misconceptions." },
+    "SessionScore": { type: "interface", description: "earned, max, ratio, passed (null while unanswered questions remain)." },
+    "LernoSessionState": { type: "interface", description: "documentId, schemaVersion, cursor, visited, answers, status." },
+}} />
+
+## Usage
+
+```ts
+import { questionSet, createSession } from '@medu/lerno';
+
+const document = questionSet('quiz-1', { title: 'Quadratic equations' }, [
+  {
+    kind: 'solution-steps',
+    prompt: 'Solve x² − 4 = 0.',
+    steps: [
+      { id: 's1', prompt: 'Factor it', accepted: ['(x-2)(x+2)'] },
+      { id: 's2', prompt: 'Write the roots', accepted: ['2,-2', '-2,2'] },
+    ],
+  },
+]);
+
+const session = createSession(document);
+
+session.getState().cursor;          // 'q1': questionSet names nodes q1, q2, ...
+const { outcome } = session.answer('q1', { steps: ['(x-2)(x+2)', 'wrong'] });
+outcome.status;                     // 'partial'
+session.score();                    // { earned: 1, max: 2, ratio: 0.5, passed: null }
+
+session.next();                     // null: the document ends here
+```
+
+## Determinism
+
+`answer` is a pure function of the response and the document: the same response always produces the
+same `GradeOutcome`, and nothing reads the clock except `answeredAt`. That is what lets a test
+assert on a session without mocking time.
+
+`score().passed` stays `null` until every graded question has an answer, so a partially attempted
+quiz never reports a pass or a fail.
+
+## See also
+
+- [Functions](/docs/api/functions): every other entry point
+- [Content model](/docs/content-types/model): what a document holds and how state is shaped
+- [GradeOutcome](/docs/grading): statuses and the scoring ratio

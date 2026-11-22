@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Serbest düşme · HTML çıktısı</title>
+<style>
+:root { color-scheme: light; --paper:#FAF8F1; --ink:#18181B; --muted:#71717A; --line:#E4E4E7; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #0B0B0C; color: #FAFAFA; font-family: Arial, Helvetica, sans-serif; }
+body { display: grid; place-items: center; min-height: 100vh; padding: 24px; }
+.wrap { width: min(960px, 100%); display: flex; flex-direction: column; gap: 10px; }
+.title { margin: 0; font-size: 14px; font-weight: 600; color: #A1A1AA; }
+.stage { position: relative; overflow: hidden; border-radius: 14px; background: #000; border: 1px solid rgba(255,255,255,.12); }
+.screen { position: relative; }
+video { display: block; width: 100%; height: auto; }
+.layers { position: absolute; inset: 0; pointer-events: none; }
+.layer { position: absolute; opacity: 0; transition: none; }
+.control { width: 100%; display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: var(--ink); font: 500 14px/1 Arial, Helvetica, sans-serif; }
+.switch { justify-content: space-between; cursor: pointer; }
+.switch .track { position: relative; width: 44px; height: 24px; border-radius: 12px; background: var(--line); transition: background .15s; }
+.switch .knob { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.switch.is-on .track { background: var(--ink); }
+.switch.is-on .knob { transform: translateX(20px); }
+.button { justify-content: center; border-color: transparent; background: var(--ink); color: #FAFAFA; }
+.button.secondary { background: #fff; color: var(--ink); border-color: var(--line); }
+.select { position: relative; flex-direction: column; align-items: stretch; justify-content: center; gap: 2px; padding: 8px 14px; }
+.select select { appearance: none; border: 0; background: transparent; font: 500 14px/1.2 Arial, Helvetica, sans-serif; color: var(--ink); width: 100%; padding-right: 16px; }
+.select .chevron { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+.kicker { font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.slider { flex-direction: column; align-items: stretch; justify-content: center; gap: 6px; padding: 8px 14px; }
+.slider .row { display: flex; justify-content: space-between; align-items: baseline; }
+.slider .value { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.slider input { width: 100%; margin: 0; appearance: none; height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--ink) var(--percent), var(--line) var(--percent)); }
+.slider input::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--ink); }
+.readout { flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 6px; padding: 10px 14px 12px; }
+.readout-row { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--muted); }
+.readout-row b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.readout-row.muted { color: var(--muted); }
+.captions { position: absolute; left: 0; right: 0; bottom: 14px; display: flex; justify-content: center; pointer-events: none; padding: 0 8%; }
+.cue { max-width: 80%; padding: 8px 14px; border-radius: 8px; background: rgba(0,0,0,.72); color: #fff; font-size: 15px; line-height: 1.35; text-align: center; display: none; }
+.play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; place-items: center; width: 56px; height: 56px; border: 0; background: transparent; cursor: pointer; padding: 0; }
+.play span { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,.95); color: #18181B; }
+.play[hidden] { display: none; }
+.bar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; background: #111113; }
+.bar button { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 50%; background: rgba(255,255,255,.1); color: #FAFAFA; cursor: pointer; }
+.bar input { flex: 1; appearance: none; height: 4px; border-radius: 2px; background: rgba(255,255,255,.2); }
+.bar input::-webkit-slider-thumb { appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #FAFAFA; }
+.bar .time { font-size: 11px; font-variant-numeric: tabular-nums; color: #A1A1AA; }
+.anchor { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(380px, 86%); padding: 16px; border-radius: 14px; background: #fff; color: var(--ink); border: 1px solid var(--line); }
+.anchor h2 { margin: 0 0 6px; font-size: 14px; }
+.anchor p { margin: 0 0 12px; font-size: 12px; color: var(--muted); }
+.anchor button { width: 100%; height: 38px; border: 0; border-radius: 10px; background: var(--ink); color: #fff; font-weight: 600; cursor: pointer; }
+.anchor[hidden] { display: none; }
+@media (max-width: 767px) {
+  .layers { position: static; display: flex; flex-direction: column; gap: 8px; padding: 10px; background: #fff; }
+  .layer { position: static; width: auto !important; transform: none !important; opacity: 1 !important; }
+  .layer[hidden] { display: none; }
+  .captions { bottom: 8px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="title">Serbest düşme · HTML çıktısı</p>
+  <div class="stage">
+    <div class="screen">
+      <video id="video" src="/media/serbest-dusme-klip.mp4" poster="/media/serbest-dusme-poster.jpg" playsinline preload="metadata"></video>
+      <div class="captions"><div class="cue" id="cue"></div></div>
+      <button class="play" id="play" type="button" aria-label="Oynat"><span><svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4.5 2.8v10.4a.6.6 0 0 0 .92.5l8.1-5.2a.6.6 0 0 0 0-1L5.42 2.3a.6.6 0 0 0-.92.5Z"/></svg></span></button>
+      <div class="anchor" id="anchor" hidden>
+        <h2 id="anchor-title"></h2>
+        <p id="anchor-body"></p>
+        <button type="button" id="anchor-continue">Devam et</button>
+      </div>
+    </div>
+    <div class="layers">
+<div class="layer" data-id="air" data-from="0" data-to="" data-fade="0" style="left:60.00%;top:10.00%;width:32.00%"><button type="button" class="control switch is-on" data-toggle="airOn" aria-pressed="true"><span class="label">Hava direnci</span><span class="track"><span class="knob"></span></span></button></div>
+<div class="layer" data-id="g" data-from="0" data-to="" data-fade="0" style="left:60.00%;top:24.00%;width:32.00%"><label class="control slider"><span class="row"><span class="kicker">Yer çekimi</span><span class="value" data-value-for="g">10 m/s²</span></span><input type="range" min="0" max="20" step="0.1" value="10" data-bind="g" data-unit="m/s²" style="--percent:50.00%"></label></div>
+<div class="layer" data-id="readout" data-from="0" data-to="" data-fade="0" style="left:60.00%;top:40.00%;width:32.00%"><div class="control readout"><span class="kicker">Anlık değerler</span><div class="readout-row"><span>Hava direnci</span><b data-readout="airOn">Açık</b></div><div class="readout-row"><span>g</span><b data-readout="g">10</b></div><div class="readout-row"><span>Model</span><b>h = ½ · g · t²</b></div></div></div>
+    </div>
+  </div>
+  <div class="bar">
+    <button type="button" id="toggle" aria-label="Oynat / duraklat">▶</button>
+    <input type="range" id="seek" min="0" max="1000" value="0" aria-label="Zaman">
+    <span class="time" id="time">0:00 / 0:00</span>
+  </div>
+</div>
+<script>window.__LERNO__ = {"variables":{"airOn":true,"g":10},"cues":[{"startMs":0,"endMs":4000,"text":"Serbest düşmede hız her saniye artar."},{"startMs":4000,"endMs":8000,"text":"Hava direnci açıldığında net kuvvet küçülür."},{"startMs":8000,"endMs":13000,"text":"İvme azalır, hız artışı yavaşlar."},{"startMs":13000,"endMs":20000,"text":"Kutuplarda yer çekimi 9,83 m/s² ölçülür."}],"anchors":[{"id":"why","atMs":8000,"label":"Neden ivme azalıyor?","body":"Hava direnci hızla birlikte büyür; net kuvvet küçülür."},{"id":"g","atMs":16000,"label":"Kutuplarda g daha büyük","body":"Şekil ve dönme etkisiyle yer çekimi kutupta 9,83 m/s² olur."}]};</script>
+<script>
+const video = document.getElementById('video');
+const layers = Array.from(document.querySelectorAll('.layer'));
+const cueBox = document.getElementById('cue');
+const play = document.getElementById('play');
+const toggle = document.getElementById('toggle');
+const seek = document.getElementById('seek');
+const time = document.getElementById('time');
+const anchorBox = document.getElementById('anchor');
+const anchorTitle = document.getElementById('anchor-title');
+const anchorBody = document.getElementById('anchor-body');
+const state = window.__LERNO__;
+const variables = { ...state.variables };
+let lastMs = 0;
+
+function format(ms) {
+  const total = Math.floor((ms || 0) / 1000);
+  return Math.floor(total / 60) + ':' + String(total % 60).padStart(2, '0');
+}
+
+function show(value) {
+  if (typeof value === 'boolean') return value ? 'Açık' : 'Kapalı';
+  if (typeof value === 'number') return value.toLocaleString('tr-TR');
+  if (typeof value === 'string') return value;
+  return '—';
+}
+
+function paintSlider(node) {
+  const key = node.dataset.bind;
+  const value = Number(variables[key]);
+  const label = document.querySelector('[data-value-for="' + key + '"]');
+  if (label) label.textContent = String(variables[key]) + (node.dataset.unit ? ' ' + node.dataset.unit : '');
+  const min = Number(node.min) || 0;
+  const max = Number(node.max) || 100;
+  const percent = max === min ? 0 : ((value - min) / (max - min)) * 100;
+  node.style.setProperty('--percent', percent + '%');
+}
+
+function syncFields() {
+  document.querySelectorAll('[data-readout]').forEach((node) => {
+    node.textContent = show(variables[node.dataset.readout]);
+  });
+  document.querySelectorAll('[data-toggle]').forEach((node) => {
+    const on = variables[node.dataset.toggle] === true;
+    node.classList.toggle('is-on', on);
+    node.setAttribute('aria-pressed', String(on));
+  });
+  document.querySelectorAll('[data-bind]').forEach((node) => {
+    const key = node.dataset.bind;
+    if (!(key in variables)) return;
+    if (node.tagName === 'SELECT') node.value = String(variables[key]);
+    if (node.type === 'range') {
+      node.value = String(variables[key]);
+      paintSlider(node);
+    }
+  });
+}
+
+function bindControls() {
+  document.querySelectorAll('[data-toggle]').forEach((node) => {
+    node.addEventListener('click', () => {
+      variables[node.dataset.toggle] = !variables[node.dataset.toggle];
+      syncFields();
+    });
+  });
+  document.querySelectorAll('[data-bind]').forEach((node) => {
+    const write = () => {
+      if (node.tagName === 'SELECT') {
+        const raw = node.value;
+        variables[node.dataset.bind] = raw !== '' && !Number.isNaN(Number(raw)) ? Number(raw) : raw;
+      } else {
+        variables[node.dataset.bind] = Number(node.value);
+      }
+      syncFields();
+    };
+    node.addEventListener('input', write);
+    node.addEventListener('change', write);
+  });
+}
+
+const compact = window.matchMedia('(max-width: 767px)');
+
+function paintLayers(ms) {
+  const inline = compact.matches;
+  for (const node of layers) {
+    const from = Number(node.dataset.from) || 0;
+    const to = node.dataset.to ? Number(node.dataset.to) : Infinity;
+    const fade = Number(node.dataset.fade) || 0;
+    if (inline) {
+      node.hidden = !(ms >= from && ms < to);
+      continue;
+    }
+    node.hidden = false;
+    if (ms < from || ms >= to) {
+      node.style.opacity = '0';
+      node.style.pointerEvents = 'none';
+      continue;
+    }
+    let opacity = 1;
+    if (fade > 0) {
+      opacity = Math.min((ms - from) / fade, to === Infinity ? 1 : (to - ms) / fade, 1);
+      opacity = Math.max(0, opacity);
+    }
+    node.style.opacity = String(opacity);
+    node.style.transform = 'translateY(' + ((1 - opacity) * 6).toFixed(1) + 'px)';
+    node.style.pointerEvents = opacity > 0.2 ? 'auto' : 'none';
+  }
+}
+
+function paintCue(ms) {
+  const cue = state.cues.find((entry) => ms >= entry.startMs && ms < entry.endMs);
+  if (!cue) {
+    cueBox.style.display = 'none';
+    return;
+  }
+  cueBox.style.display = 'block';
+  cueBox.textContent = cue.text;
+}
+
+const seen = new Set();
+function checkAnchors(ms, previous) {
+  if (!anchorBox.hidden) return;
+  const next = state.anchors.find((anchor) => !seen.has(anchor.id) && anchor.atMs > previous && anchor.atMs <= ms);
+  if (!next) return;
+  seen.add(next.id);
+  video.pause();
+  anchorTitle.textContent = next.label;
+  anchorBody.textContent = next.body || '';
+  anchorBox.hidden = false;
+}
+
+function tick() {
+  const ms = video.currentTime * 1000;
+  paintLayers(ms);
+  paintCue(ms);
+  checkAnchors(ms, lastMs);
+  lastMs = ms;
+  seek.value = String(ms);
+  time.textContent = format(ms) + ' / ' + format(video.duration * 1000);
+  requestAnimationFrame(tick);
+}
+
+function playVideo() {
+  void video.play();
+}
+
+play.addEventListener('click', playVideo);
+toggle.addEventListener('click', () => (video.paused ? playVideo() : video.pause()));
+video.addEventListener('play', () => {
+  play.hidden = true;
+  toggle.textContent = '❚❚';
+});
+video.addEventListener('pause', () => {
+  play.hidden = false;
+  toggle.textContent = '▶';
+});
+video.addEventListener('loadedmetadata', () => {
+  seek.max = String(video.duration * 1000);
+});
+seek.addEventListener('input', () => {
+  video.currentTime = Number(seek.value) / 1000;
+  lastMs = Number(seek.value);
+});
+document.getElementById('anchor-continue').addEventListener('click', () => {
+  anchorBox.hidden = true;
+  playVideo();
+});
+
+bindControls();
+syncFields();
+paintLayers(0);
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>

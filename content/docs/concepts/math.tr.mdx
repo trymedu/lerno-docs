@@ -1,0 +1,48 @@
+---
+title: Vektör ve Matris
+description: 'Vector2 ve Matrix3: tüm görselleştirmelerin altındaki cebir.'
+---
+
+## Vector2
+
+Değişmez 2B vektör. Tüm işlemler yeni bir vektör döndürür.
+
+```ts
+import { Vector2, v2 } from '@medu/lerno';
+
+const a = v2(3, 4);
+const b = v2(1, -2);
+
+a.plus(b);        // (4, 2)
+a.times(2);       // (6, 8)
+a.dot(b);         // -5
+a.cross(b);       // -10
+a.magnitude;      // 5
+a.normalized();   // (0.6, 0.8)
+a.rotated(Math.PI / 2);
+a.lerp(b, 0.5);
+```
+
+## Matrix3
+
+2B afin dönüşüm (öteleme + döndürme + ölçek). `Node`'un dönüşümü bu matristir.
+
+```ts
+import { Matrix3, v2 } from '@medu/lerno';
+
+const matrix = Matrix3.translation(10, 20)
+  .times(Matrix3.rotation(Math.PI / 4))
+  .times(Matrix3.scaling(2));
+
+matrix.transformPoint(v2(1, 0)); // noktayı dönüştürür (öteleme dahil)
+matrix.transformDelta(v2(1, 0)); // yön vektörünü dönüştürür (öteleme hariç)
+matrix.inverted();
+matrix.toSVG(); // "matrix(a b c d e f)"
+```
+
+| Statik | Açıklama |
+| --- | --- |
+| `Matrix3.IDENTITY` | Birim matris |
+| `Matrix3.translation(x, y)` | Öteleme |
+| `Matrix3.rotation(rad)` | Döndürme |
+| `Matrix3.scaling(sx, sy?)` | Ölçek |

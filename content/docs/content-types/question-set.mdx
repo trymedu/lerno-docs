@@ -1,0 +1,27 @@
+---
+title: Question set
+description: Sequential assessment.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+Sequential assessment.
+
+## Usage
+
+```ts
+questionSet('quiz-1', { title: 'Quadratics' }, [
+  { kind: 'multiple-choice', prompt: 'Derivative of f(x)=x²?', choices: [{ id: 'a', label: 'x²' }, { id: 'b', label: '2x' }], correct: ['b'] },
+]);
+```
+
+## Embedded Example
+
+<LernoPlayer document={contentTypeDemos['question-set']} />
+
+## How It Is Built
+
+It is not a separate engine; it is a recipe that assembles the right nodes:
+
+- A sequence of `question` nodes on a linear flow

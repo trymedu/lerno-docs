@@ -1,0 +1,77 @@
+---
+title: Fontlar
+description: fontFamily neden zorunlu ve glif kapsamı dile bağımlı olmadan nasıl yoklanır.
+---
+
+`fontFamily` varsayılan değil, **zorunlu** bir seçenektir. `sans-serif` gibi jenerik bir aile her
+makinede farklı çözülür ve fark kozmetik değildir: tek bir makinede ölçüldü:
+
+```
+sans-serif  →  Adım Adım ☒özüm      Ç Ş ç ş eksik
+Helvetica   →  Adım Adım Çözüm      tam
+```
+
+Aynı sahne bir macOS dizüstünde ve bir Linux konteynerinde, metnin var olup olmadığı konusunda
+farklı düşünülebilir. Aileyi açıkça yazmak bu kararı görünür ve denetlenebilir yapar.
+
+## Ne denetleniyor
+
+`exportMp4` aileyi önceden tanımlı bir örneğe değil, **sahnenin çizdiği karakterlere**
+göre yoklar:
+
+```ts
+import { assertGlyphCoverage, collectText, missingGlyphs } from '@medu/lerno-export';
+
+const text = collectText(scene.root.toRender()); // "Adım adım eğri çizimi0%"
+missingGlyphs('Helvetica', text);                // []: hiçbir şey eksik değil
+assertGlyphCoverage('Helvetica', text);          // her eksik karakteri adlandırarak fırlatır
+```
+
+Yoklama sahneyi okuduğu için dile bağlı değildir: Japonca, Arapça, Yunanca veya Vietnamca bir sahne
+tam aynı şekilde korunur; Latin metinli bir sahne bir Latin ailesiyle sorunsuz geçer.
+Bakılacak örnek listesi yoktur.
+
+## Yoklamanın kendisi
+
+`missingGlyphs` her karakteri izole çizer ve hiçbir fontun eşlemediği bir kod noktasıyla
+(`U+0378`) karşılaştırır. İkisi aynı şekilde çıkıyorsa (tofu kutusu ya da hiçbir şey) karakter
+eksiktir.
+
+Karşılaştırma küçük bir PNG üzerinde bayt bayaştır; "dikdörtgente benziyor" gibi sezgisellere bağlı
+değildir ve makineler arasında deterministiktir.
+
+## Font kaydetme
+
+Makinede uygun bir aile yoksa dosyadan kaydedin:
+
+```ts
+import { registerFont } from '@medu/lerno-export';
+
+const family = registerFont({
+  family: 'Lerno Sans',
+  path: '/app/fonts/Inter-Regular.woff2',
+});
+```
+
+Kayıt süreç geneldir ve dosya başına tekrarlanabilir; başlangıçta bir kez çağırmak yeterlidir.
+İçeriğinizin yayınladığı her dili kapsayan bir font seçin. Inter veya Noto Sans gibi OFL fontları
+Latin, Kiril, Yunanca ve Vietnamca'yı kapsar; Noto'nun geri kalanı için yazı tipi aileleri vardır.
+
+## Sınırlar
+
+- **Birinci kare incelenir.** 0. kareden sonra `step` ile ortaya çıkan metin otomatik olarak
+  yoklanmaz. Sonraki kareler farklı karakter gösteriyorsa kendiniz kontrol edin:
+
+  ```ts
+  assertGlyphCoverage(family, collectText(scene.root.toRender()));
+  ```
+
+  Pratikte bir sahnenin sözlüğü kurulumda sabitlenir; sayaçlar ve saatler yalnızca rakam ekler.
+
+- **Kapsam, metrik değildir.** Bir aile bütün gliflere sahip olabilir ama yanlış satır yüksekliği
+  veya aralığa sahip olabilir. Bu görsel bir sorundur, kapsam hatası değil ve burada yakalanmaz.
+
+## İlgili
+
+- [Kullanım](/tr/docs/export/usage): seçeneğin verildiği yer
+- [API](/tr/docs/export/api): düşük seviyeli giriş noktaları

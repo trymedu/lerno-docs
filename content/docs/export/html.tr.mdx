@@ -1,0 +1,60 @@
+---
+title: HTML çıktısı
+description: Belgeden tek dosyalık oynatıcı sayfası üretin. React, bundler veya tarayıcı otomasyonu olmadan.
+---
+
+`exportHtml` bir medya node'unu katmanları, altyazıları ve anchor molalarıyla oynatan tek bir HTML
+dosyası yazar. Çıktı statiktir; çalışma zamanındaki tek bağımlılık videonun kendisidir.
+
+```ts
+import { exportHtml } from '@medu/lerno-export';
+
+const html = exportHtml(document, {
+  nodeId: 'clip',
+  video: '/media/ders.mp4',
+  poster: '/media/ders.jpg',
+  vtt: '/media/ders.tr.vtt',
+  title: 'Serbest düşme',
+});
+
+writeFileSync('ders.html', html);
+```
+
+## Sayfada ne var
+
+| Parça | Davranış |
+| --- | --- |
+| Oynat düğmesi | Videonun ortasında; oynarken gizlenir |
+| Kontrol çubuğu | Oynat/duraklat, sarma, süre |
+| Katmanlar | Beş yerleşik bileşen düz DOM olarak, `placement` ile konumlanır |
+| Altyazı | Cue'lar derleme anında gömülür, videonun üstünde gösterilir |
+| Anchor'lar | Video durur, etiket ve gövde görünür, "Devam et" sürdürür |
+| Mobil | 768 piksel altında katmanlar videonun altına kart olarak iner |
+
+Katman bağları export'ta korunur: anahtarı çevirmek aynı sayfadaki `lab.readout` değerini günceller,
+kaydırıcı değişkeni geri yazar.
+
+## Sayfada ne yok
+
+- Soru anchor'ları etiket ve gövdeyi gösterir; soru bileşeni ve puanlama sayfada yer almaz.
+- Uygulama bileşenlerinin (`app.*`) HTML karşılığı yoktur; yalnızca yerleşik set yazılır.
+- Değişkenler sayfa oturumu boyunca yaşar; kalıcılık yoktur.
+
+Yeni bir bileşen için üreteçteki katman tablosuna karşılık eklenir veya ders kendi uygulamanızda
+`LernoPlayer` ile çizilir.
+
+## Çalışma zamanı değil, derleme
+
+VTT dosyası üretim sırasında ayrıştırılır ve cue'lar JSON olarak gömülür; sayfa altyazı için istek
+atmaz. Üreteci bir derleme adımında veya betikte çalıştırın; sonuç videoyu sunan her yerde barınabilir.
+
+```bash
+bun run html:demo
+```
+
+komutu `apps/lerno-docs/public/lab/serbest-dusme.html` örneğini yeniden üretir.
+
+## İlgili
+
+- [Compositing](/tr/docs/export/compositing): aynı katmanların MP4'e yakılması
+- [Lerno oynatıcı](/tr/docs/react/player): puanlama ve sorularla React oynatıcı

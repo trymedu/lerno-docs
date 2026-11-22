@@ -1,0 +1,87 @@
+---
+title: "Skill: lerno"
+description: 'Çekirdek yazarlık skill''i: tarifler, değişmezler ve determinizmi bozan hatalar.'
+---
+
+Bu sayfa `skills/lerno/SKILL.md`'nin içeriğidir. Görev bir sahne, simülasyon, içerik belgesi,
+değerlendirici veya uzantıysa yükleyin: React bileşeni olmayan her şey. React görevleri
+[Skill: lerno-react](/tr/docs/ai/skills/react) sayfasına gider.
+
+Lerno, **renderer'dan bağımsız bir eğitim görselleştirme çalışma zamanıdır**. Sahne saf veridir:
+değerler `Property`'de, yapı `Node` ağacında yaşar ve çizim `toRender()` ile çerçevesiz bir render
+ ağacına iner. Çekirdek React'i, DOM'u veya veritabanını import etmez.
+
+## Dört tarif
+
+Uygun olan en kısa seçeneği seçin; beşincisini icat etmeyin.
+
+| Hedef | Tarif | Anahtar tipler |
+| --- | --- | --- |
+| Reaktif bir şey çizmek | `Property` → `link(node)` → `Display` | `Property`, `Node`, `CircleNode`, `PathNode` |
+| Zamanla animasyon | `createScreen(name, model, view)` + `Sim` | `Sim`, `SimScreen`, `step(dt)` |
+| Eğri, yol veya diyagram | `CoordinatePlane` + `FunctionPlotter` + `Shape` | `Shape.polyline/polygon/circle` |
+| Model birimini piksele eşlemek | `ModelViewTransform2` | `toPixels`, `toCoords` |
+| Uygulama kaygısı eklemek | `defineExtension` + `LernoHost` | `registry.addNode/Question/Flow` |
+
+## Değişmezler
+
+Bunları ihlal etmek determinizmi bozar; determinizm bozulunca da alttaki her test.
+
+- **Zaman parametredir.** `step(dt)` alır; model kodunda `Date.now()` veya `performance.now()`
+  çağrılmaz. Aynı `dt` dizisi aynı durumu üretmelidir.
+- **Model view'ı görmez.** Model sınıfı `Node`, `CircleNode` veya React'ten bahsedemez. Görünüm
+  `link` ile abone olur, tersi değil.
+- **Paylaşılanda değişmez, sıcak döngüde değişken.** `Vector2` (`dot`) değişmezdir; `Vector2D`
+  (`math`) yerinde değişir ve çizim ile fizik döngülerinin kullanması gereken budur.
+- **Yapısal olarak serileştirilebilir.** Bir `LernoDocument` ve her değişken anlık görüntüsü JSON'dan
+  geçebilmelidir: işlev yok, sınıf örneği yok, DOM düğümü yok.
+- **`any` yok.** Tip daraltması `zod` şemalarıyla olur (`paramsSchema`, `itemSchema`,
+  `responseSchema`). Şekil henüz bilinmiyorsa `unknown` + type guard kullanın.
+
+## İçerik belgeleri
+
+Bir belge, puanlamaya sahip bir düğüm grafiğidir:
+
+```ts
+import { defineDocument, coursePresentation, questionSet } from '@medu/lerno';
+
+const doc = questionSet('quiz-1', { title: 'Title', subject: 'Math', grade: 10 }, [item]);
+```
+
+Düğüm tipleri: `slide`, `question`, `media`, `cards`, `hotspot`, `branch`, `info`, `custom`. Akış
+`linear`, `graph` veya `adaptive` olur; değerlendirme `correct | incorrect | partial | pending |
+ungraded` durumlu bir `GradeOutcome` döndürür.
+
+## Uzantılar ve host
+
+Çekirdek hiçbir teknolojiyi bilmez. Kalıcılık, telemetri, medya ve gerçek zamanlı, boş davranışlı
+varsayılanlarla gelen `LernoHost` adaptörleri olarak gelir; yeni düğüm, soru ve akış tipleri uzantı
+olarak gelir. Bir uzantı çekirdeği düzenleyerek değil, `registry.*` üzerinden eklenir.
+
+## Doğrulama
+
+Her değişiklikten sonra bunları çalıştırın; üçü de geçmelidir.
+
+```bash
+bunx turbo run type-check --filter=@medu/lerno
+bunx turbo run test --filter=@medu/lerno
+cd apps/lerno-docs && bun run build
+```
+
+Testler deterministir ve başsız koşar; bir görselin durumu üzerinden iddia kurulamıyorsa hatalı olan
+renderer değil, testin kendisidir.
+
+## Sık hatalar
+
+| Hata | Düzeltme |
+| --- | --- |
+| Model kodunda render | Çizimi görünüm fabrikasına taşıyın; model saf veri döndürür |
+| Saati okumak | `dt`'yi çağıran kişiden alıp `step`'e verin |
+| Paylaşılan `Vector2`'yi mutasyona uğratmak | Döngüler için `math.Vector2D` kullanın ya da değişmez değeri yeniden atayın |
+| Belge içinde işlev saklamak | Arkasına uzantı koyun; belgeler yalnızca veri tutar |
+| `any` ile yeni kod | `unknown` + zod parse, ya da daha dar bir generic |
+
+## İlgili
+
+- [Genel Bakış](/tr/docs/ai/skills): skill'lerin kurulumu ve doğrulaması
+- [Skill: lerno-react](/tr/docs/ai/skills/react): React karşılığı

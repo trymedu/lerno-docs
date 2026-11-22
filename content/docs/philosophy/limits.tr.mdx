@@ -1,0 +1,28 @@
+---
+title: Kapsam Dışı İşler
+description: Lerno'nun kapsam dışında bıraktığı işler ve bunlar için önerilen alternatifler.
+---
+
+Bir aracın sınırlarının bilinmesi, özelliklerinin bilinmesi kadar önemlidir. Aşağıdaki işler Lerno'nun
+kapsamı dışındadır; her satırda alternatif belirtilmiştir.
+
+| Kapsam dışı iş | Gerekçe | Alternatif |
+| --- | --- | --- |
+| Çok oyunculu fizik ve çarpışma çözücü | Determinizm ve düşük donanım hedefiyle çelişir | Sunucu taraflı fizik motoru; sonuç `Property` olarak bağlanır |
+| Ağır CAD ve mesh işleme | Paket boyutu ve GPU bellek sınırı | Harici araçta üretilir, sonuç `ImageNode` veya 3B model olarak yüklenir |
+| GPU compute ve shader yazımı | `three` sınırının dışına çıkar | `three` doğrudan kullanılır ve `ExtensionNode` ile bağlanır |
+| Gerçek zamanlı ses sentezi | Tarayıcı API'leri çekirdekte tutulmaz | Web Audio bir host adaptörü olarak yazılır |
+| Sunucu taraflı kalıcılık | Çekirdek teknolojiden bağımsızdır | `LernoHost.storage` adaptörü uygulanır |
+| Kimlik doğrulama ve yetkilendirme | Uygulama sorumluluğundadır | Uygulama katmanında çözülür |
+
+## Kapsam içinde olup dikkat gerektiren alanlar
+
+- Çok düğümlü sahneler: SVG birkaç bin düğümden sonra yavaşlar; bu noktada Canvas veya WebGL'e geçilir.
+- Düşük donanım: gölge, yansıma ve yüksek segment sayısı kapatılabilir olmalıdır; varsayılanlar bu nedenle
+  ölçülüdür.
+- Erişilebilirlik: `accessibleName` ve klavye gezinme isteğe bağlı değil, beklenen davranıştır.
+
+## İlke
+
+Bir iş Lerno'nun kapsamına girmesi gerekiyorsa, bu iş bir extension veya host adaptörü olarak yazılır.
+Çekirdeğe teknoloji eklenmez.

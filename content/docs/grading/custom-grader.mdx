@@ -1,0 +1,73 @@
+---
+title: Custom grader
+description: Adding a question kind with defineQuestion or replacing the grader of an existing one.
+---
+
+`defineQuestion` validates the item and the response by schema, and `grade` only ever works on
+narrowed, validated types. Adding a question kind therefore never requires changing the core.
+
+## Configuration
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `kind` | `string` | yes | Identity of the question, referenced as `item.kind` in a document. |
+| `itemSchema` | `ZodType<Item>` | yes | Validates the question definition. |
+| `responseSchema` | `ZodType<Response>` | yes | Validates the answer. |
+| `maxScore` | `(item) => number` | no | Full credit for the question; defaults to `1`. |
+| `grade` | `(item, response) => GradeOutcome` | yes | Comparison and scoring. |
+
+## Validation fallbacks
+
+Two checks run before `grade`. Neither throws; both return:
+
+| Case | Result |
+| --- | --- |
+| `item` fails its schema | `{ status: 'pending', score: 0, maxScore: 0, detail: 'Question could not be validated' }` |
+| `response` fails its schema | `{ status: 'pending', score: 0, maxScore: maxScore(item) ?? 1, detail: 'Awaiting answer' }` |
+
+That behaviour keeps a missing or malformed answer **pending** rather than marking it wrong.
+
+## Example: exact text match
+
+```ts
+import { z } from 'zod';
+import { defineQuestion } from '@medu/lerno';
+
+const exactMatch = defineQuestion({
+  kind: 'short-answer',
+  itemSchema: ShortAnswerItemSchema,
+  responseSchema: z.object({ text: z.string() }),
+  grade: (item, response) => {
+    const hit = item.accepted.includes(response.text.trim());
+    return { status: hit ? 'correct' : 'incorrect', score: hit ? 1 : 0, maxScore: 1 };
+  },
+});
+```
+
+## Registering it
+
+The registry **replaces** the previous entry for the same `kind`, which is what lets a built-in
+kind be redefined from your own package:
+
+```ts
+registry.addQuestion(exactMatch);
+```
+
+```ts
+registry.addFlow('mastery', myResolver);
+registry.addNode({ type: 'flashcard', label: 'Card' });
+```
+
+## Where it applies
+
+The typical use is replacing the built-in `open` kind with an LLM-backed grader. The core knows
+nothing about LLMs; it only finds the registered `open` kind and calls the registered grader. The
+extension performs an HTTP call in its own package and the core never sees it.
+
+Grading, answer storage, and `GradeOutcome` production stay in the session; only the comparison
+changes.
+
+## See also
+
+- [Overview](/docs/grading): statuses and the scoring ratio
+- [Extensions](/docs/extensions): packaging it with `defineExtension`

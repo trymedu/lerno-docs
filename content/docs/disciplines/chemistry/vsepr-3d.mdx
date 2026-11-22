@@ -1,0 +1,21 @@
+---
+title: VSEPR geometries (3D)
+description: Molecular geometries from a central atom and ligand directions.
+---
+
+import { VseprDemo } from '@/components/react/three/VseprDemo';
+import { VisualDemo } from '@/components/react/VisualDemo';
+
+Ligand positions are given as unit vectors. Selecting a geometry rebuilds the scene; the central atom and the ligands are placed along those directions.
+
+<VisualDemo id="vsepr-3d">
+  <VseprDemo />
+</VisualDemo>
+
+## Bond sticks
+
+In this example the bonds are only marked. Placing a cylinder between two atoms requires a rotation that aligns the cylinder's local Y axis with the bond direction. That is done on the `three` side with a `quaternion`, not with bindings; the [3D Scene](/docs/concepts/three) page can be consulted as a starting point.
+
+## Limit
+
+Only the geometry is shown. Electron-pair repulsion, bond-length differences, and steric effects are not modeled.

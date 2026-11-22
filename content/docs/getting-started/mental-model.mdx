@@ -1,0 +1,40 @@
+---
+title: Mental model
+description: Four rules for reading Lerno correctly, and how to select a renderer.
+---
+
+Lerno rests on four rules. Once these rules are understood, the rest of the documentation can be read as
+an API list.
+
+## The model does not know the view
+
+Physics, data, and state are held in `Property` values. The scene graph reads these values through
+`link`. The relationship is bidirectional: one model can be drawn in two presentations.
+
+## Every visual is a Node tree
+
+Shapes, text, and custom drawing are `Node`. The tree is lowered into a framework-agnostic render tree,
+and a renderer handles drawing.
+
+## The renderer is replaceable
+
+The same scene can be drawn to SVG, Canvas, WebGL, or a headless target. Simulation code does not change;
+only the drawing layer does.
+
+| Target | When it applies |
+| --- | --- |
+| SVG | The default target. When node counts stay in the low thousands and CSS theming matters |
+| Canvas | When node counts are high or frequent repaints are required |
+| WebGL (`@medu/lerno-three`) | When 3D, light, materials, and thousands of objects are required |
+| Headless | Video export and deterministic testing |
+
+## Time arrives as dt
+
+Animations and physics are advanced through `step(dt)`. Code that calls `Date.now()` breaks determinism,
+so the core never reads the clock itself.
+
+## Next steps
+
+Core primitives are covered in [Core concepts](/docs/concepts), ready-made graphics in
+[Disciplines](/docs/disciplines), 3D modeling on the [3D scene](/docs/concepts/three) page, and writing
+your own visualization in [Writing a custom visual](/docs/concepts/custom-nodes).

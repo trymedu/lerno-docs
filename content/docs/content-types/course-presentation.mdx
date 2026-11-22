@@ -1,0 +1,27 @@
+---
+title: Slide presentation
+description: A sequence of slides made of blocks.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+A sequence of slides made of blocks.
+
+## Usage
+
+```ts
+coursePresentation('deck-1', { title: 'Derivatives' }, [
+  { title: 'Intro', blocks: [{ type: 'text', markdown: 'Instantaneous rate of change.' }] },
+]);
+```
+
+## Embedded Example
+
+<LernoPlayer document={contentTypeDemos['course-presentation']} />
+
+## How It Is Built
+
+It is not a separate engine; it is a recipe that assembles the right nodes:
+
+- A sequence of `slide` nodes

@@ -1,0 +1,63 @@
+---
+title: HTML output
+description: 'Write a self-contained player page from a document: no React, no bundler, no browser automation.'
+---
+
+`exportHtml` writes one HTML file that plays a media node with its layers, captions, and anchor
+pauses. The output is static; the only runtime dependency is the video itself.
+
+```ts
+import { exportHtml } from '@medu/lerno-export';
+
+const html = exportHtml(document, {
+  nodeId: 'clip',
+  video: '/media/lesson.mp4',
+  poster: '/media/lesson.jpg',
+  vtt: '/media/lesson.tr.vtt',
+  title: 'Free fall',
+});
+
+writeFileSync('lesson.html', html);
+```
+
+## What the page contains
+
+| Part | Behaviour |
+| --- | --- |
+| Play button | Centred over the video, hidden while playing |
+| Control bar | Play/pause, seek, time readout |
+| Layers | The five built-in components as plain DOM, positioned by `placement` |
+| Captions | Cues embedded at build time and shown over the video |
+| Anchors | The video pauses, the label and body appear, "Continue" resumes |
+| Mobile | Below 768 px the layers move under the video as cards |
+
+Layer bindings survive the export: toggling a switch updates a `lab.readout` in the same page, and a
+slider writes its variable back.
+
+## What it does not contain
+
+- Question anchors render their label and body; the question widget and grading are not part of the
+  page.
+- Application components (`app.*`) have no HTML renderer in the export; only the built-in set is
+  written.
+- Variables live for the page session; nothing is persisted.
+
+For a new component, add a painter to the layer style table in the generator or render the lesson with
+`LernoPlayer` inside your own app.
+
+## Build, not runtime
+
+The VTT file is parsed during generation and its cues are embedded as JSON, so the page has no fetch
+for captions. Run the generator in a build step or a script; the result can be hosted anywhere that
+serves the video.
+
+```bash
+bun run html:demo
+```
+
+regenerates the sample at `apps/lerno-docs/public/lab/serbest-dusme.html`.
+
+## Related
+
+- [Compositing](/docs/export/compositing): the same layers burned into an MP4
+- [Lerno player](/docs/react/player): the React player, with grading and questions

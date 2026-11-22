@@ -1,0 +1,43 @@
+---
+title: Overview
+description: The scope of lerno-react, its layers, and its installation.
+---
+
+`@medu/lerno-react` is the thin layer that connects the `@medu/lerno` core to React. The core scene
+graph (`Node`, `Property`, `Shape`) is unchanged; only React components and hooks are added. The
+component library holds no application logic.
+
+## Scope
+
+| Layer | Contents |
+| --- | --- |
+| Drawing | `Display`: draws a `Node` tree as SVG |
+| Hooks | `useProperty`, `useSimStep`, `useAnimationFrame`, `useMotionValue` |
+| Input | `useDrag`: attaches a drag listener to a `Node` |
+| Animation | `useSpring`, `useAnimate` |
+| Components | `Scene`, `CoordinateGrid`, `FunctionCurve`, `VectorArrow` |
+| Document player | `LernoPlayer`: plays a `LernoDocument` |
+
+## Installation
+
+The library runs with React 18 or 19. Because HeroUI components are used, the style package is installed
+as well:
+
+```bash
+bun add @medu/lerno-react @medu/lerno @heroui/react @heroui/styles
+```
+
+The consuming application declares the HeroUI styles and the lerno-react source scan:
+
+```css
+@import 'tailwindcss';
+@import '@heroui/styles';
+
+/* include the lerno-react source package in the Tailwind scan */
+@source '../../packages/lerno-react/src';
+```
+
+## Next step
+
+[First display](/docs/react/getting-started/first-display) binds a `Property` to a `Node` tree
+and draws it as SVG.

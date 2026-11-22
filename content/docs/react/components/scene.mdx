@@ -1,0 +1,45 @@
+---
+title: Scene and coordinate grid
+description: The responsive SVG canvas and the coordinate grid.
+---
+
+## `<Scene />`
+
+`Scene` is a responsive SVG canvas that scales from a fixed `viewBox`. It can show a title in the
+corner.
+
+```tsx
+import { Scene } from '@medu/lerno-react';
+
+<Scene width={960} height={540} title="Free Fall">
+  {/* SVG children */}
+</Scene>;
+```
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `width` | `number` | `960` | `viewBox` width |
+| `height` | `number` | `540` | `viewBox` height |
+| `backgroundColor` | `string` | theme surface | Canvas background |
+| `title` | `string` | None | Label in the top-left corner |
+| `className` / `style` | None | None | Applied to the outer container |
+
+## `<CoordinateGrid />`
+
+Draws the output of `CoordinatePlane.renderSvgElements()`.
+
+```tsx
+import { CoordinateGrid } from '@medu/lerno-react';
+
+<CoordinateGrid plane={plane} showLabels />;
+```
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `plane` | `CoordinatePlane` | None | Source plane |
+| `showLabels` | `boolean` | `true` | Show axis numbers |
+
+<Callout type="warn" title="viewBox alignment">
+  Keep the `Scene` size and the `CoordinatePlane` size the same (both `960 × 540`, for example).
+  Otherwise the grid and the curve are drawn at different scales.
+</Callout>

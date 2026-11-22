@@ -1,0 +1,143 @@
+---
+title: "Skill: lerno-motion"
+description: 'Hareket skill''i: koddan önce storyboard, teslimden önce kare denetimi.'
+---
+
+Bu sayfa `skills/lerno-motion/SKILL.md` dosyasının gövdesidir. Görev hareketin kendisiyse yüklenir:
+easing, yay, keyframe, durma, ritim veya bir animasyonun doğru hissettirmesi isteği. Sahne ve belge
+API'leri [Skill: lerno](/tr/docs/ai/skills/lerno) sayfasına, React bileşenleri
+[Skill: lerno-react](/tr/docs/ai/skills/react) sayfasına aittir.
+
+Lerno animasyonu zamanın saf fonksiyonudur: `step(dt)` girer, kare çıkar, her koşuda aynı sonuç
+üretilir. Bu, kötü hareketin olağan mazeretini ortadan kaldırır. Görüntü yanlışsa hata koddadır.
+
+Skill, iyi animasyonun API bilgisi olmadığı için vardır. İyi animasyon, neyin hareket edeceği, ne
+zaman hareket edeceği ve ne zaman duracağı kararıdır.
+
+## Değişmezler
+
+1. **Storyboard olmadan kod yazılmaz.** Vuruş tablosu doldurulamıyorsa henüz animasyon yoktur.
+2. **Zaman bir parametredir.** `Date.now`, `performance.now`, `Math.random`, `setTimeout`,
+   `setInterval` ve `requestAnimationFrame` kullanılmaz. `motion-lint` bunları hata olarak bildirir.
+3. **Tek vurgu rengi.** Bir renk "buraya bak" anlamına gelir. Kalan her şey nötrdür.
+4. **Her varışın ardından durma gelir.** Dinlenmeyen hareket okunamaz. En az 0,4 saniye.
+5. **Varsayılan olarak hiçbir şey fade ile belirmez.** Fade, karar verilmediğinin işaretidir. Yerine
+   kaydırma, çizme, sıfırdan büyütme veya silme kullanılır; hangisi değişimi anlatıyorsa o seçilir.
+6. **Bakılmayan render teslim edilmiş sayılmaz.** Vuruş anlarında kare çıkarılır ve açılır.
+
+## Akış
+
+| Komut | Çıktı | Şu durumda devam etmez |
+| --- | --- | --- |
+| `/storyboard` | Vuruş tablosu: zaman, vuruş, ne hareket eder, ne durur, neden | Vuruş sayısı ikiden azsa veya durma yoksa |
+| `/build` | Aşağıdaki sözleşmeye uyan tek sahne modülü | `motion-lint` hata bildirirse |
+| `/critique` | Rubrik puanı ve adlandırılmış kusurlar | Kareler çıkarılmamışsa |
+| `/polish` | Aynı sahne; yalnızca hareket ve zamanlama | Yerleşim değişirse |
+| `/export` | MP4, duvar süresi, kare sayfası | Süre hedeften %5'ten fazla saparsa |
+
+## Sahne sözleşmesi
+
+`scripts/frames.ts`, `meta`, `createScene` ve `beats` dışa aktaran bir modülü içe alır. Sahne tek
+dosyada tutulur.
+
+```ts
+import { Node } from '@medu/lerno';
+
+export const meta = {
+  width: 1280,
+  height: 720,
+  fps: 30,
+  duration: 5.8,
+  background: '#FAF8F1',
+  font: { family: 'Arial', path: '/System/Library/Fonts/Supplemental/Arial.ttf' },
+};
+
+export const beats = [0.8, 2.6, 3.6, 4.6];
+
+export function createScene() {
+  let t = 0;
+  const root = new Node();
+  return {
+    root,
+    step(dt: number) {
+      t += dt;
+      root.clearChildren();
+      root.addChild(build(t));
+    },
+  };
+}
+```
+
+Sahneler yalnızca `@medu/lerno` ve yay için `@medu/lerno-motion` içe alır. `@medu/lerno-export`
+çözümlemesini ve bildirilen fontun kaydını çalıştırıcı üstlenir; böylece sahne görseli tanımlar,
+dışa aktarma hattını değil. `root` her adımdan sonra yeniden okunur; alt düğümlerin her karede
+kurulması bu nedenle doğrudur.
+
+## Zaman bütçesi
+
+Her 6–8 saniyede bir fikir işlenir. Yirmi saniyelik bir ders videosu üç cümledir, bir bölüm değil.
+
+| Süre | Vuruş | Vuruş başına durma |
+| --- | --- | --- |
+| 10 sn | 2 | 0,6 sn |
+| 20 sn | 3 | 0,8 sn |
+| 40 sn | 5 | 1,0 sn |
+
+## Hareket sözlüğü
+
+| Amaç | Kullanılan | Kullanılmayan |
+| --- | --- | --- |
+| Bir şey varır | `keyframesNumber` ile `x` ve `Easings.easeOut` | opacity 0 → 1 |
+| Bir şey oturur | Varsayılanlarla `springNumber` | doğrusal tween |
+| Bir şey vurgulanır | 1,08'e bir kez büyüyüp geri dönme | sürekli salınım |
+| İki şey karşılaştırılır | Tek easing ile `stagger(n, 0.08)` | öğe başına farklı eğri |
+| Bir şey çizilir | `Shape` ve ilerleyen `PathNode` | bitmiş şeklin fade'i |
+| Ortam döngüsü | En az 2 saniyelik periyotla `Oscillator` | 0,3 saniyelik döngü |
+
+`sequence([...])` öğeleri sırayla çalıştırır. Aynı anda hareket için her animasyon her karede bir
+dizide adımlanır; bir Lerno sahnesindeki en sık zamanlama hatası bu ayrımın gözden kaçmasıdır.
+
+## Değerlendirme
+
+İki eksen başarısızsa sahne tamamlanmış sayılmaz; görüntünün iyi olması bu sonucu değiştirmez.
+
+| Eksen | Geçme koşulu |
+| --- | --- |
+| Odak | İlk saniyede hareket eden tek öğe var |
+| Ritim | Hareket ve durma dönüşümlü; 3 saniyeden uzun kesintisiz hareket yok |
+| Anlam | Her hareket, fark edilmesi gereken bir değişimi anlatır |
+| Hiyerarşi | Tek vurgu rengi; destek öğeleri nötr |
+| Tipografi | Satır başına en fazla 60 karakter, iki ağırlık, 720p'de en az 24 piksel |
+| Kontrast | Metin, arkasındaki zemine karşı 4,5:1 oranına ulaşır |
+| Determinizm | `motion-lint` sıfır kodla çıkar |
+| Süre | Storyboard hedefinden sapma %5'i aşmaz |
+
+Yargılanan karelerdir, niyet değil. Kusur, vuruşu ve göründüğü saniyeyi adlandırır: "3,6 saniyede
+etiketler çakışıyor" bir bulgudur; "tuhaf hissettiriyor" değildir.
+
+## Doğrulama
+
+```bash
+bun skills/lerno-motion/scripts/motion-lint.ts apps/lerno-docs/scenes/horizontal-throw.ts
+
+bun skills/lerno-motion/scripts/frames.ts apps/lerno-docs/scenes/horizontal-throw.ts --out .motion
+```
+
+`frames.ts` duvar süresini, kare sayısını ve çıktı boyutunu yazar, ardından her vuruş için bir PNG
+çıkarır. Sayılar tahmin edilmez, ölçülür: 6 saniyelik 720p30 sahne M serisi bir dizüstünde bir
+saniyenin altında çizilir.
+
+## Başvuru dosyaları
+
+| Dosya | İçerik |
+| --- | --- |
+| `skills/lerno-motion/references/storyboard.md` | Vuruş tablosu biçimi, süre matematiği, kesme listesi |
+| `skills/lerno-motion/references/critique.md` | Yordam, rubrik, anti-slop kataloğu |
+| `skills/lerno-motion/scripts/motion-lint.ts` | Sahne dosyası üzerinde statik denetim |
+| `skills/lerno-motion/scripts/frames.ts` | MP4 render ve vuruş karesi çıkarma |
+
+## İlgili
+
+- [Genel Bakış](/tr/docs/ai/skills): skill'lerin kurulumu ve doğrulaması
+- [Skill: lerno](/tr/docs/ai/skills/lerno): sahne grafiği, belgeler, puanlama
+- [Karşılaştırma](/tr/docs/getting-started/comparison): aynı hikâyenin üç araçla kurulumu

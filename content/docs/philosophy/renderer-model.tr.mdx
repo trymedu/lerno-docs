@@ -1,0 +1,44 @@
+---
+title: Renderer ve Render Ağacı
+description: Çekirdeğin bir sahneyi nasıl tanımladığı ve bir renderer'ın onu nasıl çizdiği.
+---
+
+Lerno'nun React Native ile ortak noktası tek bir ilkedir: deklaratif bir çekirdek ve birden çok çizim
+hedefi. React Native'de bu köprü native görünümlerdir; Lerno'da render ağacıdır.
+
+## Sözleşme
+
+Her `Node`, kendisini bir render ağacına dönüştürür. Render ağacı saf veridir: tip, geometri, stil,
+dönüşüm, opaklık ve çocuklar. İçinde DOM, React veya WebGL tipi bulunmaz.
+
+```ts
+const tree = root.toRender();
+// { type: 'group', children: [
+//   { type: 'circle', centerX: 240, centerY: 160, radius: 40, fill: ... },
+// ]}
+```
+
+Bir renderer bu ağacı alır ve kendi hedefine çizer. Kullanılabilir renderer'lar aşağıda listelenmiştir.
+
+| Renderer | Girdi | Çıktı |
+| --- | --- | --- |
+| SVG (`Display`) | Render ağacı | SVG düğümleri |
+| Canvas | Render ağacı | 2B canvas çağrıları |
+| WebGL (`@medu/lerno-three`) | Sahne tanımı ve değişkenler | Three.js nesneleri |
+| Headless | Render ağacı | Metin ve ölçüm, test |
+
+## Yeni renderer
+
+Yeni bir hedef eklemek için iki koşul karşılanır:
+
+1. `RenderElement` birliğinin her üyesi çizilir.
+2. `source` alanı dolu olan düğümlerde pointer olayları ilgili `Node`'a iletilir.
+
+Özel görseller için render ağacını genişletmek gerekmez. `ExtensionNode`, taşıdığı `rendererId` ile özel
+çizime bağlanır; çekirdek bu kimliğin anlamını bilmez.
+
+## Ayrımın gerekçesi
+
+- Simülasyon mantığı tek yerde kalır; hedef sayısı arttığında kopya oluşmaz.
+- Testler DOM olmadan çalışır; aynı sahne başsız olarak ölçülebilir.
+- Video dışa aktarımı ayrı bir çizim yolu değildir; aynı render ağacının başka bir tüketicisidir.

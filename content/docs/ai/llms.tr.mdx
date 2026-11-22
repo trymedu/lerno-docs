@@ -1,0 +1,60 @@
+---
+title: LLM Metin Çıktısı
+description: Dokümantasyonu dil modelleri için Markdown olarak sunan rotalar.
+---
+
+Lerno dokümantasyonu doğrudan bir model tarafından okunabilir. Üç rota vardır; hepsi
+`lib/source.ts` içindeki `llms()` ile sayfa ağacından üretilir ve hiçbiri HTML render etmez.
+
+## Rotalar
+
+| Rota | İçerik | Maliyet |
+| --- | --- | --- |
+| `GET /llms.txt` | Dizin: her sayfanın başlığı, adresi ve açıklaması | Küçük: önce bunu okuyun |
+| `GET /llms-full.txt` | `renderPage` ile her sayfanın tamamı, tek belgede | Büyük: yalnızca gerektiğinde |
+| `GET /llms.mdx/docs/<slug>/content.md` | Tek bir sayfa, Markdown | Sayfa başına |
+
+Her rota dil ön ekiyle de erişilebilir: `/tr/llms.txt` Türkçe dizini döndürür, öneksiz rota ise
+varsayılan dili (İngilizce) döndürür.
+
+## İçerik pazarlığı
+
+Markdown isteyen bir istemci, HTML yerine Markdown alır. Tüketicinin tarafında kod değişikliği
+gerekmez:
+
+```bash
+curl -H 'Accept: text/markdown' https://example.org/tr/docs/getting-started
+```
+
+Proxy isteği `llms.mdx/docs/getting-started/content.md` adresine yazar; aynı adres hem tarayıcı hem
+ajan için çalışır.
+
+## Markdown ne içerir
+
+`renderPage` **işlenmiş** belgeyi kullanır, ham kaynağı değil:
+
+```
+# Başlık (/tr/docs/slug)
+<İşlenmiş Markdown>
+```
+
+MDX bileşenleri JSX sözdizimini korur; bu yüzden tablolar ve kod çitleri bozulmaz, özel bileşenler
+bir modelin kopyalayabileceği etiket olarak görünür.
+
+## Üretim gereksinimi
+
+İçerik kaynağında `includeProcessedMarkdown: true` tanımlı olmalıdır; `page()` ve `full()` yalnızca
+`renderPage` verildiğinde açılır, çünkü Fumadocs kaynağın Markdown'ı nasıl ifade ettiğini bilemez.
+
+## Hangi durumda hangi rota
+
+| Durum | Rota |
+| --- | --- |
+| Dokümantasyonun yapısını keşfetmek | `llms.txt` |
+| Tek bir API üyesi hakkında soru | o üyenin `content.md` |
+| İnce ayar veya çevrimdışı küme | `llms-full.txt` |
+
+## İlgili
+
+- [Genel Bakış](/docs/ai): yapay zekâ destekli çalışma için üç yüzey
+- [Agent Skill'leri](/docs/ai/skills): kodlama ajana verilecek talimatlar

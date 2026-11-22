@@ -1,0 +1,48 @@
+---
+title: Oynatma Hook'u
+description: usePlayback ile requestAnimationFrame tabanlı zaman çizelgesi.
+---
+
+`usePlayback`, interaktif bileşenlerde 0 → 1 arası bir ilerleme değeri üretir. Remotion zorunluluğu
+olmadan tarayıcıda deterministik animasyon sağlar.
+
+## Kullanım
+
+```tsx
+import { usePlayback } from '@medu/lerno-react';
+
+function Demo() {
+  const { progress, playing, play, pause, reset } = usePlayback({ duration: 1600, loop: false });
+
+  return (
+    <div>
+      <progress value={progress} max={1} />
+      <button onClick={play}>{playing ? 'Duraklat' : 'Oynat'}</button>
+      <button onClick={pause}>Durdur</button>
+      <button onClick={reset}>Başa al</button>
+    </div>
+  );
+}
+```
+
+## Dönen Değerler
+
+| Alan | Tip | Açıklama |
+| --- | --- | --- |
+| `progress` | `number` | `0.0` → `1.0` ilerleme (başlangıçta `1`) |
+| `playing` | `boolean` | Animasyon sürüyor mu |
+| `play` | `() => void` | Sıfırdan başlatır |
+| `pause` | `() => void` | Mevcut karede durdurur |
+| `reset` | `() => void` | Durdurur ve `progress = 1` yapar |
+
+## Seçenekler
+
+| Seçenek | Tip | Varsayılan | Açıklama |
+| --- | --- | --- | --- |
+| `duration` | `number` | `1500` | Toplam süre (ms) |
+| `loop` | `boolean` | `false` | Bitişte başa döner |
+
+<Callout type="info" title="Animasyonu çizime bağlayın">
+  `progress` değerini `FunctionPlotter.drawProgress` veya `ProjectileTrajectory.progress` gibi prop'lara
+  vererek animasyonu çizime bağlayın.
+</Callout>

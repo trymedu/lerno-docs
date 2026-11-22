@@ -1,0 +1,66 @@
+---
+title: FAQ
+description: Short answers to the questions that come up before the first lesson ships.
+---
+
+## Which package do I start with?
+
+`@medu/lerno` if you want scenes, documents, or grading without React. `@medu/lerno-react` if you are
+building a React interface. `@medu/lerno-export` only when you need a file out. MP4 or HTML.
+
+## Can I use Lerno without React?
+
+Yes. The core imports neither React nor the DOM. `createLessonStage`, `layersAt`, and `Display`'s
+render tree are plain values; `@medu/lerno-export` draws them with canvas.
+
+## Why does everything fade in?
+
+That is the default an agent reaches for when no beat was decided. The `lerno-motion` skill exists for
+this: a beat table first, then one deliberate move per element. See [Skill: lerno-motion](/docs/ai/skills/motion).
+
+## Where should a timer, a layer, or a question live?
+
+In the document. A layer is `fromMs`/`toMs` plus props and an optional binding; an anchor is a time
+with an action; a question is an item with a grade. The player only renders what the document says.
+
+## Do I need ffmpeg?
+
+Only for MP4 output. `exportMp4` uses the binary from `FFMPEG_PATH`, `ffmpeg-static`, or `PATH`. HTML
+output and the player need nothing.
+
+## Can I export without a browser?
+
+Yes. The MP4 pipeline is ffmpeg plus `@napi-rs/canvas`; the HTML pipeline is string generation. No
+Chromium, no screenshotting, no headless page.
+
+## Can I export a 3D scene headlessly?
+
+No. `@medu/lerno-three` draws with WebGL in a browser and produces pixels, not a render tree, so
+`@medu/lerno-export` rejects a Three.js scene with a dedicated error. Render the 3D layer in a browser
+or a WebGL backend, then composite the resulting video with `exportMp4({ video })`.
+
+## What is the difference between `ScenePlayer` and `LernoPlayer`?
+
+`LernoPlayer` walks a document: nodes, questions, grading, score. `ScenePlayer` plays one scene graph
+against its own clock and has no session. Use the second for a rendered visual, the first for a lesson.
+
+## How do I persist progress?
+
+Wrap the host storage. `createBrowserHost()` writes the session and the playhead to `localStorage` with
+a versioned envelope; pass it as `host` to `useLessonStage`.
+
+## Why does the same lesson look different in MP4 and in the app?
+
+The app draws React components; the MP4 draws the canvas painters in `@medu/lerno-export`. They share
+the time window, visibility rules, and bindings, but not the pixels. If a component has no painter, the
+export warns and skips it instead of dropping it silently.
+
+## Can two layers overlap?
+
+Yes, document order decides. Later layers paint on top; `fadeMs` fades each one inside its own range.
+
+## Does the document format change?
+
+It carries `schemaVersion`, and `defineDocument` migrates older documents through `migrateDocument`
+before validating. An unknown future version throws instead of being read as the current one. See
+[Document model](/docs/content-types/model).

@@ -1,0 +1,62 @@
+---
+title: Denklem Sorusu
+description: Gösterim farklarını eşitleyen normalizasyon kuralları.
+---
+
+`equation` tipi, matematiksel olarak eşit ifadelerin farklı yazımlarını aynı biçimde karşılaştırır.
+Karşılaştırma, cevap ve kabul edilen değerler **aynı normalizasyon fonksiyonundan** geçtikten sonra
+yapılır; bu yüzden yazım farkı yanlış cevap üretmez.
+
+## Kullanım
+
+```ts
+import { questionSet, createSession } from '@medu/lerno';
+
+const document = questionSet('quiz-1', { title: 'Türevler' }, [
+  { kind: 'equation', prompt: 'x² türevini yazın.', accepted: ['2x', '2*x'] },
+]);
+
+const session = createSession(document);
+const { outcome } = session.answer('q1', { text: '2·x' });
+
+outcome.status; // 'correct': '·' sembolü '*' olarak normalleştirildi
+```
+
+`accepted` dizisindeki değerlerden **herhangi biri** eşleşirse cevap doğrudur. Bu soruda `2*x`,
+`2·x` ve `2x` üçü de `correct` döner; `2x+1` ise `incorrect` döner.
+
+## Normalizasyon kuralları
+
+| Kural | Örnek |
+| --- | --- |
+| LaTeX yardımcıları çıkarılır | `\left`, `\right`, `\cdot`, `\times`, `\,` |
+| Üst simgeler standart hâle gelir | `x²` → `x^2`, `x³` → `x^3` |
+| Çarpım sembolleri birleştirilir | `×`, `·`, `⋅`, `∗` → `*` |
+| Eksi sembolleri birleştirilir | Unicode eksi ve tire işaretleri `-` olarak normalleştirilir |
+| Boşluklar ve süslü parantezler silinir | `2 * x` → `2*x`, `{x}` → `x` |
+| Çift yıldız üslüye çevrilir | `x**2` → `x^2` |
+| Boş parantezler atılır | `f()` → `f` |
+| Harf küçültülür | `2X` → `2x` |
+
+Küçültme işlemi Türkçe yerel ayarıyla (`tr`) yapılır; `caseSensitive: true` verilirse yalnızca
+boşluk ve ayrıştırıcı normalizasyonu uygulanır.
+
+## Ne yapmaz
+
+Normalizasyon sembolik değildir. Şunları **eşitlemez**:
+
+- Türev veya integral hesabı: `d/dx x²` ile `2x` farklıdır
+- Sayısal yuvarlama: `0,333` ile `1/3` eşit değildir
+- Geometrik özdeşlikler: `sin²x + cos²x` ile `1`
+
+Bu durumda geniş bir `accepted` dizisi ya da bir uzantı gerekir.
+
+## Sembolik denklik
+
+Gerçek sembolik eşdeğerlik için (CAS), `defineQuestion` ile `equation` değerlendiricisini kendi
+paketinizde değiştirebilirsiniz. Çekirdek hiçbir CAS bağımlılığı içermez; bkz.
+[Özel Değerlendirici](/tr/docs/grading/custom-grader).
+
+## İlgili
+
+- [Genel Bakış](/tr/docs/grading): durumlar ve puan oranı

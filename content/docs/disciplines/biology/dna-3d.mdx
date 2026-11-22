@@ -1,0 +1,25 @@
+---
+title: DNA (3D)
+description: The 3D geometry of the double helix and its base-pair markers.
+---
+
+import { DnaDemo } from '@/components/react/three/DnaDemo';
+import { VisualDemo } from '@/components/react/VisualDemo';
+
+The helix is built by rotating two strands around the Y axis. Each rung carries two backbone atoms and one marker between them.
+
+<VisualDemo id="dna-3d">
+  <DnaDemo />
+</VisualDemo>
+
+## Rotation
+
+```ts
+group('helix', children, { bindings: { 'rotation.y': 'spin' } });
+```
+
+A group node binds the whole helix to a single variable. Rotating it does not require updating every atom.
+
+## Limit
+
+This is not a molecular dynamics model. Bond angles and base stacking are approximate; the goal is to recognize the structure, not to compute energies.

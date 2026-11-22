@@ -1,0 +1,23 @@
+---
+title: Genel Bakış
+description: Sahneyi çizen bileşenler ve primitif çizim parçaları.
+---
+
+Bu bölüm, doğrudan sahneye yerleştirilen iki grubu toplar: düzeni kuran bileşenler ve kendi
+çizimini yapan primitif parçalar. Her ikisi de `Node` ağacının üzerine biner; hazır bir görsel
+kütüphanesi değildir, kendi düzeninizi kurmak için kullanılır.
+
+| Sayfa | Ne kapsar |
+| --- | --- |
+| [Scene ve Koordinat Izgarası](/tr/docs/react/components/scene) | Duyarlı tuval, eksen ve ızgara çizimi |
+| [Primitif Bileşenler](/tr/docs/react/components/primitives) | `FunctionCurve`, `VectorArrow`, `TangentLine`, `RiemannSum`, `ProjectileTrajectory`, `MoleculeView` |
+
+## Kullanım
+
+Bileşenler tek başına değil, bir sahne içinde kullanılır. Tipik kurulum `[Scene]` + `[CoordinateGrid]`
++ çizim parçası sırasıdır; her parçanın `plane` ya da `state` gibi ortak bir girdisi vardır.
+
+## Ne değildir
+
+Bu bileşenler hazır bir dashboard veya grafik kütüphanesi değildir. Bir bileşen yalnızca kendi
+çizimini yapar; veri, ölçek ve renk seçimi çağırandadır.

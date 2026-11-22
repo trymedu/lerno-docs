@@ -1,0 +1,27 @@
+---
+title: Interactive book
+description: A reading flow that advances chapter by chapter.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+A reading flow that advances chapter by chapter.
+
+## Usage
+
+```ts
+interactiveBook('book-1', { title: 'Limits' }, [
+  { title: 'Chapter 1', blocks: [{ type: 'text', markdown: 'The idea of approaching.' }] },
+]);
+```
+
+## Embedded Example
+
+<LernoPlayer document={contentTypeDemos['interactive-book']} />
+
+## How It Is Built
+
+It is not a separate engine; it is a recipe that assembles the right nodes:
+
+- A sequence of `slide` nodes (type: book)

@@ -1,0 +1,28 @@
+---
+title: Sanal Laboratuvar
+description: Simülasyon ve adım soruları.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+Simülasyon ve adım soruları.
+
+## Kullanım
+
+```ts
+virtualLab('lab-1', { title: 'Sarkaç Laboratuvarı' }, {
+  setup: 'Sarkaç: L = 1.5 m, g = 9.8 m/s², başlangıç açısı 30°.',
+  steps: [{ instruction: 'Uzunluğu yarıya indirin.', question: { kind: 'equation', prompt: 'Periyot formülü?', accepted: ['2*pi*sqrt(L/g)'] } }],
+});
+```
+
+## Gömülü Örnek
+
+<LernoPlayer document={contentTypeDemos['virtual-lab']} />
+
+## Nasıl Kurulur
+
+Ayrı bir motor değildir; doğru düğümleri bir araya getiren bir reçetedir:
+
+- `slide` (kurulum metni) + adım `slide`'ları + `question`

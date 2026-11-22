@@ -1,0 +1,27 @@
+---
+title: Kartlar
+description: Çevir, eşleştir veya sırala.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+Çevir, eşleştir veya sırala.
+
+## Kullanım
+
+```ts
+cardsDeck('kartlar-1', { title: 'Hızlı Tekrar' }, [
+  { front: 'Türev', back: 'Anlık değişim oranı' },
+], 'flip');
+```
+
+## Gömülü Örnek
+
+<LernoPlayer document={contentTypeDemos['cards']} />
+
+## Nasıl Kurulur
+
+Ayrı bir motor değildir; doğru düğümleri bir araya getiren bir reçetedir:
+
+- `cards` node (flip / match / order)

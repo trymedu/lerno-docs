@@ -1,0 +1,65 @@
+---
+title: Property
+description: 'Observable value: reads, writes, listeners, and derived values.'
+---
+
+`Property` is the single mutation point of the model layer. The value is read, written, and
+announced to listeners; the view reads it through `link`. Because the model never sees the view, one
+value can feed two presentations, and the same property can drive a headless test.
+
+Every write goes through an equality check: when the new value equals the current one, listeners are
+not called. That is what prevents redundant repaints in the scene graph.
+
+## Constructor
+
+<TypeTable type={{
+    "new Property(value, options?)": { description: <>With <code>options.equals</code> the equality test is delegated to that function.</> },
+}} />
+
+`PropertyOptions.equals?: (a, b) => boolean`: the default comparison is `===`, which is rarely
+enough for object values; `Vector2` is immutable, so identity works there.
+
+## Properties
+
+<TypeTable type={{
+    "value": { type: "T", description: <>Read and write accessor. Writing behaves exactly like <code>set</code>.</> },
+    "initial": { type: "T", description: <>The value passed at construction; <code>reset</code> restores it.</> },
+    "listenerCount": { type: "number", description: "Number of subscribers." },
+}} />
+
+## Methods
+
+<TypeTable type={{
+    "get()": { type: "T", description: "Reads the current value." },
+    "set(next)": { type: "void", description: "Writes the value and notifies listeners. Nothing happens when the value did not change." },
+    "reset()": { type: "void", description: <>Returns to <code>initial</code>.</> },
+    "link(listener)": { type: "() => void", description: "Adds a listener and calls it **immediately** with the current value. The return value unsubscribes." },
+    "lazyLink(listener)": { type: "() => void", description: "Subscription without the immediate call; fires only on change. Used by derived values." },
+    "unlink(listener)": { type: "void", description: "Removes the given listener; an unknown listener is ignored." },
+    "dispose()": { type: "void", description: "Drops every listener; the property stops notifying." },
+}} />
+
+The difference between `link` and `lazyLink` decides the first frame: UI code wants `link` for an
+instant draw, and a derived value wants `lazyLink` so construction emits no update.
+
+## Derived values
+
+`DerivedProperty` is a read-only value computed from others.
+
+<TypeTable type={{
+    "new DerivedProperty(dependencies, derive)": { description: <>Reads <code>dependencies</code> in order; <code>derive</code> must be pure.</> },
+    "get isDisposed()": { description: <><code>true</code> once <code>dispose</code> has been called.</> },
+    "dispose()": { description: "Drops dependency subscriptions and every listener." },
+}} />
+
+Dependencies are attached with `lazyLink`, so creating a derived value never changes the current one.
+
+## React side
+
+`useProperty(property)` connects this object to React: it reads the value and triggers a repaint on
+change. Details: [Display and hooks](/docs/react/concepts/scenery).
+
+## See also
+
+- Relation to the scene graph: [Reactive model](/docs/concepts/model)
+- A separate class for events: [Emitter](/docs/concepts/model)

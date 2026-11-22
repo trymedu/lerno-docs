@@ -1,0 +1,48 @@
+---
+title: Playback hook
+description: A requestAnimationFrame timeline with usePlayback.
+---
+
+`usePlayback` produces a 0 → 1 progress value for interactive components. It provides deterministic
+animation in the browser without pulling in Remotion.
+
+## Usage
+
+```tsx
+import { usePlayback } from '@medu/lerno-react';
+
+function Demo() {
+  const { progress, playing, play, pause, reset } = usePlayback({ duration: 1600, loop: false });
+
+  return (
+    <div>
+      <progress value={progress} max={1} />
+      <button onClick={play}>{playing ? 'Pause' : 'Play'}</button>
+      <button onClick={pause}>Stop</button>
+      <button onClick={reset}>Reset</button>
+    </div>
+  );
+}
+```
+
+## Returned values
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `progress` | `number` | `0.0` → `1.0`, starting at `1` |
+| `playing` | `boolean` | Whether the animation is running |
+| `play` | `() => void` | Restarts from zero |
+| `pause` | `() => void` | Stops on the current frame |
+| `reset` | `() => void` | Stops and sets `progress = 1` |
+
+## Options
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `duration` | `number` | `1500` | Total duration in milliseconds |
+| `loop` | `boolean` | `false` | Restart at the end |
+
+<Callout type="info" title="Connect it to the drawing">
+  Pass `progress` to props such as `FunctionPlotter.drawProgress` or `ProjectileTrajectory.progress`.
+  That is the whole link between the timeline and the picture.
+</Callout>

@@ -1,0 +1,38 @@
+---
+title: İlk Sahne
+description: Property, Node ve Display ile çalışan ilk sahne.
+---
+
+import { FirstSceneExample } from '@/components/react/examples/FirstSceneExample';
+
+Bu sayfa, tek bir `Property` değerinin bir `Node` ağacına bağlanmasını ve SVG olarak çizilmesini
+gösterir.
+
+## Örnek
+
+Aşağıdaki bileşen, yarıçapı bir `Property` ile yönetilen bir daire çizer. **Preview** canlı sahneyi,
+**Code** bu sahneyi kuran kodu, **JSON** ise `root.toRender()` çıktısını gösterir: çerçevesiz render
+ağacı.
+
+<FirstSceneExample />
+
+## Davranış
+
+Üç davranış bu örneğin anlaşılması için yeterlidir.
+
+- `link`, dinleyiciyi mevcut değerle hemen çağırır. Bu nedenle `circle.radius` ilk karede doğru değeri
+  taşır.
+- Düğümler değiştirilebilir. `circle.radius = value` ataması yeni bir düğüm üretmez; sahne grafiği canlı
+  bir nesnedir.
+- `useProperty(radius)` yalnızca React'in yeniden çizmesini tetikler. Çizim, `Display` içinde
+  `root.toRender()` çağrısıyla gerçekleşir; JSON sekmesi de tam bu çıktıyı verir.
+
+## JSON sekmesinde ne var
+
+`toRender()` girdi düğümleri için `source` alanı eklemez (bu örnek hiçbir düğüme dinleyici takmadığı
+için), dolayısıyla çıktı doğrudan serileştirilebilir. Çıktı `{ type, geometry, paint, transform,
+children }` biçimindedir ve herhangi bir React veya SVG tipi içermez.
+
+## Sonraki adım
+
+Simülasyon kavramı için [İlk Simülasyon](/tr/docs/getting-started/first-simulation) sayfasına geçilir.

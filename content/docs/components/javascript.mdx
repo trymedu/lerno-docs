@@ -1,0 +1,66 @@
+---
+title: JavaScript (no React)
+description: Drive the same manifest and variables from plain JavaScript.
+---
+
+The interaction system lives in `@medu/lerno`, not in the React package. React is one renderer; a
+vanilla page reads the same document, asks the runtime which layers are visible, and draws its own DOM.
+
+The names below are deliberate: `document` is the `LernoDocument`, and the browser DOM is read through
+`window.document`.
+
+```js
+import { createSession, createInteractionRuntime, defineDocument } from '@medu/lerno';
+
+// the manifest this page loaded
+/** @type {import('@medu/lerno').LernoDocument} */
+const document = defineDocument(manifest);
+
+const session = createSession(document);
+const runtime = createInteractionRuntime(document, session);
+
+const dom = window.document;
+const video = dom.querySelector('video');
+const root = dom.querySelector('#layers');
+
+function render() {
+  root.replaceChildren();
+
+  for (const { layer, props, value } of runtime.layersAt('clip', video.currentTime * 1000)) {
+    const button = dom.createElement('button');
+    button.type = 'button';
+    button.textContent = String(props.label ?? layer.component);
+    button.setAttribute('aria-pressed', String(value === true));
+    button.addEventListener('click', () => runtime.change(layer, value !== true));
+    root.append(button);
+  }
+}
+
+video.addEventListener('timeupdate', render);
+runtime.subscribe(render);
+render();
+```
+
+## What the core gives you
+
+| API | Returns |
+| --- | --- |
+| `createInteractionRuntime(document, session)` | Runtime bound to one session |
+| `runtime.layersAt(nodeId, ms)` | Visible layers with resolved `$var` props and bound value |
+| `runtime.change(layer, value)` | Writes the bound variable through the session |
+| `runtime.subscribe(listener)` | Session state changes, including variables |
+| `activeLayers(layers, ms, variables)` | Pure helper for custom loops |
+| `resolveLayerProps(props, variables)` | Pure `$var` resolver |
+
+## What stays yours
+
+- The visual components. The React package ships `ui.switch`, `ui.select`, and friends; a vanilla page
+  can use native `<button>`, `<select>`, or any DOM library, as long as it writes through
+  `runtime.change`.
+- The player chrome. `runtime` cares about time, layers, and variables, not about play/pause buttons.
+- The component map. `layer.component` is a type id; your renderer decides what to draw for it.
+
+## Export
+
+The same runtime runs in Node for headless rendering: pass a `Timeline` or a frame time to
+`layersAt`, then draw with `@medu/lerno-export`. No DOM is required.

@@ -1,0 +1,76 @@
+---
+title: Fonts
+description: Why fontFamily is required, and how glyph coverage is probed independently of language.
+---
+
+`fontFamily` is a required option, not a default. A generic family such as `sans-serif` resolves
+differently on every host, and the difference is not cosmetic: measured on one machine:
+
+```
+sans-serif  →  Adım Adım ☒özüm      Ç Ş ç ş missing
+Helvetica   →  Adım Adım Çözüm      complete
+```
+
+The same scene exported on a macOS laptop and a Linux container can disagree about whether the text
+is there at all. Naming the family makes that decision explicit and reviewable. The sample text uses Turkish letters on purpose to exercise `Ç`, `Ş`, `ç`, and `ş`.
+
+## What gets checked
+
+`exportMp4` probes the family against **the characters the scene actually draws**, not a preset
+sample:
+
+```ts
+import { assertGlyphCoverage, collectText, missingGlyphs } from '@medu/lerno-export';
+
+const text = collectText(scene.root.toRender()); // "Adım adım eğri çizimi0%"
+missingGlyphs('Helvetica', text);                // []: nothing is missing
+assertGlyphCoverage('Helvetica', text);          // throws, naming every missing character
+```
+
+Because the probe reads the scene, it is language-independent: a Japanese, Arabic, Greek, or
+Vietnamese scene is guarded exactly the same way, and a Latin-only scene on a Latin-only font
+passes. No sample list to maintain.
+
+## The probe itself
+
+`missingGlyphs` renders each character in isolation and compares it to a codepoint no font maps
+(`U+0378`). If both render identically (a tofu box, or nothing at all) the character is absent.
+
+The comparison is byte-exact on a small PNG, so the result does not depend on heuristics like
+"looks like a rectangle", and it is deterministic across machines.
+
+## Registering a font
+
+When the host has no suitable family, register one from a file:
+
+```ts
+import { registerFont } from '@medu/lerno-export';
+
+const family = registerFont({
+  family: 'Lerno Sans',
+  path: '/app/fonts/Inter-Regular.woff2',
+});
+```
+
+Registration is process-wide and idempotent per file, so calling it once at start-up is enough.
+Pick a font that covers every language your content ships in: an OFL face such as Inter or Noto
+Sans covers Latin, Cyrillic, Greek, and Vietnamese, and Noto has per-script families for the rest.
+
+## Limits
+
+- **The first frame is inspected.** Text introduced by `step` after frame 0 is not probed
+  automatically. When later frames show different characters, check them yourself:
+
+  ```ts
+  assertGlyphCoverage(family, collectText(scene.root.toRender()));
+  ```
+
+  In practice a scene's vocabulary is fixed at build time: counters and clocks only add digits.
+
+- **Coverage is not metrics.** A family can contain every glyph and still have wrong line
+  heights or spacing. That is a visual concern, not a coverage failure, and it is not detected here.
+
+## See also
+
+- [Usage](/docs/export/usage): where the option is passed
+- [API](/docs/export/api): the lower-level entry points

@@ -1,0 +1,78 @@
+---
+title: Node
+description: 'Sahne grafiği düğümü: dönüşüm alanları, ağaç işlemleri, input ve render çıktısı.'
+---
+
+`Node`, sahne grafiğinin temel taşıdır. Her düğüm kendi dönüşümünü, görünürlüğünü ve çocuklarını
+taşır; `toRender()` çağrısı ağaçtaki tüm alt ağaçları framework'ten bağımsız bir render ağacına
+dönüştürür. Düğüm değiştirilebilir olduğundan bir `Property` dinleyicisi değeri yazdığı anda sahne
+güncellenir; React'in yeniden çizmesi gerekmez.
+
+## Constructor
+
+<TypeTable type={{
+    "new Node(options?)": { description: <><code>NodeOptions</code> alanlarıyla boş bir düğüm kurar. Alanlar verilmezse varsayılanlar kullanılır: <code>visible</code> açık, <code>opacity</code> <code>1</code>, <code>translation</code> sıfır, <code>rotation</code> <code>0</code>, <code>scale</code> <code>1</code>.</> },
+}} />
+
+## Properties
+
+<TypeTable type={{
+    "children": { type: "Node[]", description: <>Alt düğümler. Dizi düğümün kendisine aittir; <code>addChild</code> ile değişir, yeniden atanamaz.</> },
+    "visible": { type: "boolean", description: <><code>false</code> olduğunda alt ağaç tamamen çizilmez (<code>display: none</code>).</> },
+    "opacity": { type: "number", description: <><code>0</code>–<code>1</code> aralığında saydamlık; alt ağaçlara katılır.</> },
+    "translation": { type: "Vector2", description: <>Yerel eksendeki öteleme. Değişmez <code>Vector2</code> olduğu için yeniden atanır.</> },
+    "rotation": { type: "number", description: "Radyan cinsinden dönme, orijine göre." },
+    "scale": { type: "Vector2", description: <>Yerel ölçek; <code>v2(2, 1)</code> yalnızca yatay büyütür.</> },
+    "inputEnabled": { type: "boolean", description: <><code>true</code> ise render çıktısı bu düğümü işaretçi olaylarına açar. Dinleyici ekleyince otomatik açılır.</> },
+}} />
+
+## Metodlar
+
+<TypeTable type={{
+    "addChild(child)": { type: "this", description: "Çocuğu listenin sonuna ekler. Zincirleme kullanılabilir." },
+    "removeChild(child)": { type: "this", description: "Verilen alt düğümü çıkarır; listede olmayan düğüm sessizce yok sayılır." },
+    "clearChildren()": { type: "this", description: "Tüm alt düğümleri kaldırır." },
+    "get childCount()": { type: "number", description: "Alt düğüm sayısı." },
+    "getTransform()": { type: "Matrix3", description: <><code>translation</code>, <code>rotation</code> ve <code>scale</code>'ten yerel matrisi üretir.</> },
+    "addInputListener(listener)": { type: "this", description: <>Dinleyici ekler ve <code>inputEnabled</code> bayrağını açar.</> },
+    "removeInputListener(listener)": { type: "this", description: <>Dinleyiciyi çıkarır. Son dinleyici çıkınca <code>inputEnabled</code> kapanır.</> },
+    "get listenerCount()": { type: "number", description: "Bağlı dinleyici sayısı." },
+    "handlePointer(type, pointer)": { type: "void", description: <>Dinleyicilere <code>down</code>/<code>move</code>/<code>up</code> olayını iletir. Genellikle renderer çağırır.</> },
+    "toRender()": { type: "RenderElement", description: <>Alt ağaç dahil, güvenli render çıktısını üretir. Dinleyicili düğümlerde <code>source</code> alanı da taşınır.</> },
+    "renderSelf()": { type: "RenderElement", description: "Salt kendini çizer. Yeni düğüm tipi tanımlarken ezilir." },
+}} />
+
+## Şekil düğümleri
+
+Aşağıdaki sınıflar `Node`'dan türetilir; her birinin kendi kurucusu vardır.
+
+<TypeTable type={{
+    "new RectNode(x, y, width, height, style?)": { description: <>Sol üst köşesi <code>(x, y)</code> olan dikdörtgen; <code>radius</code> ile yuvarlatılır.</> },
+    "new CircleNode(centerX, centerY, radius, style?)": { description: "Merkezi verilen daire." },
+    "new LineNode(x1, y1, x2, y2, style?)": { description: <>İki nokta arasındaki doğru; <code>dash</code> ile kesikli çizilebilir.</> },
+    "new PathNode(shape, style?)": { description: <>Bir <code>Shape</code> nesnesini yol olarak çizer.</> },
+    "new TextNode(text, x, y, style?)": { description: <><code>(x, y)</code> noktasına hizalı metin; <code>anchor</code> ve <code>baseline</code> ile yerleşim belirlenir.</> },
+    "new ImageNode(src, x, y, width, height, options?)": { description: <>Verilen dikdörtgende görsel; <code>alt</code> erişilebilir metni eklenebilir.</> },
+    "new ExtensionNode(rendererId, data)": { description: <><code>data</code> alanını olduğu gibi bir kayıtlı görüntüleyiciye devreder.</> },
+}} />
+
+`style` nesnesi tüm şekil düğümlerinde ortaktır: `fill`, `stroke`, `strokeWidth`, `dash` ve dönüşüm
+alanları (`translation`, `rotation`, `scale`, `opacity`, `visible`).
+
+## Modül işlevleri
+
+<TypeTable type={{
+    "group(options?)": { type: "Node", description: "Çocukları kabul eden boş düğüm." },
+    "arrow(from, to, style?)": { type: "Node", description: <><code>from</code> noktasından <code>to</code> noktasına, uçta ok başı olan çizgi.</> },
+}} />
+
+## Render ağacı
+
+`toRender()` çıktısı saf veridir: `{ type, ...geometry, ...paint, transform, children }`. Aynı çıktı
+SVG, Canvas, WebGL veya bir test için kullanılabilir; React'e bağlı hiçbir tiği içermez.
+
+## İlgili
+
+- Kavramsal arka plan: [Sahne Grafiği](/tr/docs/concepts/scene-graph)
+- Değer bağlama: [Property](/tr/docs/api/classes/property)
+- SVG'ye bağlama: [Display](/tr/docs/react/concepts/scenery)

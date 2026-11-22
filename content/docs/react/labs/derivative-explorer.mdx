@@ -1,0 +1,36 @@
+---
+title: Derivative explorer
+description: 'DerivativeExplorer: slide x₀ and follow the slope at that point.'
+---
+
+import { DerivativeExplorer } from '@medu/lerno-react';
+import { DocDemo } from '@/components/react/DocDemo';
+
+export const SOURCE = `import { DerivativeExplorer } from '@medu/lerno-react';
+
+// usage
+<DerivativeExplorer />;
+
+// how the lab is built
+import { CalculusEngine } from '@medu/lerno';
+import { TangentLine } from '@medu/lerno-react';
+
+// the engine gives the slope, the component draws the tangent
+const slope = CalculusEngine.derivative(fn, x0);
+
+<TangentLine plane={plane} fn={fn} x0={x0} length={2} />;`;
+
+`DerivativeExplorer` combines `CalculusEngine.derivative` with the `TangentLine` component. As the `x₀`
+slider moves, the tangent line and the slope update live.
+
+**Preview** is the lab itself; **Code** shows where the slope is computed and how the tangent is
+drawn.
+
+<DocDemo source={SOURCE}>
+  <DerivativeExplorer />
+</DocDemo>
+
+<Callout type="info" title="Conceptual link">
+  The slope of the tangent is exactly `f'(x₀)`. When a learner moves `x₀` to a peak, the slope is
+  observed approaching `0`.
+</Callout>

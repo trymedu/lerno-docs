@@ -1,0 +1,61 @@
+---
+title: Adım Adım Çözüm
+description: Adım sırasının korunduğu, adım başına puan üreten değerlendirme.
+---
+
+`solution-steps`, çok adımlı bir çözümü tek soru olarak alır. Her adım bağımsız puan üretir; öğrenci
+bir adımda takılsa bile önceki adımlarının puanını korur.
+
+## Kullanım
+
+```ts
+import { questionSet, createSession } from '@medu/lerno';
+
+// 1) Soru maddesini belgeye koy; questionSet düğümlere q1, q2… adlarını verir
+const document = questionSet('quiz-1', { title: 'İkinci dereceden denklemler' }, [
+  {
+    kind: 'solution-steps',
+    prompt: 'x² − 4 = 0 denklemini çözün.',
+    steps: [
+      { id: 's1', prompt: 'Çarpanlara ayırın', accepted: ['(x-2)(x+2)'], caseSensitive: false },
+      { id: 's2', prompt: 'Kökleri yazın', accepted: ['2,-2', '-2,2'], caseSensitive: false },
+    ],
+  },
+]);
+
+// 2) Oturumu aç ve bir cevabı puanla
+const session = createSession(document);
+const { outcome } = session.answer('q1', { steps: ['(x-2)(x+2)', 'yanlış'] });
+
+outcome.status;   // 'partial': ilk adım tuttu, ikinci tutmadı
+outcome.score;    // 1
+outcome.maxScore; // 2
+```
+
+`accepted` bir dizi olduğu için bir adımın birden fazla doğru yazımı olabilir. Cevap biçimi
+`{ steps: string[] }`'dir; adım başına bir kayıt taşır.
+
+## Puanlama
+
+```
+maxScore = steps.length
+hits      = her indekste kabul edilenlerden eşleşen adım sayısı
+score     = hits / maxScore
+```
+
+Karşılaştırma **indekse göre** yapılır: cevabın ilk elemanı sorunun ilk adımıyla, ikinci elemanı
+ikinci adımıyla karşılaştırılır. Sıra kayarsa eşleşme olmaz; adım atlanırsa o adım puanlanmaz.
+Bu, adım dışına çıkmayı ödül olarak kullanmayı engeller.
+
+`caseSensitive: false` verildiğinde normalizasyon uygulanır; `accepted` içindeki tüm değerler için
+aynı kural geçerlidir.
+
+## Kısmi kuru
+
+`score` sıfır değil ama `maxScore`'dan küçükse durum `partial` olur. Çözüm yarısına kadar doğru
+getiren bir öğrenci `incorrect` olarak işaretlenmez; raporlarda ayrı bir durum taşır.
+
+## İlgili
+
+- [Genel Bakış](/tr/docs/grading): durumlar ve puan oranı
+- [Denklem Sorusu](/tr/docs/grading/equation): metin karşılaştırma normalizasyonu

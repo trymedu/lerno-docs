@@ -1,0 +1,65 @@
+---
+title: CoordinatePlane
+description: Conversion between math and pixel coordinates, grid data, and curve drawing.
+---
+
+`CoordinatePlane` defines one mapping between a mathematical axis and pixel space. `xRange`,
+`yRange`, `width`, `height`, and `padding` are set once, and every later conversion reuses that
+mapping. The code that draws the curve, labels the axes, and marks a point therefore shares one
+axis definition.
+
+The conversion is **invertible**: `toCoords` maps pixels back to math, so a pointer position becomes
+a model-space coordinate.
+
+## Constructor
+
+<TypeTable type={{
+    "new CoordinatePlane(options?)": { description: <>Builds the axis from <code>CoordinateOptions</code>; missing fields fall back to defaults.</> },
+}} />
+
+`CoordinateOptions` fields:
+
+<TypeTable type={{
+    "xRange": { type: "[number, number]", default: "[-10, 10]", description: "Horizontal math range." },
+    "yRange": { type: "[number, number]", default: "[-6, 6]", description: "Vertical math range." },
+    "width": { type: "number", default: "960", description: "Canvas width in pixels." },
+    "height": { type: "number", default: "540", description: "Canvas height in pixels." },
+    "padding": { type: "number", default: "80", description: "Margin on each side; the axis drawing area shrinks by this much." },
+    "stepX": { type: "number", default: "1", description: "Horizontal grid step." },
+    "stepY": { type: "number", default: "1", description: "Vertical grid step." },
+    "grid": { type: "boolean", default: "true", description: "Whether the grid is drawn." },
+}} />
+
+## Properties
+
+<TypeTable type={{
+    "xRange, yRange":  { type: "[number, number]", description: "Math ranges; changeable while the plane is in use." },
+    "width, height, padding":  { type: "number", description: "Canvas size and margin." },
+    "stepX, stepY":  { type: "number", description: <>Grid steps used by <code>renderSvgElements</code>.</> },
+    "grid": { type: "boolean", description: "Grid drawing switch." },
+}} />
+
+## Methods
+
+<TypeTable type={{
+    "toPixels(x, y)": { type: "{ px, py }", description: "Converts math coordinates to pixels." },
+    "toCoords(px, py)": { type: "{ x, y }", description: "Converts pixels back to math; used for pointer events." },
+    "renderSvgElements()": { type: "{ gridLines, ticks, xAxis, yAxis, origin }", description: "Returns grid lines, axes, and label positions as plain data." },
+}} />
+
+`gridLines` and `ticks` entries are `{ x1, y1, x2, y2 }` and `{ px, py, label, axis }`; the drawing
+component reads them without computing anything.
+
+## Curves
+
+Curves are handled by a separate class:
+
+<TypeTable type={{
+    "new FunctionPlotter(options)": { description: <>Defines the curve through <code>fn</code>, <code>domain</code>, <code>samples</code>, <code>color</code>, <code>strokeWidth</code>, and <code>drawProgress</code>.</> },
+    "generatePath(plane)": { description: <>Returns <code>&#123; pathData, points &#125;</code>.<code>drawProgress</code> is the drawn fraction; <code>0</code> holds the animation back.</> },
+}} />
+
+## See also
+
+- Conceptual background: [Model-view transform](/docs/concepts/model-view)
+- Usage example: [Function graph](/docs/disciplines/mathematics/function-graph)

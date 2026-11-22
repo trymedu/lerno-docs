@@ -1,0 +1,15 @@
+[submodule "vendor/lerno"]
+	path = vendor/lerno
+	url = https://github.com/trymedu/lerno.git
+[submodule "vendor/lerno-motion"]
+	path = vendor/lerno-motion
+	url = https://github.com/trymedu/lerno-motion.git
+[submodule "vendor/lerno-three"]
+	path = vendor/lerno-three
+	url = https://github.com/trymedu/lerno-three.git
+[submodule "vendor/lerno-react"]
+	path = vendor/lerno-react
+	url = https://github.com/trymedu/lerno-react.git
+[submodule "vendor/lerno-export"]
+	path = vendor/lerno-export
+	url = https://github.com/trymedu/lerno-export.git

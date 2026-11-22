@@ -1,0 +1,61 @@
+---
+title: LLM text output
+description: Routes that serve the documentation as Markdown for language models.
+---
+
+Lerno's documentation can be read directly by a model. Three routes exist, all generated from the
+page tree by `llms()` in `lib/source.ts`; none of them renders HTML.
+
+## Routes
+
+| Route | Contents | Cost |
+| --- | --- | --- |
+| `GET /llms.txt` | Index: title, URL, and description of every page | Small: read first |
+| `GET /llms-full.txt` | Every page rendered with `renderPage`, concatenated | Large: send only when needed |
+| `GET /llms.mdx/docs/<slug>/content.md` | One page as Markdown | Per page |
+
+Every route is also reachable with a language prefix: `/tr/llms.txt` returns the Turkish index,
+while the unprefixed route returns the default locale (English).
+
+## Content negotiation
+
+A client that asks for Markdown gets Markdown instead of HTML. No code change is required on the
+consumer side:
+
+```bash
+curl -H 'Accept: text/markdown' https://example.org/docs/getting-started
+```
+
+The proxy rewrites the request to `llms.mdx/docs/getting-started/content.md`, so the same URL works
+for both a browser and an agent.
+
+## What the Markdown contains
+
+`renderPage` uses the **processed** document, not the raw source:
+
+```
+# Title (/docs/slug)
+<processed Markdown>
+```
+
+MDX components keep their JSX syntax unless a renderer is configured, which means tables and code
+fences survive and custom components appear as tags a model can copy.
+
+## Generation requirements
+
+`includeProcessedMarkdown: true` must be set on the content source; `page()` and `full()` are only
+available when `renderPage` is provided, because Fumadocs cannot know how the source exposes its
+Markdown.
+
+## When to use which
+
+| Situation | Route |
+| --- | --- |
+| Discovering the structure of the docs | `llms.txt` |
+| Answering a question about one API member | that member's `content.md` |
+| Fine-tuning or an offline corpus | `llms-full.txt` |
+
+## See also
+
+- [Overview](/docs/ai): the three surfaces for AI-assisted work
+- [Agent skills](/docs/ai/skills): instructions for a coding agent

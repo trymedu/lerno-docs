@@ -1,0 +1,31 @@
+---
+title: Model-View Dönüşümü
+description: Model koordinatları (metre) ile view koordinatları (piksel) arasında geçiş.
+---
+
+Fizik metre cinsinde, ekran piksel cinsindedir. `ModelViewTransform2` bu iki uzayı bağlar; matematikte
+y ekseni yukarı, view'da aşağı olduğu için varsayılan olarak ters çevrilir.
+
+```ts
+import { ModelViewTransform2, v2 } from '@medu/lerno';
+
+const mvt = ModelViewTransform2.createSinglePointScaleInvertedYMapping(
+  v2(0, 0),      // model (0,0)…
+  v2(480, 270),  // …view'da ekranın merkezine
+  40,            // 1 metre = 40 piksel
+);
+
+mvt.modelToViewPosition(v2(2, 1)); // → view koordinatı
+mvt.viewToModelPosition(v2(560, 230));
+mvt.modelToViewDelta(v2(1, 0));    // yön
+mvt.scale;                          // 40
+```
+
+Model kendisini hiçbir zaman piksel olarak ifade etmez; dönüşüm view'da uygulanır.
+
+```ts
+position.link((modelPosition) => {
+  ball.centerX = mvt.modelToViewPosition(modelPosition).x;
+  ball.centerY = mvt.modelToViewPosition(modelPosition).y;
+});
+```

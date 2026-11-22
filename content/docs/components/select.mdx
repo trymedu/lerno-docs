@@ -1,0 +1,75 @@
+---
+title: Select
+description: 'Custom listbox: no native select menu.'
+---
+
+import { SelectDemo } from '@/components/react/ComponentDemos';
+
+`Select` is a custom listbox. It never opens the operating system's native menu; the options render
+inside the player so they keep the same look and keyboard behaviour everywhere.
+
+<SelectDemo />
+
+## Manifest layer
+
+```json
+{
+  "id": "gravity",
+  "component": "ui.select",
+  "fromMs": 0,
+  "bind": { "value": "g" },
+  "props": {
+    "label": "Gravity",
+    "options": [
+      { "value": 10, "label": "10 m/s²" },
+      { "value": 9.8, "label": "9,8 m/s²" }
+    ]
+  }
+}
+```
+
+## JavaScript
+
+```js
+import { createSession, createInteractionRuntime } from '@medu/lerno';
+
+const runtime = createInteractionRuntime(document, createSession(document));
+const item = runtime.layersAt('clip', video.currentTime * 1000)
+  .find((entry) => entry.layer.id === 'gravity');
+
+const menu = document.createElement('div');
+menu.setAttribute('role', 'listbox');
+
+for (const option of item.props.options) {
+  const choice = document.createElement('button');
+  choice.type = 'button';
+  choice.setAttribute('role', 'option');
+  choice.setAttribute('aria-selected', String(String(item.value) === String(option.value)));
+  choice.textContent = option.label;
+  choice.addEventListener('click', () => runtime.change(item.layer, option.value));
+  menu.append(choice);
+}
+```
+
+The core only returns options and the bound value. The listbox paint, keyboard loop, and outside-click
+behaviour belong to the renderer; the React package implements one, a vanilla page can implement its own.
+
+## Props
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `label` | `string` | `Select` |
+| `value` | `string \| number` | first option |
+| `options` | `{ value: string \| number; label: string }[]` | `[]` |
+| `onChange` | `(value: string \| number) => void` | None |
+| `disabled` | `boolean` | `false` |
+| `tone` | `'light' \| 'dark'` | `light` |
+
+## Behaviour
+
+- Trigger shows the label and the selected option; the chevron rotates when open.
+- The selected option carries a check mark.
+- Keyboard: `ArrowUp` / `ArrowDown`, `Home`, `End`, `Enter`, `Space`, `Escape`.
+- An outside click closes the menu; the menu is absolutely positioned under the trigger.
+- The menu is not rendered in a portal, so a parent with `overflow: hidden` can clip it. Keep the
+  layer container overflow visible.

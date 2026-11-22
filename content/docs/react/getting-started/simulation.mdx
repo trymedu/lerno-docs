@@ -1,0 +1,68 @@
+---
+title: Simulation
+description: Combining interaction with Sim and useSimStep.
+---
+
+`Sim` provides a deterministic time source for interactive scenes. The model advances through `step(dt)`,
+the view reads the model, and `useSimStep` advances the simulation in a `requestAnimationFrame` loop.
+Interaction and simulation share the same `Property` values, so dragging a handle changes physics in the
+same frame.
+
+## Example
+
+A pendulum whose angle can be dragged by hand. The integrator runs every frame; the pointer only moves
+the angle.
+
+```tsx
+'use client';
+
+import { useMemo } from 'react';
+import { CircleNode, LineNode, Node, Property, Sim, createScreen } from '@medu/lerno';
+import { Display, useDrag, useSimStep } from '@medu/lerno-react';
+
+class Pendulum {
+  readonly angle = new Property(0.6);
+
+  step(dt: number): void {
+    // Small-angle approximation: theta'' = -(g / L) * sin(theta)
+    const accel = -9.8 * Math.sin(this.angle.get());
+    this.angle.set(this.angle.get() + accel * dt * dt);
+  }
+}
+
+export function PendulumLab() {
+  const { sim, root, bob } = useMemo(() => {
+    const screen = createScreen(
+      'Pendulum',
+      () => new Pendulum(),
+      (model) => {
+        const bob = new CircleNode(240, 260, 14, { fill: 'var(--accent)' });
+        model.angle.link((value) => {
+          bob.centerX = 240 + Math.sin(value) * 120;
+          bob.centerY = 60 + Math.cos(value) * 120;
+        });
+        const rod = new LineNode(240, 60, bob.centerX, bob.centerY, { stroke: 'var(--muted)' });
+        return new Node({ children: [rod, bob] });
+      },
+    );
+    const sim = new Sim({ screens: [screen], width: 480, height: 320 });
+    screen.createModel();
+    return { sim, root: screen.createView(), bob };
+  }, []);
+
+  useSimStep(sim);
+  useDrag(bob, {});
+
+  return <Display node={root} width={480} height={320} />;
+}
+```
+
+## Rules
+
+- The integrator reads only `Property` values; it never touches React state.
+- `useSimStep(sim)` returns the frame count and re-renders on every frame.
+- The pointer writes to the same `Property` the integrator reads, so the two inputs compose.
+
+## Next step
+
+[Animation](/docs/react/getting-started/animation) covers springs and timeline-based motion.

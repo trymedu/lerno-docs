@@ -1,0 +1,76 @@
+---
+title: API
+description: Member-level reference grouped into classes, types, and functions.
+---
+
+This section is not a set of guides; it is a **member-level reference**. Everything exported by
+`@medu/lerno` is listed under one of three headings (classes, types, and functions) and every
+detail page follows the same order: constructor, properties, methods.
+
+Guides answer "how do I build this"; these pages answer "which members exist". Conceptual background
+lives in [Core concepts](/docs/concepts), working examples live in [Disciplines](/docs/disciplines).
+
+## Classes
+
+The core exports more than thirty classes. Seven have their own page:
+
+<TypeTable type={{
+    "[Node](/docs/api/classes/node)": { description: "Scene graph node; the root of any drawn tree." },
+    "[Property](/docs/api/classes/property)": { description: "Observable value with change notification." },
+    "[Vector2](/docs/api/classes/vector2)": { description: "Immutable 2D vector used by the scene graph." },
+    "[Matrix3](/docs/api/classes/matrix3)": { description: "2D affine matrix for transforms and bounds." },
+    "[Shape](/docs/api/classes/shape)": { description: "Chainable path builder producing SVG path data." },
+    "[CoordinatePlane](/docs/api/classes/coordinate-plane)": { description: "Axes, ticks, and grid in model units." },
+    "[FunctionPlotter](/docs/api/classes/function-plotter)": { description: "Samples a function and renders it as a curve." },
+}} />
+
+The remaining exports (`Vector2D`, `CalculusEngine`, `ProjectileSimulation`, `Molecule2D`, `Timeline`,
+`ModelViewTransform2`, `Tween`, `WriteShape`, and the node subclasses, including `MathNode`, which
+carries LaTeX source) are listed with their signatures in [Classes](/docs/api/classes).
+
+## Types
+
+Interfaces and type aliases cover the content contract, grading, host adapters, and the session.
+They are grouped by domain in [Types](/docs/api/types).
+
+## Functions
+
+Entry points (`createSession`, `questionSet`, `defineDocument`, `defineQuestion`, `createLerno`) are
+listed in [Functions](/docs/api/functions); `createSession` has its own page because most code starts
+there.
+
+## Subpath imports
+
+The root re-exports content, runtime, scene graph, and discipline helpers. React views are a separate
+subpath, so a surface that only draws does not pay for the content schema:
+
+| Entry | Contains | zod |
+| --- | --- | --- |
+| `@medu/lerno` | Content, runtime, scene graph, helpers | yes |
+| `@medu/lerno/core` | Scene graph, observables, geometry, tween, sim loop | **no** |
+| `@medu/lerno/session` | `createSession` and the session types | yes |
+| `@medu/lerno/content` | Document schema, validation, presets | yes |
+| `@medu/lerno/grading` | Graders, `defineQuestion`, response schemas | yes |
+| `@medu/lerno/extensions` | `createLerno`, `createHost`, `defineExtension` | yes (default graders) |
+| `@medu/lerno/remotion` | React/SVG views (`MathCanvas`, `CoordinateSystemView`, `FunctionPlotView`) | yes (React) |
+
+```ts
+import { Node, CircleNode, Property } from '@medu/lerno/core';
+import { createSession } from '@medu/lerno/session';
+```
+
+Any other path is blocked by the `exports` map, so an import cannot reach `dist/` internals by
+accident.
+
+## How to read it
+
+Member names, types, and `@param` and `@returns` entries match the TypeScript source exactly.
+Descriptions of members come from the English source; the prose of each page is written per locale.
+
+## Out of scope
+
+The following are not covered here because they have their own pages:
+
+- React components and hooks → [Lerno React](/docs/react)
+- 3D scene and bindings → [3D scene](/docs/concepts/three)
+- Extension interfaces (`defineExtension`, `LernoHost`) → [Extensions](/docs/extensions)

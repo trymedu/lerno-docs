@@ -1,0 +1,41 @@
+---
+title: Zihinsel Model
+description: Lerno'yu doğru okumak için dört kural ve renderer seçimi.
+---
+
+Lerno dört kural üzerine kuruludur. Bu kurallar kavrandığında, dokümantasyonun kalanı bir API listesi
+olarak okunabilir.
+
+## Model view'ı bilmez
+
+Fizik, veri ve durum `Property` içinde tutulur. Sahne grafiği bu değerleri `link` ile okur. İlişki iki
+yönlüdür: aynı model iki farklı görünümle çizilebilir.
+
+## Her görsel bir Node ağacıdır
+
+Şekiller, metin ve özel çizimler `Node`'dur. Ağaç, framework'ten bağımsız bir render ağacına
+dönüştürülür ve çizimi bir renderer üstlenir.
+
+## Renderer değiştirilebilir
+
+Aynı sahne SVG, Canvas, WebGL veya DOM'suz bir hedefe çizilebilir. Simülasyon kodu değişmez; yalnızca
+çizim katmanı değişir.
+
+| Hedef | Uygun olduğu durum |
+| --- | --- |
+| SVG | Varsayılan hedef. Düğüm sayısı binlerin altındayken ve CSS teması önemliyken |
+| Canvas | Düğüm sayısı yüksekken veya sık yeniden çizim gerektiğinde |
+| WebGL (`@medu/lerno-three`) | 3B, ışık, malzeme ve binlerce nesne gerektiğinde |
+| Headless | Video dışa aktarımı ve deterministik test için |
+
+## Zaman `dt` ile gelir
+
+Animasyonlar ve fizik `step(dt)` ile ilerletilir. `Date.now()` çağıran kod determinizmi bozar; bu nedenle
+çekirdek saati kendisi okumaz.
+
+## Sonraki adımlar
+
+Çekirdek primitifleri [Temel Kavramlar](/tr/docs/concepts) bölümünde, hazır grafikler
+[Disiplinler](/tr/docs/disciplines) bölümünde, 3B modelleme [3B Sahne](/tr/docs/concepts/three) sayfasında ve
+kendi görselleştirmenizi yazmak [Kendi Görselini Yazmak](/tr/docs/concepts/custom-nodes) sayfasında
+ele alınır.

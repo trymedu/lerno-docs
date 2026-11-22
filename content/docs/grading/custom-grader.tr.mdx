@@ -1,0 +1,72 @@
+---
+title: Özel Değerlendirici
+description: defineQuestion ile yeni soru tipi eklemek veya mevcut bir tipin değerlendiricisini değiştirmek.
+---
+
+`defineQuestion`, item ve cevabı şemayla doğrular; `grade` yalnızca doğrulanmış, daraltılmış tiplerle
+çalışır. Böylece yeni bir soru tipi eklemek çekirdeği değiştirmeyi gerektirmez.
+
+## Yapılandırma
+
+| Alan | Tip | Zorunlu | Açıklama |
+| --- | --- | --- | --- |
+| `kind` | `string` | evet | Sorunun kimliği; belgede `item.kind` ile kullanılır. |
+| `itemSchema` | `ZodType<Item>` | evet | Soru tanımını doğrular. |
+| `responseSchema` | `ZodType<Response>` | evet | Cevabı doğrular. |
+| `maxScore` | `(item) => number` | hayır | Soruya göre tam puan; verilmezse `1` sayılır. |
+| `grade` | `(item, response) => GradeOutcome` | evet | Karşılaştırma ve puan. |
+
+## Doğrulama yedeği
+
+`grade` çağrısından önce iki doğrulama çalışır. İkisi de hata fırlatmaz, geri döner:
+
+| Durum | Sonuç |
+| --- | --- |
+| `item` şemasına uymuyor | `{ status: 'pending', score: 0, maxScore: 0, detail: 'Soru doğrulanamadı' }` |
+| `response` şemasına uymuyor | `{ status: 'pending', score: 0, maxScore: maxScore(item) ?? 1, detail: 'Cevap bekleniyor' }` |
+
+Bu davranış, eksik veya bozuk bir cevabın yanlış değil **bekleyen** olarak kaydedilmesini sağlar.
+
+## Örnek: birebir metin eşleşmesi
+
+```ts
+import { z } from 'zod';
+import { defineQuestion } from '@medu/lerno';
+
+const exactMatch = defineQuestion({
+  kind: 'short-answer',
+  itemSchema: ShortAnswerItemSchema,
+  responseSchema: z.object({ text: z.string() }),
+  grade: (item, response) => {
+    const hit = item.accepted.includes(response.text.trim());
+    return { status: hit ? 'correct' : 'incorrect', score: hit ? 1 : 0, maxScore: 1 };
+  },
+});
+```
+
+## Kaydetme
+
+Registry, aynı `kind` için **öncekinin yerine** geçer; bu yüzden yerleşik bir tipi kendi paketinizde
+değiştirebilirsiniz:
+
+```ts
+registry.addQuestion(exactMatch);
+```
+
+```ts
+registry.addFlow('mastery', myResolver);
+registry.addNode({ type: 'flashcard', label: 'Kart' });
+```
+
+## Nerede kullanılır
+
+Tipik kullanım, yerleşik `open` tipini LLM destekli bir değerlendiriciyle değiştirmektir. Çekirdek
+hiçbir LLM bilmez; yalnızca `open` tipini kayıtlı bulur ve kayıtlı değerlendiriciyi çağırır. Uzantı
+kendi paketinde bir `http` çağrısı yapar, çekirdek bunu fark bile etmez.
+
+Puanlama, cevap saklama ve `GradeOutcome` üretimi oturumda kalır; yalnızca karşılaştırma değişir.
+
+## İlgili
+
+- [Genel Bakış](/tr/docs/grading): durumlar ve puan oranı
+- [Eklentiler](/tr/docs/extensions): `defineExtension` ile paketleme

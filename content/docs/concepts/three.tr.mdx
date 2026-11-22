@@ -1,0 +1,117 @@
+---
+title: 3B Sahne (Three.js)
+description: '@medu/lerno-three: variable management ile 3B modelleme ve animasyon.'
+---
+
+import { ThreeDemo } from '@/components/react/ThreeDemo';
+
+`@medu/lerno-three`, lerno'nun reaktif katmanını Three.js'e bağlayan bir **extension**'dır. 2B sahne
+yerine 3B modelleme yapabilir; tüm dönüşüm kanalları **değişkenlere** bağlanır ve animasyonlar bu
+değişkenler üzerinden yürür.
+
+<ThreeDemo />
+
+## Kurulum
+
+```bash
+bun add @medu/lerno-three three
+```
+
+## Deklaratif Sahne
+
+```ts
+import { ambientLight, box, directionalLight, group, sphere, torus, type Scene3DSpec } from '@medu/lerno-three';
+
+const spec: Scene3DSpec = {
+  background: '#0b0f19',
+  camera: { position: [4, 3, 6], lookAt: [0, 1, 0] },
+  objects: [
+    ambientLight('#ffffff', 0.7),
+    directionalLight([5, 8, 5], 1.4),
+    group('set', [
+      box({ width: 1.6, height: 1.6, depth: 1.6 }, { color: '#42a5f5' }, { position: [-2, 1, 0] }),
+      sphere(1, { color: '#10b981' }, { position: [0, 1, 0] }),
+      torus({ radius: 1, tube: 0.35 }, { color: '#f59e0b' }, { position: [2, 1, 0] }),
+    ]),
+  ],
+};
+```
+
+## Değişken Yönetimi
+
+`VariableStore`, adlandırılmış `Property`'ler tutar; türetilmiş değişkenler ve anlık görüntü destekler.
+
+```ts
+import { VariableStore } from '@medu/lerno-three';
+
+const store = new VariableStore();
+store.defineNumber('ballY', 1);
+store.define('mode', 'demo');
+store.derive('doubleY', ['ballY'], ([y]) => Number(y) * 2);
+
+const snapshot = store.snapshot(); // serileştirilebilir
+store.restore(snapshot);
+```
+
+## Bağlamalar (Bindings)
+
+Her 3B objenin dönüşüm kanalları bir değişkene bağlanabilir; runtime her karede uygular.
+
+```ts
+sphere(1, { color: '#10b981' }, {
+  position: [0, 1, 0],
+  bindings: {
+    'position.y': 'ballY',
+    'scale.x': 'ballScale',
+    'scale.y': 'ballScale',
+    'scale.z': 'ballScale',
+    'material.opacity': 'ballOpacity',
+  },
+});
+```
+
+| Kanal | Etki |
+| --- | --- |
+| `position.x/y/z` | Konum |
+| `rotation.x/y/z` | Dönme (radyan) |
+| `scale.x/y/z` | Ölçek |
+| `material.opacity` | Saydamlık |
+| `material.metalness` | Metaliklik |
+
+## Runtime ve Animasyon
+
+```ts
+import { ThreeRuntime } from '@medu/lerno-three';
+
+const runtime = new ThreeRuntime(spec, { store });
+runtime.mount(container);
+
+// her karede:
+runtime.step(dt);
+runtime.render();
+
+// animate a variable with spring physics
+runtime.animate('ballY', 2.6, { spring: true, stiffness: 180, damping: 14 });
+```
+
+## React
+
+```tsx
+import { ThreeCanvas } from '@medu/lerno-three';
+
+<ThreeCanvas spec={spec} store={store} autoRotateSpeed={0.4} style={{ height: 380 }} />;
+```
+
+## Headless dışa aktarım
+
+Runtime `WebGLRenderer` ile çizer ve bir DOM canvas'ına ihtiyaç duyar. `mount()` tarayıcı dışında
+`THREE_HEADLESS_ERROR` fırlatır; `render()` ise runtime mount edilmediğinde hata verir.
+`@medu/lerno-export` bir 3B sahneyi kaydedemez; `frameTrees`, `rgbaFrames` veya `exportMp4` çağrısına
+verilen Three.js sahnesi aynı yönlendirmeyle durur. 3B katmanı tarayıcıda veya bir WebGL arka ucunda
+çıkarın, sonucu `exportMp4({ video })` ile birleştirin.
+
+<Callout type="info" title="Extension mimarisi">
+  `@medu/lerno-three`, çekirdeğe hiçbir katman eklemez; `Property` ve `Node` katmanını kullanır. Aynı
+  şekilde kendi render backend'i (Canvas, WebGL, WebGPU) bir extension olarak yazılabilir
+  ([Kendi Görselini Yazmak](/tr/docs/concepts/custom-nodes)).
+</Callout>

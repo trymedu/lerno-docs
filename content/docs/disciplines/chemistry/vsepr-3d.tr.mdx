@@ -1,0 +1,21 @@
+---
+title: VSEPR Geometrileri (3B)
+description: Merkez atom ve ligand konumlarıyla molekül geometrileri.
+---
+
+import { VseprDemo } from '@/components/react/three/VseprDemo';
+import { VisualDemo } from '@/components/react/VisualDemo';
+
+Ligand konumları birim vektörlerle verilir. Geometri seçildiğinde sahne yeniden kurulur; merkez atom ve ligandlar bu yönlerde yerleştirilir.
+
+<VisualDemo id="vsepr-3d">
+  <VseprDemo />
+</VisualDemo>
+
+## Bağ çubukları
+
+Bu örnekte bağlar yalnızca işaretlenmiştir. Silindiri iki atom arasına yerleştirmek için silindirin yerel Y eksenini bağ yönüne hizalayan bir döndürme gerekir. Bu, bağlamalarla değil, `three` tarafında bir `quaternion` ile yapılır; rehber olarak [3B Sahne](/tr/docs/concepts/three) sayfası incelenebilir.
+
+## Sınır
+
+Yalnız geometri gösterilir. Elektron çifti itmesi, bağ uzunluğu farkı ve sterik etkiler modellenmez.

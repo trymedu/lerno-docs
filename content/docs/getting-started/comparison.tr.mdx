@@ -1,0 +1,130 @@
+---
+title: 'Karşılaştırma: Newton yasaları, 20 saniye'
+description: Aynı üç bölümlü storyboard'ın Lerno, Remotion ve Manim ile kurulumu ve ölçülen render süreleri.
+---
+
+import { ComparisonVideo } from '@/components/react/ComparisonVideo';
+
+Aynı 20 saniyelik sahne üç kez kuruldu: bir disk, iki blok, iki patenci. Karşılaştırma bir sıralama
+değildir. Her aracın aynı görüntüyü nasıl çizdiğini ve render süresini kaydeder.
+
+<div className="not-prose grid gap-5 lg:grid-cols-3">
+  <figure className="m-0 flex flex-col gap-2">
+    <ComparisonVideo src="/media/comparison/lerno.mp4" poster="/media/comparison/lerno.jpg" label="Lerno" />
+    <figcaption className="text-xs leading-relaxed text-zinc-400">
+      <strong className="text-zinc-100">Lerno</strong>: sahne grafiği, Timeline ve lerno-export. Render
+      hızlıdır, ancak yerleşim elle yazılır.
+    </figcaption>
+  </figure>
+  <figure className="m-0 flex flex-col gap-2">
+    <ComparisonVideo src="/media/comparison/remotion.mp4" poster="/media/comparison/remotion.jpg" label="Remotion" />
+    <figcaption className="text-xs leading-relaxed text-zinc-400">
+      <strong className="text-zinc-100">Remotion</strong>: kare başına bir React bileşeni. Yazması en
+      rahat model, render süresi üçünün en yavaşı.
+    </figcaption>
+  </figure>
+  <figure className="m-0 flex flex-col gap-2">
+    <ComparisonVideo src="/media/comparison/manim.mp4" poster="/media/comparison/manim.jpg" label="Manim" />
+    <figcaption className="text-xs leading-relaxed text-zinc-400">
+      <strong className="text-zinc-100">Manim</strong>: Python mobject'leri. Bu sahne için hızlıdır,
+      ancak çıktı bir videodur, ders değildir.
+    </figcaption>
+  </figure>
+</div>
+
+## Render sayıları
+
+| | Lerno | Remotion | Manim |
+| --- | ---: | ---: | ---: |
+| Süre, 20 sn @ 720p30 | **1,4 sn** | **62 sn** | **4,4 sn** |
+| Çıktı boyutu | 127 KB | 227 KB | 194 KB |
+| Kaynak satırı | 190 | 121 | 122 |
+| İlk kurulum | workspace + ffmpeg | Remotion CLI + Chrome | `uvx`, Cairo/Pango |
+| İkinci render | 1,4 sn | 62 sn | 4,4 sn |
+
+Apple M5, macOS 26.4, 1280×720, 30 fps, 600 kare ve sessiz ölçüldü. Süre kodlamayı içerir; Remotion
+için tarayıcı açılışı da dahildir. Kod yazma süresi dahil değildir. Manim sayısı daire ve
+dikdörtgenleri kapsar; LaTeX veya 3B eklenince değişir. Yazma süresi ölçülmediği için tek ölçüt
+kaynak satır sayısıdır.
+
+## Sonuçlar
+
+- **Lerno** en hızlı döngüye sahiptir. Bir sayı değiştirilir, yeniden çalıştırılır. Bedeli sahnenin elle
+  yazılmasıdır: önizleme paneli ve zaman çizelgesi düzenleyicisi yoktur. 1,4 saniye export süresidir;
+  etiket yerleştirmeye harcanan süre değildir.
+- **Remotion** en yavaş render ile en rahat yazma deneyimini birleştirir. React, önizleme ve ekosistem.
+  Parlatılmış bir tanıtım videosu için başlangıç noktası olarak kalır.
+- **Manim** yirmi saniyelik basit vektörleri 4,4 saniyede render eder. Denklemler, LaTeX ve 3B devreye
+  girince sayı değişir. Oturum, değişken ve puanlama içermez.
+
+## Yan yana
+
+| | Lerno | Remotion | Manim |
+| --- | --- | --- | --- |
+| Girdi | `LernoDocument` + `Node` ağacı | React TSX bileşenleri | Python `Scene` |
+| Zaman modeli | `Timeline` / `seek` | `useCurrentFrame()` | sahne oynatımı |
+| Render yolu | React içinde SVG; export'ta canvas | React DOM → tarayıcı renderer'ı | Cairo → video |
+| Etkileşim | değişkenler, katmanlar, oturum, puanlama | özel kod | yok |
+| Bu demonun çıktısı | `lerno-export` ile MP4 | `@remotion/renderer` ile MP4 | Manim ile MP4 |
+| Güçlü olduğu yer | ders çalışma zamanı ve etkileşim | video üretimi ve React | matematiksel dizgi |
+| Ödün | daha yeni ekosistem; elle kurulan sahneler | React + tarayıcı gerekir | oturum ve puanlama yok |
+
+## Hangi araç ne zaman
+
+- Öğrenciye tepki veren bir ders: **Lerno**.
+- Üretilmiş görsellerle kısa tanıtım videosu: **Remotion**.
+- Etkileşimsiz matematik animasyonu: **Manim**.
+
+## Kod biçimi
+
+<details>
+<summary>Lerno</summary>
+
+```ts
+const scene = {
+  root,
+  step(dt) {
+    root.clearChildren();
+    root.addChild(build(time += dt));
+  },
+};
+
+await exportMp4(scene, { out: 'lerno.mp4', width: 1280, height: 720, fps: 30, duration: 20, fontFamily });
+```
+
+</details>
+
+<details>
+<summary>Remotion</summary>
+
+```tsx
+const NewtonVideo = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const t = frame / fps;
+  return <AbsoluteFill>{/* SVG driven by t */}</AbsoluteFill>;
+};
+
+registerRoot(() => (
+  <Composition id="Newton" component={NewtonVideo} durationInFrames={600} fps={30} width={1280} height={720} />
+));
+```
+
+</details>
+
+<details>
+<summary>Manim</summary>
+
+```python
+class NewtonComparison(Scene):
+    def construct(self):
+        self.camera.background_color = "#101418"
+        puck = Circle(radius=0.28, color=TEAL, fill_opacity=1)
+        force = Arrow(puck.get_right(), puck.get_right() + RIGHT * 1.8, color=BLUE)
+        self.play(GrowArrow(force))
+        self.play(puck.animate.shift(RIGHT * 5.2), run_time=2.5, rate_func=linear)
+```
+
+</details>
+
+Klipler `public/media/comparison/` altındadır. Sayfa yalnızca onları gömer.

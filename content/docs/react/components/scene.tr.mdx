@@ -1,0 +1,44 @@
+---
+title: Scene ve Koordinat Izgarası
+description: Duyarlı SVG tuvali ve koordinat ızgarası bileşenleri.
+---
+
+## `<Scene />`
+
+`Scene`, sabit bir `viewBox` ile ölçeklenen duyarlı SVG tuvalidir. İsteğe bağlı başlık gösterir.
+
+```tsx
+import { Scene } from '@medu/lerno-react';
+
+<Scene width={960} height={540} title="Serbest Düşme">
+  {/* SVG çocukları */}
+</Scene>;
+```
+
+| Prop | Tip | Varsayılan | Açıklama |
+| --- | --- | --- | --- |
+| `width` | `number` | `960` | `viewBox` genişliği |
+| `height` | `number` | `540` | `viewBox` yüksekliği |
+| `backgroundColor` | `string` | `#0B0F19` | Tuval zemini |
+| `title` | `string` | Yok | Sol üst köşe etiketi |
+| `className` / `style` | Yok | Yok | Dış kapsayıcıya uygulanır |
+
+## `<CoordinateGrid />`
+
+Çekirdekteki `CoordinatePlane.renderSvgElements()` çıktısını çizer.
+
+```tsx
+import { CoordinateGrid } from '@medu/lerno-react';
+
+<CoordinateGrid plane={plane} showLabels />;
+```
+
+| Prop | Tip | Varsayılan | Açıklama |
+| --- | --- | --- | --- |
+| `plane` | `CoordinatePlane` | Yok | Kaynak düzlem |
+| `showLabels` | `boolean` | `true` | Eksen sayılarını göster |
+
+<Callout type="warn" title="viewBox hizalaması">
+  `Scene` boyutları ile `CoordinatePlane` boyutlarını aynı tutun (ör. ikisi de `960 × 540`). Aksi halde
+  ızgara ve eğri farklı ölçeklerde çizilir.
+</Callout>

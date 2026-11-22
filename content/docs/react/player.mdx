@@ -1,0 +1,105 @@
+---
+title: Lerno player
+description: Play a LernoDocument live with LernoPlayer.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { demoDocument } from '@/lib/lerno-demo';
+
+`LernoPlayer` plays a `LernoDocument` from start to finish: it renders the nodes, grades answers inside
+the core, and shows the score and progress. The player below is the real `@medu/lerno-react` component.
+
+<LernoPlayer document={demoDocument} />
+
+## Usage
+
+```tsx
+import { LernoPlayer } from '@medu/lerno-react';
+import { defineDocument } from '@medu/lerno';
+
+const document = defineDocument({ /* … */ });
+
+<LernoPlayer document={document} />;
+```
+
+## Host and extensions
+
+The player is independent of any application. When persistence, telemetry, or realtime is required, pass
+host adapters or extensions:
+
+```tsx
+<LernoPlayer
+  document={document}
+  host={{ telemetry: myTelemetry, storage: myStorage }}
+  extensions={[myExtension]}
+/>;
+```
+
+The `useLernoSession` hook exposes the same session for a custom interface:
+
+```tsx
+const { state, answer, next, back, score } = useLernoSession(document);
+```
+
+## Custom nodes
+
+A document can carry `custom` nodes. Register one renderer per `extension:kind` (or just `kind`); the
+renderer receives the node, the session variables, and the setter:
+
+```tsx
+import type { CustomNodeRendererProps } from '@medu/lerno-react';
+
+function FreeFallScene({ variables, setVariable }: CustomNodeRendererProps) {
+  // draw the scene from variables.airOn / variables.g
+}
+
+<LernoPlayer
+  document={document}
+  nodeRenderers={{ 'scene:freefall': FreeFallScene }}
+/>;
+```
+
+Unregistered custom nodes render a visible fallback instead of throwing.
+
+## Scene player
+
+`ScenePlayer` plays one `Node` graph against its own clock and draws it with `Display`. There is no
+video file and no session; time is the only state.
+
+```tsx
+import { ScenePlayer } from '@medu/lerno-react';
+
+<ScenePlayer
+  createScene={createScene}
+  meta={{ width: 1280, height: 720, fps: 30, duration: 20, background: '#FAF8F1' }}
+  beats={[1.6, 8.2, 15.8]}
+  title="Free fall"
+  tone="dark"
+/>;
+```
+
+`createScene` returns `{ root, step(dt) }` and builds its first frame at construction. A seek replays
+the scene from zero with a fixed step, so the preview lands on the same state the exporter produces.
+`beats` draws storyboard ticks on the track; `labels` localises the controls.
+
+## One clock
+
+`useMediaClock(stage, videoRef)` binds a media element to a `LessonStage`: the video time is written
+into the stage every frame, and a stage seek moves the video. Pass the stage to `InteractiveVideo` or
+`LernoPlayer` and the layers follow the video instead of a second timer.
+
+## Music under narration
+
+`createAudioMixer` routes the video's audio and a music element through one `AudioContext`. The music
+ducks while the video plays, so narration stays on top.
+
+```tsx
+import { useAudioMixer } from '@medu/lerno-react';
+
+const mixer = useAudioMixer({ music: { src: '/media/bed.mp3' }, duckLevel: 0.3 });
+
+<video ref={mixer.attachVoice} src="/media/lesson.mp4" controls />
+<button onClick={mixer.toggle}>{mixer.playing ? 'Pause music' : 'Play music'}</button>;
+```
+
+The context starts on the first user action, because browsers refuse to start audio otherwise.

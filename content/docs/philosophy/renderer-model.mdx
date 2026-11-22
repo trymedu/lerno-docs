@@ -1,0 +1,44 @@
+---
+title: Renderer and render tree
+description: How the core describes a scene and how a renderer draws it.
+---
+
+What Lerno shares with React Native is a single principle: a declarative core and more than one drawing
+target. In React Native the bridge is native views; in Lerno it is the render tree.
+
+## The contract
+
+Every `Node` lowers itself into a render tree. The render tree is plain data: type, geometry, style,
+transform, opacity, and children. It contains no DOM, React, or WebGL types.
+
+```ts
+const tree = root.toRender();
+// { type: 'group', children: [
+//   { type: 'circle', centerX: 240, centerY: 160, radius: 40, fill: ... },
+// ]}
+```
+
+A renderer takes this tree and draws it to its own target. The available renderers are listed below.
+
+| Renderer | Input | Output |
+| --- | --- | --- |
+| SVG (`Display`) | Render tree | SVG nodes |
+| Canvas | Render tree | 2D canvas calls |
+| WebGL (`@medu/lerno-three`) | Scene spec and variables | Three.js objects |
+| Headless | Render tree | Text and measurements, tests |
+
+## A new renderer
+
+Two conditions are met to add a new target:
+
+1. Every member of the `RenderElement` union is drawn.
+2. Pointer events are forwarded to the relevant `Node` on elements whose `source` field is set.
+
+Custom visuals do not require extending the render tree. `ExtensionNode` binds to custom drawing through
+the `rendererId` it carries; the core does not know the meaning of that id.
+
+## Why the separation
+
+- Simulation logic stays in one place; adding targets does not create copies.
+- Tests run without a DOM, so the same scene can be measured headlessly.
+- Video export is not a separate drawing path; it is another consumer of the same render tree.

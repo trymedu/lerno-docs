@@ -1,0 +1,154 @@
+---
+title: Usage
+description: Building a scene as a factory function and handing it to exportMp4.
+---
+
+This is the video at the top of the section, produced by the code below: no browser, no React,
+one command:
+
+<video src="/media/lerno-export-demo.en.mp4" controls muted loop playsInline className="w-full rounded-xl" />
+
+Source: `packages/lerno-export/examples/curve-reveal.ts`: 3 s at 720p, 90 frames, **25 KB**.
+For reference, one PNG frame of the same scene is 26 KB, so the whole video costs about what a
+single still image does.
+
+## The shape of a scene
+
+A recording needs two things: a root to draw, and a way to advance it. Both come from one factory
+function that owns its own state: nothing leaks to module scope, and the same scene can be recorded
+twice with identical results.
+
+```ts
+import { CircleNode, Easings, LineNode, Node, PathNode, Shape, TextNode, revealShape, v2 } from '@medu/lerno';
+import { exportMp4 } from '@medu/lerno-export';
+
+function curveReveal() {
+  const root = new Node();
+
+  // Grid and axes
+  for (let x = 80; x < 1280; x += 80) {
+    root.addChild(new LineNode(x, 90, x, 640, { stroke: '#1E293B', strokeWidth: 1 }));
+  }
+  root.addChild(new LineNode(80, 400, 1200, 400, { stroke: '#475569', strokeWidth: 2 }));
+
+  // The full curve; only a prefix of it is drawn each frame
+  const points = Array.from({ length: 241 }, (_, i) => {
+    const u = i / 240;
+    return v2(80 + u * 1120, 400 - 210 * Math.sin(u * Math.PI * 3) * Math.exp(-u * 2.1));
+  });
+  const full = Shape.polyline(points);
+
+  const curve = new PathNode(revealShape(full, 0), { stroke: '#F59E0B', strokeWidth: 4 });
+  const label = new TextNode('A curve drawn step by step', 80, 56, { fill: '#F8FAFC', fontSize: 34 });
+  root.addChild(curve);
+  root.addChild(label);
+
+  let progress = 0;
+  return {
+    root,
+    step(dt: number) {
+      progress = Math.min(progress + dt, 1); // 1 model-second: snappy if you play it at real speed
+      const eased = Easings.easeInOut(progress);
+      curve.shape = revealShape(full, eased);
+      label.text = `${Math.round(eased * 100)}%`;
+    },
+  };
+}
+
+await exportMp4(curveReveal(), {
+  width: 1280,
+  height: 720,
+  fps: 30, // slow reveal: half the frames, no visible difference
+  duration: 3, // drawn over 2 s, then held for 1 s
+  timeScale: 0.5, // the scene draws in 1 model-second; the export plays it at half speed
+  fontFamily: 'Helvetica',
+  background: '#0B0F19',
+  out: 'curve-reveal.mp4',
+  crf: 26,
+});
+```
+
+Three things make this the right shape:
+
+- **The factory owns the state.** `progress` and `full` live in the closure, so recording the scene
+  twice does not resume where the first run stopped.
+- **`step(dt)` advances, it does not measure.** `dt` is `(1 / fps) * timeScale`, handed in by the
+  recorder. Nothing reads a clock, which is why the output is reproducible byte for byte: and why
+  this scene can stay snappy at one model-second while the export plays it back over two.
+- **The nodes are reused.** `curve.shape = …` mutates one `PathNode` instead of rebuilding the tree,
+  so `toRender()` stays cheap across all 90 frames.
+
+## Options
+
+Size is decided by three knobs, measured on the scene above at 1280×720:
+
+| Setting | Result |
+| --- | --- |
+| `fps: 60, crf: 24, duration: 6` | 54 KB, 360 frames: the defaults |
+| `fps: 30, crf: 26, duration: 6` | 31 KB, 180 frames: half the frames, no visible loss |
+| `duration: 3, timeScale: 0.5` | **25 KB, 90 frames: this video** |
+| `width: 854, height: 480, crf: 28` | 15 KB, 180 frames: visibly softer |
+
+For a slowly moving line the frame rate matters far less than it looks: H.264 only records what
+changes, so halving the frames on a slow reveal is a near-free cut.
+
+<TypeTable type={{
+    "width, height": { type: "number", description: "Output size in pixels. Both must be even for yuv420p." },
+    "fps": { type: "number", description: "Frame rate, and the source of `dt`. Defaults to 60." },
+    "duration": { type: "number", description: "Seconds to record: `fps * duration` frames. Defaults to 1." },
+    "timeScale": { type: "number", description: "Model speed relative to the recording. `0.5` is slow motion, `2` is a time-lapse. Defaults to 1." },
+    "fontFamily": { type: "string", description: "Required. Family for every text element; see [Fonts](/docs/export/fonts)." },
+    "background": { type: "string", description: "Painted behind the scene. Defaults to #000000." },
+    "out": { type: "string", description: "Output path." },
+    "crf": { type: "number", description: "H.264 quality; lower is better and larger. Defaults to 20." },
+    "preset": { type: "string", description: "x264 speed preset. Defaults to veryfast." },
+    "extensions": { type: "Record<string, (ctx, data) => void>", description: "Renderers for custom node kinds." },
+}} />
+
+## Slow motion and time-lapse
+
+`duration` decides how long the video is; `timeScale` decides how much model time passes inside
+it. Keeping them apart lets a scene be authored at one pace and played at another:
+
+```ts
+await exportMp4(scene, { ...options, duration: 4, timeScale: 0.5 }); // half speed, no model edits
+```
+
+The same scene, same 4-second recording, measured at the 2-second mark:
+
+| Setting | Progress at t = 2 s |
+| --- | --- |
+| `timeScale: 1` | **78%** drawn |
+| `timeScale: 0.5` | **22%** drawn |
+
+This is what makes a real-time simulation watchable: a projectile or an orbit shown at `0.25`
+keeps its physics untouched while the video gives the viewer four times as long to follow it. The
+reverse works too: `timeScale: 8` compresses a slow process into a short clip.
+
+**The limit:** slow motion needs intermediate states to show. A scene that computes its final state
+and jumps to it in one `step` has nothing between start and finish, so no `timeScale` can slow it: the model must still be a function of elapsed time.
+
+## Partial exports
+
+`duration` and `fps` decide the frame count, so a long lesson can be cut into pieces without any
+separate editing step: each segment is its own `exportMp4` call with the same factory:
+
+```ts
+for (const [i, start] of [0, 4, 8].entries()) {
+  await exportMp4(sceneAt(start), { ...options, duration: 4, out: `part-${i}.mp4` });
+}
+```
+
+Because `step(dt)` is deterministic, a scene can seek by stepping to the offset before recording: there is no need to play the video back to find a position.
+
+## Regenerating this video
+
+```bash
+cd packages/lerno-export
+bun examples/curve-reveal.ts ../../apps/lerno-docs/public/media/lerno-export-demo.en.mp4 en
+```
+
+## See also
+
+- [Fonts](/docs/export/fonts): why `fontFamily` is required
+- [API](/docs/export/api): lower-level entry points

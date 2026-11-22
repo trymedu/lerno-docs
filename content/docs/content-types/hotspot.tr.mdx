@@ -1,0 +1,27 @@
+---
+title: Görsel Hotspot
+description: Görsel üzerinde keşif veya bulma noktaları.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+Görsel üzerinde keşif veya bulma noktaları.
+
+## Kullanım
+
+```ts
+hotspotImage('harita-1', { title: 'Harita' }, 'map-asset', [
+  { id: 'h1', x: 0.3, y: 0.4, label: 'Ankara', correct: true },
+], 'find');
+```
+
+## Gömülü Örnek
+
+<LernoPlayer document={contentTypeDemos['hotspot']} />
+
+## Nasıl Kurulur
+
+Ayrı bir motor değildir; doğru düğümleri bir araya getiren bir reçetedir:
+
+- `hotspot` node (explore / find)

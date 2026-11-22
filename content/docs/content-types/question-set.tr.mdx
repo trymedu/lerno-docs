@@ -1,0 +1,27 @@
+---
+title: Soru Seti
+description: Sıralı değerlendirme.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+Sıralı değerlendirme.
+
+## Kullanım
+
+```ts
+questionSet('quiz-1', { title: 'Karesel Fonksiyonlar' }, [
+  { kind: 'multiple-choice', prompt: 'f(x)=x² türevi?', choices: [{ id: 'a', label: 'x²' }, { id: 'b', label: '2x' }], correct: ['b'] },
+]);
+```
+
+## Gömülü Örnek
+
+<LernoPlayer document={contentTypeDemos['question-set']} />
+
+## Nasıl Kurulur
+
+Ayrı bir motor değildir; doğru düğümleri bir araya getiren bir reçetedir:
+
+- `question` node dizisi + doğrusal akış

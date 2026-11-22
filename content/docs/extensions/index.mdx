@@ -1,0 +1,73 @@
+---
+title: Overview
+description: The extension contract, registry entries, and host adapters.
+---
+
+The core knows nothing about any specific technology. Persistence, realtime channels, media storage,
+telemetry, and LLMs all arrive as **host adapters**. New nodes, questions, graders, and flows
+arrive as **extensions**.
+
+## The extension contract
+
+The definition below is the only shape an application passes into the core:
+
+```ts
+import { defineExtension } from '@medu/lerno';
+
+const myExtension = defineExtension({
+  name: 'my-extension',
+  setup(registry, host) {
+    registry.addQuestion(questionDefinition);
+    registry.addNode({ type: 'flashcard', label: 'Card' });
+    registry.addFlow('mastery', (document, state) => pickNext(document, state));
+  },
+});
+```
+
+## Registry
+
+| Registration | Adds |
+| --- | --- |
+| `addNode` | A new node archetype |
+| `addQuestion` | A new question kind, or a replacement grader |
+| `addFlow` | A new flow resolver beyond `linear`, `graph`, and `adaptive` |
+
+## Host adapters
+
+`LernoHost` is what the application injects. By default the core runs on its own with no-op and
+in-memory versions.
+
+```ts
+import { createLerno } from '@medu/lerno';
+
+const { registry, host } = createLerno({
+  host: {
+    storage: mySessionStorage,   // session persistence
+    telemetry: myTelemetry,      // event output
+    media: myMediaResolver,      // asset → URL
+    realtime: myRealtimeChannel, // live channel (for example a WebSocket)
+    identity: myIdentity,        // learner id
+    flow: myAdaptiveResolver,    // adaptive flow decisions
+    clock, random,               // for determinism
+  },
+  extensions: [myExtension],
+});
+```
+
+## Where the application lives
+
+Anything specific to one product belongs in a separate package that only implements these
+interfaces:
+
+```ts
+// @your/product-plugin-lerno (outside the core)
+export const productPlugin = defineExtension({
+  name: 'product',
+  setup(registry, host) {
+    registry.addFlow('mastery', productMasteryResolver);
+    registry.addNode({ type: 'live-quiz', label: 'Live quiz' });
+  },
+});
+```
+
+That is what lets Lerno be published, tested, and reused on its own.

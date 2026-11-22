@@ -1,0 +1,77 @@
+---
+title: Matematik Tipografisi
+description: MathNode ve KaTeX destekli görüntüleyici aracılığıyla sahnede LaTeX dizgisi.
+---
+
+`MathNode`, dizgilmiş matematiği bir çapa noktasına yerleştirir. Düğüm yalnızca LaTeX kaynağı taşır;
+glyph'leri piksele çevirmek görüntüleyicinin işidir, bu yüzden çekirdeğe bir TeX motoru gerekmez ve
+başsız bir test, teslim edilecek kaynağı üzerinde iddia kurabilir.
+
+## Kullanım
+
+```tsx
+import { MathNode, Node, Shape, PathNode } from '@medu/lerno';
+import { Display } from '@medu/lerno-react';
+
+const circle = new PathNode(Shape.circle(240, 200, 90), { stroke: 'var(--accent)', fill: 'none' });
+const label = new MathNode('x^2 + y^2 = r^2', 240, 200, { anchor: 'middle', fontSize: 20 });
+
+const root = new Node({ children: [circle, label] });
+
+<Display node={root} width={480} height={360} />;
+```
+
+## Stil sayfasını yükleme
+
+Dizgi KaTeX tarafından yapılır ve KaTeX'in kendi CSS'i vardır. Görüntüleyici HTML'i üretir; matematiği
+matematik yapan kuralların bir kez uygulama tarafından yüklenmesi gerekir:
+
+```ts
+import 'katex/dist/katex.min.css';
+```
+
+Bu olmadan yapı doğrudur ama her kesir, integral ve üs satır içi akışa düşer: matematik oradadır,
+düzen değildir.
+
+## Düğüm ne taşır
+
+<TypeTable type={{
+    "latex": { type: "string", description: "LaTeX kaynağı, örneğin `\\frac{a}{b}`." },
+    "x, y": { type: "number", description: "Model birimlerinde çapa noktası." },
+    "fontSize": { type: "number", description: "Model biriminde boyut. Görüntüleyicide varsayılan 16." },
+    "fill": { type: "string", description: "Metin rengi; bir CSS değişkeni açık ve koyu modu çalışır tutar." },
+    "anchor": { type: "'start' | 'middle' | 'end'", description: "Çapaya göre yatay hizalama. Varsayılan `middle`." },
+}} />
+
+Diğer her düğüm gibi paylaşılan seçenekleri de alır: `translation`, `rotation`, `scale`, `visible`,
+`opacity`, `children`.
+
+## Ekrana nasıl ulaşır
+
+Düğüm, render ağacında düz veri olan bir `math` kaydına iner:
+
+```ts
+new MathNode('E = mc^2', 10, 20).toRender();
+// { type: 'math', latex: 'E = mc^2', x: 10, y: 20 }
+```
+
+Görüntüleyici, KaTeX HTML'ini çapaya konumlanmış bir SVG `foreignObject`'una sarar. Boru hattındaki
+tarayıcıya özgü tek karar budur; öncesindeki her şey DOM olmadan test edilebilir.
+
+## Sınırlar
+
+- **Bozuk girdi sahneyi boşaltmaz.** KaTeX `throwOnError: false` ile çalışır; bir yazım hatası,
+  kaynağı KaTeX'in hata renginde gösterir.
+- **Kutu ölçülmez, tahmin edilir.** Görüntüleyici `foreignObject`'ı kaynak uzunluğundan, cömertçe
+  pay bırakarak ve kesilmeye karşı yanlı davranarak boyutlandırır. Çok uzun bir ifade gerçek ölçüme
+  ihtiyaç duyabilir; `@medu/lerno-react` içindeki `estimateMathWidth`'a bakın.
+- **KaTeX, çekirdeğin değil React paketinin bağımlılığıdır.** Matematik hiç çizmeyen bir uygulama
+  onu hiç import etmez.
+- **El yazımı HTML yok.** KaTeX varsayılan `trust: false` ile çalışır; kaynaktaki `\href` ve ham HTML
+  üretilmez.
+
+## İlgili
+
+- [Şekiller](/tr/docs/concepts/shapes): yollar, dönüşüm ve kademeli çizim
+- [Sahne Grafiği](/tr/docs/concepts/scene-graph): düğümler render ağacına nasıl iner
+- [Özel Düğümler](/tr/docs/concepts/custom-nodes): dizgi gerekmediğinde düz metin

@@ -1,0 +1,45 @@
+---
+title: First display
+description: A first React scene with Property, Node, and Display.
+---
+
+`Display` is the single component that turns a `Node` tree into SVG. The tree is a mutable object;
+`Property` values are bound to nodes through `link`, and `useProperty` re-renders React.
+
+## Example
+
+The component below draws a circle whose radius is managed by a `Property`.
+
+```tsx
+'use client';
+
+import { useMemo } from 'react';
+import { CircleNode, Node, Property } from '@medu/lerno';
+import { Display, useProperty } from '@medu/lerno-react';
+
+export function Scene() {
+  const radius = useMemo(() => new Property(40), []);
+  const root = useMemo(() => {
+    const circle = new CircleNode(240, 160, radius.get(), { fill: 'var(--accent)' });
+    radius.link((value) => {
+      circle.radius = value;
+    });
+    return new Node({ children: [circle] });
+  }, [radius]);
+
+  useProperty(radius);
+
+  return <Display node={root} width={480} height={320} />;
+}
+```
+
+## Behavior
+
+- `link` calls the listener immediately with the current value, so the first frame holds the right value.
+- `useProperty(radius)` only triggers a React re-render. Drawing itself happens inside `Display` through a
+  `root.toRender()` call.
+- Nodes are mutable; `circle.radius = value` does not create a new node.
+
+## Next step
+
+The [Scene graph](/docs/react/concepts/scenery) page extends this low-level layer.

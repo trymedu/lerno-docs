@@ -1,0 +1,98 @@
+---
+title: 'Compositing: video, altyazı ve katmanlar'
+description: Video plakasını, WebVTT altyazısını, bileşen katmanlarını ve sesi tek MP4'te birleştirin.
+---
+
+`exportMp4` bir sahne çizicisi olarak başladı. Artık dört isteğe bağlı parçayı sabit bir sırayla
+birleştiriyor; hâlâ tek ffmpeg geçişi ve tarayıcı yok:
+
+1. video plakası,
+2. sahne grafiği,
+3. bileşen katmanları,
+4. altyazı.
+
+```ts
+import { exportMp4, registerFont } from '@medu/lerno-export';
+import { Node } from '@medu/lerno';
+
+const fontFamily = registerFont({ family: 'Arial', path: '/System/Library/Fonts/Supplemental/Arial.ttf' });
+
+await exportMp4(
+  { root: new Node(), step() {} },
+  {
+    out: 'ders.mp4',
+    width: 1280,
+    height: 720,
+    fps: 30,
+    duration: 20,
+    fontFamily,
+    video: '/media/ders.mp4',
+    vtt: '/media/ders.tr.vtt',
+    audio: '/media/anlatim.m4a',
+    layers: { document, nodeId: 'clip', tone: 'light' },
+  },
+);
+```
+
+## Sıra önemlidir
+
+Önce plaka, sonra sahne grafiği, sonra katmanlar, en üstte altyazı çizilir. Arka plan dikdörtgeni
+olmayan bir sahne bu nedenle kaplama gibi çalışır; arka planı olan sahne videoyu kapatır.
+
+## Video plakası
+
+`video` ffmpeg ile export çözünürlüğünde ve kare hızında çözülür:
+
+```
+scale=W:H:force_original_aspect_ratio=increase, crop=W:H, fps=FPS
+```
+
+24 fps bir klip 30 fps'te yeniden örneklenir, kaymaz. Kareler ham RGBA olarak okunur; kodlayıcı ara
+görüntü dosyası görmez.
+
+## Bileşen katmanları
+
+`layers`, belgeyi, medya node id'sini, isteğe bağlı değişken anlık görüntüsünü ve tonu alır:
+
+```ts
+layers: {
+  document,
+  nodeId: 'clip',
+  variables: { airOn: true, g: 9.8 },
+  tone: 'light',
+}
+```
+
+Her katman oynatıcıdaki aynı fonksiyonlarla çözülür: zaman aralığı ve `visibleWhen` için
+`activeLayers`, `$var` için `resolveLayerProps`, `fadeMs` için `layerOpacity`. Çizici beş yerleşik
+bileşeni (`ui.switch`, `ui.button`, `ui.select`, `ui.slider`, `lab.readout`) canvas ile çizer.
+
+Canvas karşılığı olmayan bileşen atlanır ve bir kez bildirilir:
+
+```
+[lerno-export] no canvas painter for: app.custom; those layers are not burned.
+```
+
+Çağıran taraf hataya dönüştürmek isterse listeyi önceden `unpaintedLayers(document)` ile alabilir.
+
+## Altyazı
+
+`vtt` derleme sırasında okunur. Cue'lar karenin altında koyu plaka üzerinde, genişliğin %80'ine
+sararak çizilir; `captionFontSize` varsayılanı yüksekliğin %4'üdür. Glif denetimi cue metnini de
+kapsar; eksik font tofu kutusu üretmeden önce hata verir.
+
+## Ses
+
+`audio` ffmpeg'in okuyabildiği herhangi bir dosyayı kabul eder. Parça AAC 192 kbit/s olarak kodlanır ve
+kısa olan akışa göre kırpılır. MP3 bir anlatım için gereken tek kurulum budur; mikser devreye girmez.
+
+## Determinizm
+
+Plaka export kare hızına yeniden örneklenir, sahne sabit `dt` ile ilerler, altyazı kare zamanına göre
+seçilir. Aynı girdilerle iki koşu aynı kareleri üretir.
+
+## İlgili
+
+- [HTML çıktısı](/tr/docs/export/html): aynı dersin tek dosyalık sayfası
+- [API](/tr/docs/export/api): tüm export'lar ve seçenekler
+- [Fontlar](/tr/docs/export/fonts): font kaydı ve glif denetimi

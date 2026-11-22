@@ -1,0 +1,85 @@
+---
+title: "Skill: lerno-react"
+description: 'The React-layer skill: composition pattern, hook selection, and component rules.'
+---
+
+This is the body of `skills/lerno-react/SKILL.md`. Load it when the task is a React component, a
+hook, a HeroUI control, or a lab. Content documents, graders, and non-React work route to
+[Skill: lerno](/docs/ai/skills/lerno).
+
+`@medu/lerno-react` is a **thin binding**, not a framework. It adds React components and hooks over
+the core types and replaces none of them. A component owns no physics, no grading, and no state that
+belongs in the model.
+
+## Composition pattern
+
+Every scene follows the same three moves: create state, build the tree once, subscribe.
+
+```tsx
+'use client';
+
+import { useMemo } from 'react';
+import { CircleNode, Node, Property } from '@medu/lerno';
+import { Display, useProperty } from '@medu/lerno-react';
+
+export function Scene() {
+  const radius = useMemo(() => new Property(40), []);
+  const root = useMemo(() => {
+    const circle = new CircleNode(240, 160, radius.get(), { fill: 'var(--accent)' });
+    radius.link((value) => (circle.radius = value));
+    return new Node({ children: [circle] });
+  }, [radius]);
+
+  useProperty(radius);
+  return <Display node={root} width={480} height={320} />;
+}
+```
+
+`useMemo` for the tree is mandatory: rebuilding `root` every render discards listeners and loses
+work. `link` fires immediately, so the first frame is already correct.
+
+## Hooks and when to reach for each
+
+| Hook | Use it when | Note |
+| --- | --- | --- |
+| `useProperty(p)` | A component must repaint when a value changes | Returns the current value; nothing else re-renders |
+| `useSimStep(sim, opts)` | The state advances on `requestAnimationFrame` | `maxDelta` caps a resumed tab's jump |
+| `useDrag(node, handlers)` | A handle must move model state | Cleans itself up on unmount; opens `inputEnabled` |
+| `usePlayback(opts)` | A fixed-duration timeline is needed | Deterministic, so the same progress is reproducible |
+| `useAnimate()` | Several tweens or springs share one loop | `animate(prop, to, { spring: true })` |
+| `useSpring(src, opts)` | A value must converge on a target | Source may be a number or a `Property` |
+
+## Rules
+
+- **Components are `'use client'`.** They read `Property` and use `requestAnimationFrame`.
+- **Nothing reaches outside the component.** Everything arrives through props: a document, a
+  `host`, a scene factory. No fetching and no module-level singletons inside the package.
+- **Style with HeroUI and theme tokens.** Colors come from `sceneColors` / CSS variables, never from
+  hard-coded hex, so light and dark themes keep working.
+- **Draw, do not compute.** Geometry and physics belong to the core; a component reads a state and
+  renders it.
+
+## Verification
+
+```bash
+bunx turbo run type-check --filter=@medu/lerno-react
+bunx turbo run test --filter=@medu/lerno-react
+cd apps/lerno-docs && bun run build
+```
+
+The docs build also type-checks every embedded example, so a broken prop surfaces as a build error.
+
+## Common mistakes
+
+| Mistake | Fix |
+| --- | --- |
+| Recreating the node tree each render | Wrap it in `useMemo` keyed on its inputs |
+| Putting physics in a component | Model it in `Property`, read it in the view |
+| Hard-coded colors | Use `sceneColors` or a CSS variable |
+| Reading `state` on mount only | Subscribe with `useProperty`; the value changes later |
+| Adding a `key` that resets on every prop change | Key on identity, not on the animated value |
+
+## See also
+
+- [Overview](/docs/ai/skills): installing and verifying the skills
+- [Skill: lerno](/docs/ai/skills/lerno): the core counterpart

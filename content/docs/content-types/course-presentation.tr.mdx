@@ -1,0 +1,27 @@
+---
+title: Slayt Sunumu
+description: Bloklardan oluşan slayt dizisi.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+Bloklardan oluşan slayt dizisi.
+
+## Kullanım
+
+```ts
+coursePresentation('sunum-1', { title: 'Türev' }, [
+  { title: 'Giriş', blocks: [{ type: 'text', markdown: 'Anlık değişim oranı.' }] },
+]);
+```
+
+## Gömülü Örnek
+
+<LernoPlayer document={contentTypeDemos['course-presentation']} />
+
+## Nasıl Kurulur
+
+Ayrı bir motor değildir; doğru düğümleri bir araya getiren bir reçetedir:
+
+- `slide` dizisi

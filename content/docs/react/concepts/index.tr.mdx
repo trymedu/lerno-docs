@@ -1,0 +1,23 @@
+---
+title: Genel Bakış
+description: Display, Property bağlama, simülasyon döngüsü ve animasyon hook'ları.
+---
+
+Bu bölüm, çekirdek sahne grafiğini React'e bağlayan düşük seviye katmanı kapsar. Bileşenler
+`Node` ağacını SVG'ye çizer, `Property` değişimini React'e taşır ve zamanı deterministik bir
+döngüde ilerletir.
+
+| Sayfa | Ne kapsar |
+| --- | --- |
+| [Çizim ve Etkileşim](/tr/docs/react/concepts/scenery) | `Display`, `useProperty`, `useSimStep`, `useDrag` |
+| [Oynatma Hook'u](/tr/docs/react/concepts/playback) | `useAnimationFrame`, `useAnimate`, `useSpring` |
+
+## Sıra
+
+Bu sayfalar [Başlarken](/tr/docs/react/getting-started) bölümünün devamıdır: orada ilk sahne ve ilk
+simülasyon kurulur, burada altındaki kendi API'ler tanıtılır.
+
+## Sınırlar
+
+Bu katman çekirdek `Node`, `Property` ve `Sim` tiplerini **değiştirmez**; yalnızca React tarafına
+bağlar. Çekirdeğin kendisi için [Temel Kavramlar](/tr/docs/concepts) bölümüne bakılır.

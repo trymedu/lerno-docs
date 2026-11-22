@@ -1,0 +1,65 @@
+---
+title: Kurulum
+description: Paketler, ortam gereksinimleri ve ilk import.
+---
+
+Bu sayfa, Lerno paketlerinin kurulumunu ve ortam gereksinimlerini açıklar.
+
+## Çekirdek
+
+Çekirdek paketi aşağıdaki komutla kurulur:
+
+```bash
+bun add @medu/lerno
+```
+
+Çekirdek DOM'a bağlı değildir. Tarayıcıda çalıştığı gibi Node'da da çalışır; testler ve video dışa
+aktarımı bu nedenle aynı kodu kullanır.
+
+## React katmanı
+
+React bileşenleri için aşağıdaki paketler kurulur:
+
+```bash
+bun add @medu/lerno-react @heroui/react @heroui/styles
+```
+
+`@medu/lerno-react` bileşenleri HeroUI v3 ile çizilir. Tüketici uygulama, HeroUI stillerini ve tema
+değişkenlerini yükler:
+
+```css
+@import 'tailwindcss';
+@import '@heroui/styles';
+
+/* derlenmiş lerno-react paketini Tailwind taramasına dâhil et */
+@source 'node_modules/@medu/lerno-react/dist';
+```
+
+## 3B ve animasyon uzantıları
+
+3B modelleme ve Motion tabanlı animasyon ayrı paketlerde sunulur:
+
+```bash
+bun add @medu/lerno-three @medu/lerno-motion
+```
+
+`three`, `@medu/lerno-three` için peer bağımlılıktır; sürümü tüketici seçer.
+
+## İlk import
+
+Aşağıdaki satırlar çekirdek ve React katmanını içe aktarır:
+
+```ts
+import { Property, Node, CircleNode, ModelViewTransform2 } from '@medu/lerno';
+```
+
+```tsx
+import { Display, useProperty } from '@medu/lerno-react';
+```
+
+## Ortam gereksinimleri
+
+- Tarayıcı: 2B sahneler için yalnızca SVG yeterlidir; 3B için WebGL2 destekleyen güncel bir tarayıcı
+  gerekir.
+- Node: testler, veri üretimi ve DOM'suz render bu ortamda çalışır.
+- TypeScript zorunludur. Tipler `strict` altında tutarlıdır; `any` kullanan bir API bulunmaz.

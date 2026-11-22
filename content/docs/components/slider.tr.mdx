@@ -1,0 +1,61 @@
+---
+title: Slider
+description: Değişkene bağlı sayısal aralık.
+---
+
+import { SliderDemo } from '@/components/react/ComponentDemos';
+
+Slider bağlı değişkene sayı yazar. `min`, `max` ve `step` layer prop'larından gelir; aynı component
+kütle, hız, açı veya herhangi bir sayısal parametreyi kapsar.
+
+<SliderDemo />
+
+## Manifest katmanı
+
+```json
+{
+  "id": "mass",
+  "component": "ui.slider",
+  "fromMs": 0,
+  "bind": { "value": "mass" },
+  "props": { "label": "Kütle", "min": 5, "max": 5000, "step": 5, "unit": "g" }
+}
+```
+
+## JavaScript
+
+```js
+import { createSession, createInteractionRuntime } from '@medu/lerno';
+
+const runtime = createInteractionRuntime(document, createSession(document));
+const item = runtime.layersAt('clip', video.currentTime * 1000)
+  .find((entry) => entry.layer.id === 'mass');
+
+const input = document.createElement('input');
+input.type = 'range';
+input.min = String(item.props.min ?? 0);
+input.max = String(item.props.max ?? 100);
+input.step = String(item.props.step ?? 1);
+input.value = String(item.value ?? item.props.min ?? 0);
+input.addEventListener('input', () => runtime.change(item.layer, Number(input.value)));
+```
+
+## Prop'lar
+
+| Prop | Tip | Varsayılan |
+| --- | --- | --- |
+| `label` | `string` | `Value` |
+| `value` | `number` | `min` |
+| `min` | `number` | `0` |
+| `max` | `number` | `100` |
+| `step` | `number` | `1` |
+| `unit` | `string` | Yok |
+| `onChange` | `(value: number) => void` | Yok |
+| `disabled` | `boolean` | `false` |
+| `tone` | `'light' \| 'dark'` | `light` |
+
+## Davranış
+
+- Güncel değer ve birim etiketin sağında durur.
+- Native range input klavye ve ekran okuyucu desteğini korur; yalnızca görünüm özelleştirilir.
+- Ders içeriğinde kaba `step` kullan; çok ince adımlar tahtada tutmayı zorlaştırır.

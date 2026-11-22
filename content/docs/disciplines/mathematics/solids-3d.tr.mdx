@@ -1,0 +1,25 @@
+---
+title: 3B Cisimler
+description: Temel katı cisimler, dönüşüm bağlamaları ve yay animasyonu.
+---
+
+import { SolidsDemo } from '@/components/react/three/SolidsDemo';
+import { VisualDemo } from '@/components/react/VisualDemo';
+
+Küp, küre, silindir, koni ve halka; hepsi aynı `spin` değişkenine bağlı. Butonlar değişkeni yay fiziğiyle hedefe taşır, sahne her karede bağlamayı uygular.
+
+<VisualDemo id="solids-3d">
+  <SolidsDemo />
+</VisualDemo>
+
+## Animasyon
+
+```ts
+runtime.animate('spin', Math.PI * 2, { spring: true });
+```
+
+`rotation.y` kanalı `spin` değişkenine bağlı olduğu için yay ilerledikçe tüm cisimler birlikte döner. Aynı değişkeni birden çok objeye bağlamak, tek bir kontrolle tutarlı hareket üretmenin en kısa yoludur.
+
+## Sınır
+
+Bağlamalar sayısaldır. Bir cismin rengini değiştirmek için `material.color` kanalı yoktur; bu durumda nesneyi yeniden kur veya `three` nesnesine doğrudan eriş.

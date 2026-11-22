@@ -1,0 +1,51 @@
+---
+title: Overview
+description: Lerno's core is an open scene graph, a reactive model, and an input/animation toolkit.
+---
+
+The central idea in Lerno is not content types, but the **open primitives underneath**.
+Content types are replaceable recipes on top of them. When a recipe does not fit, it does not
+constrain the work; the simulation is written from primitives directly.
+
+## Layers
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ Content types (recipes, replaceable)                         │
+├─────────────────────────────────────────────────────────────┤
+│ sim      Sim · SimScreen · Clock                            │
+│ twixt    Tween · PropertyAnimation · AnimationTimeline       │
+│ motion   Spring · Keyframes · Sequence  (extension)          │
+│ scenery  Node · shape nodes · input · ModelViewTransform     │
+│ kite     Shape (SVG path)                                    │
+│ axon     Property · DerivedProperty · Emitter                │
+│ dot      Vector2 · Matrix3                                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+| Layer | Page | Contents |
+| --- | --- | --- |
+| `dot` | [Math](/docs/concepts/math) | `Vector2`, `Matrix3` |
+| `axon` | [Reactive Model](/docs/concepts/model) | `Property`, `DerivedProperty`, `Emitter` |
+| `kite` | [Shapes](/docs/concepts/shapes) | `Shape` |
+| `scenery` | [Scene Graph](/docs/concepts/scene-graph) | `Node`, shape nodes, render tree |
+| `scenery` | [Model-View Transform](/docs/concepts/model-view) | `ModelViewTransform2` |
+| `scenery` | [Input](/docs/concepts/input) | `InputListener`, `DragListener` |
+| `twixt` | [Animation](/docs/concepts/animation) | `Tween`, `PropertyAnimation` |
+| `motion` (extension package) | [Motion](/docs/concepts/motion) | `@medu/lerno-motion`: spring, keyframes, sequence |
+| `sim` | [Simulation and Screens](/docs/concepts/sim) | `Sim`, `SimScreen`, `Clock` |
+| None | [Writing Your Own Visual](/docs/concepts/custom-nodes) | `renderSelf`, `ExtensionNode` |
+
+## Principles
+
+- **The model does not know the view.** Physics and data are observable through `Property`; the scene graph reads them.
+- **Every visual composes.** A visual is a `Node` tree; a node can be added or subclassed.
+- **Every layer is open.** `Node` can be subclassed, and `ExtensionNode` accepts custom drawing.
+- **Recipes are optional.** `LernoDocument` and content types sit above the primitives.
+
+<Callout type="info" title="Where to start">
+  To write a simulation, the following order applies: [Reactive Model](/docs/concepts/model) →
+  [Scene Graph](/docs/concepts/scene-graph) → [Input](/docs/concepts/input) →
+  [Simulation](/docs/concepts/sim).
+  For ready-made graphics, see [Disciplines](/docs/disciplines).
+</Callout>

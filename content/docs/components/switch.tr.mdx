@@ -1,0 +1,59 @@
+---
+title: Switch
+description: Değişkene bağlı boolean anahtar.
+---
+
+import { SwitchDemo } from '@/components/react/ComponentDemos';
+
+Switch en küçük boolean kontroldür. Bir layer `bind.value` ile bağladığında işaretli durum doğrudan
+değişkendir; component kendi state'ini tutmaz.
+
+<SwitchDemo />
+
+## Manifest katmanı
+
+```json
+{
+  "id": "air",
+  "component": "ui.switch",
+  "fromMs": 12400,
+  "bind": { "value": "airOn" },
+  "props": { "label": "Hava direnci" }
+}
+```
+
+## JavaScript
+
+```js
+import { createSession, createInteractionRuntime } from '@medu/lerno';
+
+const runtime = createInteractionRuntime(document, createSession(document));
+const item = runtime.layersAt('clip', video.currentTime * 1000)
+  .find((entry) => entry.layer.id === 'air');
+
+const control = document.createElement('button');
+control.type = 'button';
+control.setAttribute('role', 'switch');
+control.setAttribute('aria-checked', String(item.value === true));
+control.textContent = String(item.props.label);
+control.addEventListener('click', () => runtime.change(item.layer, item.value !== true));
+```
+
+`@medu/lerno-react` aynı sözleşmenin tek bir referans renderer'ıdır. Yukarıdaki kod yalnızca çekirdeği kullanır.
+
+## Prop'lar
+
+| Prop | Tip | Varsayılan |
+| --- | --- | --- |
+| `label` | `string` | `Toggle` |
+| `value` | `boolean` | `false` |
+| `onChange` | `(value: boolean) => void` | Yok |
+| `disabled` | `boolean` | `false` |
+| `tone` | `'light' \| 'dark'` | `light` |
+
+## Davranış
+
+- Ray ve top shadcn switch formunu izler: 44×24 ray, 20px top, tek focus halkası.
+- Tıklama alanı tüm satırdır; dokunmada en az 44px yükseklik korunur.
+- `tone="dark"` koyu video üstünde rayı tersine çevirir.
+- Tıklama `onChange` ile ters boolean yazar; runtime aynı değişkene bağlı tüm layer'ları günceller.

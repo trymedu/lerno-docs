@@ -1,0 +1,92 @@
+---
+title: Overview
+description: Question types, GradeOutcome statuses, and the scoring ratio.
+---
+
+Questions are graded through the **registry** in the core. Every question kind is a
+`QuestionDefinition`: the `item` schema validates the question, the `response` schema validates the
+answer, and the `grade` function compares the two.
+
+## Registered question kinds
+
+| Group | Kinds |
+| --- | --- |
+| Choice and truth | `multiple-choice`, `true-false`, `poll` |
+| Free text | `short-answer`, `open` |
+| Numeric | `numeric`, `scale` |
+| Structured | `fill-blanks`, `ordering`, `matching` |
+| Math and concepts | `equation`, `concept-map`, `solution-steps` |
+
+## GradeOutcome
+
+Every `grade` call returns a result. You get one by grading an answer:
+
+```ts
+import { questionSet, createSession } from '@medu/lerno';
+
+const document = questionSet('quiz-1', { title: 'Quiz' }, [
+  { kind: 'equation', prompt: 'Differentiate x².', accepted: ['2x'] },
+]);
+
+const { outcome } = createSession(document).answer('q1', { text: '2x' });
+// { status: 'correct', score: 1, maxScore: 1 }
+```
+
+Its type:
+
+```ts
+interface GradeOutcome {
+  status: 'correct' | 'incorrect' | 'partial' | 'pending' | 'ungraded';
+  score: number;
+  maxScore: number;
+  detail?: string;
+  misconceptions?: string[];
+}
+```
+
+| Status | Meaning |
+| --- | --- |
+| `correct` | `score` equals `maxScore`. |
+| `incorrect` | `score` is zero. |
+| `partial` | Between zero and full credit. Every kind that awards partial credit produces it. |
+| `pending` | No answer yet; the session is waiting. |
+| `ungraded` | Kinds that are not scored, such as `poll` and `scale`; free-text answers can also land here. |
+
+`poll` and `scale` are never graded, so they are excluded from the denominator entirely. An open
+question stays `pending` until a rubric score arrives; until then it contributes zero, but its points
+remain in the denominator. An unanswered gradable question therefore counts as zero and lowers the
+ratio.
+
+## Scoring modes
+
+`document.scoring.mode` controls the ratio:
+
+| Mode | Ratio |
+| --- | --- |
+| `sum` (default) | Weighted points: `earned / max` |
+| `average` | Mean of per-question ratios, so every question has equal weight |
+| `pass-fail` | Weighted points; `passed` comes from `passingRatio` |
+
+`earned` is always the weighted point total and `max` is the total points of gradable questions.
+A question's `points` value weights its grader ratio; the grader's own `maxScore` is not added to the
+document total.
+
+## Scoring ratio
+
+Each answer is normalized to `score / maxScore` and multiplied by the question's `points`. Kinds that
+produce partial credit are:
+
+- `multiple-choice`: for multi-answer questions, correct selections minus wrong ones
+- `ordering` / `matching`: the correct order or pairing yields `partial`
+- `concept-map`: correct relations minus wrong relations
+- `solution-steps`: number of correct steps
+
+## Sub-pages
+
+| Page | Covers |
+| --- | --- |
+| [Misconception tags](/docs/grading/misconceptions) | How distractor tags reach the report |
+| [Equation question](/docs/grading/equation) | Normalisation rules for notation |
+| [Concept map question](/docs/grading/concept-map) | Relation set comparison and the penalty for wrong relations |
+| [Step-by-step solution](/docs/grading/solution-steps) | Partial credit per step |
+| [Custom grader](/docs/grading/custom-grader) | Adding a new kind with `defineQuestion` |

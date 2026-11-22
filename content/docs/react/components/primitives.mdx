@@ -1,0 +1,66 @@
+---
+title: Primitive components
+description: FunctionCurve, VectorArrow, TangentLine, RiemannSum, ProjectileTrajectory, and MoleculeView.
+---
+
+All primitives are used as siblings inside a `Scene`. Each one turns data from the core into SVG.
+
+## `<FunctionCurve />`
+
+```tsx
+import { FunctionCurve } from '@medu/lerno-react';
+import { FunctionPlotter } from '@medu/lerno';
+
+<FunctionCurve plane={plane} plotter={new FunctionPlotter({ fn: Math.sin })} />;
+```
+
+It respects `plotter.drawProgress`. To animate, create a new `FunctionPlotter` each frame or update its
+`drawProgress` field.
+
+## `<VectorArrow />`
+
+```tsx
+import { VectorArrow } from '@medu/lerno-react';
+import { Vector2D } from '@medu/lerno';
+
+<VectorArrow plane={plane} vector={new Vector2D(3, 2)} tail={{ x: 0, y: 0 }} label="v" />;
+```
+
+## `<TangentLine />`
+
+```tsx
+import { TangentLine } from '@medu/lerno-react';
+
+<TangentLine plane={plane} fn={(x) => x * x} x0={1.5} length={2} />;
+```
+
+## `<RiemannSum />`
+
+```tsx
+import { RiemannSum } from '@medu/lerno-react';
+
+<RiemannSum plane={plane} fn={(x) => x * x} a={0} b={3} n={12} method="midpoint" />;
+```
+
+## `<ProjectileTrajectory />`
+
+```tsx
+import { ProjectileTrajectory } from '@medu/lerno-react';
+import { ProjectileSimulation } from '@medu/lerno';
+
+<ProjectileTrajectory plane={plane} projectile={new ProjectileSimulation(30, 45)} progress={0.6} />;
+```
+
+## `<MoleculeView />`
+
+```tsx
+import { MoleculeView } from '@medu/lerno-react';
+import { Molecule2D } from '@medu/lerno';
+
+<MoleculeView molecule={Molecule2D.createWater(480, 260, 120)} />;
+```
+
+<Callout type="info" title="Compose them yourself">
+  Primitives are controlled: the caller decides which layer is drawn, in what order, and in what color. For
+  ready-made controls, the matching lab is used.
+</Callout>

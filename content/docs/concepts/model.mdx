@@ -1,0 +1,56 @@
+---
+title: Reactive model
+description: An observable model built from Property, DerivedProperty, and Emitter.
+---
+
+The model holds the data and the logic of the application, and it knows nothing about the view.
+Changes are published through `Property` (the observer pattern), and the view subscribes with `link`.
+
+```ts
+import { Property, DerivedProperty, Emitter } from '@medu/lerno';
+
+const mass = new Property(2);
+const acceleration = new Property(3);
+
+// a derived value: recomputed when its dependencies change
+const force = new DerivedProperty([mass, acceleration], ([m, a]) => m * a);
+
+// a view binding: called immediately with the current value
+const unlink = force.link((value) => console.log('force', value));
+
+mass.set(4); // → force 12
+unlink();
+```
+
+## Property API
+
+| Member | Description |
+| --- | --- |
+| `get()` / `.value` | Current value |
+| `set(value)` | Updates the value and notifies listeners when it changed |
+| `reset()` | Returns to the initial value |
+| `link(listener)` | Calls immediately, then subscribes; returns an unsubscribe function |
+| `lazyLink(listener)` | Subscribes without calling immediately |
+| `validate` | Transforms the value before it is stored |
+| `equals` | Change comparison, `Object.is` by default |
+
+```ts
+const ratio = new Property(0.5, { validate: (value) => Math.min(1, Math.max(0, value)) });
+ratio.set(2); // → 1
+```
+
+## Emitter
+
+`Property` holds a single value. For events with several arguments, use `Emitter`.
+
+```ts
+const onHit = new Emitter<[number, number]>();
+const off = onHit.addListener((x, y) => console.log(x, y));
+onHit.emit(1, 2);
+off();
+```
+
+<Callout type="tip" title="Determinism">
+  A model can be advanced purely through `step(dt)`. The same sequence of `dt` values always produces
+  the same result, which is what tests and video export rely on.
+</Callout>

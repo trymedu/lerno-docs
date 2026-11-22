@@ -1,0 +1,54 @@
+---
+title: Matrix3
+description: 'Afin dönüşüm matrisi: öteleme, dönme, ölçek ve nokta dönüşümü.'
+---
+
+`Matrix3`, 3×3 afin dönüşüm matrisidir. Son satır `(0, 0, 1)` olarak sabit tutulduğundan bir nokta
+tek bir çarpımla dönüştürülür. Düğümün `getTransform()` çıktısı da bu sınıftır; model ve piksel
+koordinatları arasındaki dönüşüm `ModelViewTransform2` üzerinden yürür.
+
+Matris de **değişmezdir**: `times` ve `inverted` yeni matris üretir.
+
+## Constructor
+
+<TypeTable type={{
+    "new Matrix3(m00, m01, m02, m10, m11, m12)": { description: <>Değerleri satır öncelikli alır. Son satır varsayılan <code>(0, 0, 1)</code>'dir.</> },
+}} />
+
+## Statik metodlar
+
+<TypeTable type={{
+    "Matrix3.translation(x, y)": { type: "Matrix3", description: <><code>(x, y)</code> kadar öteleme.</> },
+    "Matrix3.rotation(radians)": { type: "Matrix3", description: "Orijin etrafında dönme, saat yönünün tersine pozitif." },
+    "Matrix3.scaling(sx, sy?)": { type: "Matrix3", description: <>Eksenlere göre ölçek; <code>sy</code> verilmezse <code>sx</code> kullanılır.</> },
+}} />
+
+## Properties
+
+<TypeTable type={{
+    "m00, m01, m02":  { type: "number", description: <>Birinci satır; öteleme <code>m02</code> ve <code>m12</code> içindedir.</> },
+    "m10, m11, m12":  { type: "number", description: "İkinci satır." },
+    "determinant": { type: "number", description: "Determinant; sıfırsa tersi alınamaz." },
+    "translation": { type: "Vector2", description: "Öteleme bileşeninin vektör hâli." },
+}} />
+
+## Metodlar
+
+<TypeTable type={{
+    "times(other)": { type: "Matrix3", description: <>Birleştirir; <code>other</code> önce uygulanır.</> },
+    "transformPoint(point)": { type: "Vector2", description: "Noktayı dönüştürür; öteleme dahildir." },
+    "transformDelta(delta)": { type: "Vector2", description: "Yönü dönüştürür; öteleme yok sayılır." },
+    "inverted()": { type: "Matrix3", description: "Ters matrisi üretir." },
+    "equals(other, epsilon?)": { type: "boolean", description: "Dokuz değeri toleransla karşılaştırır." },
+    "toSVG()": { type: "string", description: <><code>matrix(...)</code> biçiminde SVG/CSS dönüşüm dizesi.</> },
+}} />
+
+## Hata durumu
+
+Determinant `0`'a çok yakınsa `inverted()` bir `Error` fırlatır. Bu durum, dönüşümün uzayı
+katlamış olduğunu gösterir; ölçek `0` yapılmış bir `Node` bu hataya yol açar.
+
+## İlgili
+
+- Değer taşıyan vektör: [Vector2](/tr/docs/api/classes/vector2)
+- Model ve piksel arası dönüşüm: [Model-View Dönüşümü](/tr/docs/concepts/model-view)

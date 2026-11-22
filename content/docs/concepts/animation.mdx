@@ -1,0 +1,46 @@
+---
+title: Animation
+description: Tween, PropertyAnimation, and AnimationTimeline.
+---
+
+`twixt` animates any `Property` or number over time. It advances through a deterministic `step(dt)`,
+which is what makes tests and video export reliable.
+
+```ts
+import { Property, animateNumber, animateVector2, Easings, v2 } from '@medu/lerno';
+
+const x = new Property(0);
+const position = new Property(v2(0, 0));
+
+const a = animateNumber(x, 100, { duration: 0.8, easing: Easings.easeInOut });
+const b = animateVector2(position, v2(400, 200), { duration: 0.8 });
+
+// on every frame:
+a.step(dt);
+b.step(dt);
+```
+
+## Raw tween
+
+```ts
+import { Tween, Easings } from '@medu/lerno';
+
+const tween = new Tween(0, 1, { duration: 1, easing: Easings.linear });
+tween.step(0.5);
+tween.value; // 0.5
+```
+
+## Timeline
+
+```ts
+import { AnimationTimeline, Tween } from '@medu/lerno';
+
+const timeline = new AnimationTimeline();
+timeline.add(new Tween(0, 1, { duration: 1 }));
+timeline.add(new Tween(0, 5, { duration: 2 }));
+timeline.step(dt);
+```
+
+## Easings
+
+`linear`, `easeIn`, `easeOut`, `easeInOut` (default), `cubic`.

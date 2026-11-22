@@ -1,0 +1,27 @@
+---
+title: Bilgi Sayfası
+description: Panel ve bilgi kartları.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+Panel ve bilgi kartları.
+
+## Kullanım
+
+```ts
+infoPage('bilgi-1', { title: 'Özet' }, [
+  { title: 'Kural', body: 'x^n türevi n·x^(n−1)' },
+]);
+```
+
+## Gömülü Örnek
+
+<LernoPlayer document={contentTypeDemos['info-page']} />
+
+## Nasıl Kurulur
+
+Ayrı bir motor değildir; doğru düğümleri bir araya getiren bir reçetedir:
+
+- `info` node

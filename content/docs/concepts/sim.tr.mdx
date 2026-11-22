@@ -1,0 +1,49 @@
+---
+title: Simülasyon ve Ekranlar
+description: Sim, SimScreen ve Clock ile MVC tabanlı çok ekranlı simülasyonlar.
+---
+
+`Sim` model + view'ı bir arada yönetir; `SimScreen` ikisini bağlar; `Clock` deterministik zamanı tutar.
+
+```ts
+import { CircleNode, Node, Property, Sim, createScreen } from '@medu/lerno';
+
+class FreeFallModel {
+  readonly height = new Property(100);
+  readonly velocity = new Property(0);
+  step(dt: number): void {
+    this.velocity.set(this.velocity.get() + 9.8 * dt);
+    this.height.set(Math.max(0, this.height.get() - this.velocity.get() * dt));
+  }
+}
+
+const screen = createScreen(
+  'Serbest Düşme',
+  () => new FreeFallModel(),
+  (model) => new Node({ children: [new CircleNode(480, model.height.get(), 16)] }),
+);
+
+const sim = new Sim({ screens: [screen], width: 960, height: 540 });
+sim.screens[0].createModel();
+sim.step(1 / 60); // her karede
+```
+
+## Ekranlar
+
+| Üye | Açıklama |
+| --- | --- |
+| `createScreen(name, createModel, createView)` | Model + view çifti üretir |
+| `screen.createModel()` | Model örneği oluşturur |
+| `screen.createView()` | Sahne grafiğini üretir |
+| `screen.step(dt)` | Model `step`'ini çağırır |
+
+## React'te
+
+```tsx
+import { Display, useSimStep } from '@medu/lerno-react';
+
+function View({ sim, root }) {
+  useSimStep(sim); // rAF döngüsünde sim.step(dt)
+  return <Display node={root} />;
+}
+```

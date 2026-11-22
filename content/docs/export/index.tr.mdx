@@ -1,0 +1,78 @@
+---
+title: Dışa Aktarım
+description: Bir Lerno sahnesini React'siz, tarayıcısız ve ara görsel olmadan video dosyasına dönüştürme.
+---
+
+`@medu/lerno-export` bir sahneyi kaydeder ve headless bir süreçten H.264 MP4 üretir. Ne React
+yüklür ne tarayıcı açılır ne de diske bir görsel yazılır: pikseller rasterizer'dan doğrudan
+ffmpeg'in stdin'ine gider.
+
+```bash
+bun add @medu/lerno-export @napi-rs/canvas
+```
+
+`ffmpeg` `PATH`'te olmalı, `FFMPEG_PATH` ile gösterilmeli ya da `ffmpeg-static` sağlanmalıdır.
+
+## Boru hattı
+
+| Aşama | Uygulama | Maliyet |
+| --- | --- | --- |
+| Model | `scene.step(1/fps)` | sahneye bağlı |
+| Render ağacı | `root.toRender()` | saf veri, DOM yok |
+| Raster | `@napi-rs/canvas` | ~3,5 ms/kare |
+| Taşıma | ham RGBA → stdin | 0 |
+| Kodlama | `libx264` | ~3 ms/kare |
+
+M5 üzerinde 1080p ölçüldü: 600 kare (on saniyelik video) **~1,9 saniyede**, **3,08 ms/karede**
+üretilir.
+
+Bütçe kodlayıcıya değil rasterizer'a gidiyor; bu yüzden ara biçimler küçültülmedi, **tamamen
+kaldırıldı**: PNG encode tek başına ~27 ms/kare, bir JPEG gidiş-dönüşü ise dosya I/O'sunun üstüne
+ikinci bir kalite adımı biniyor.
+
+### Neden diğerleri değil
+
+Bu tasarım seçilmeden önce her alternatif ölçüldü:
+
+| Yol | ms/kare | Sorun |
+| --- | ---: | --- |
+| JPEG q92 → dosya → ffmpeg | 8,96 | 180 karede 28,3 MB geçici, **iki** kalite adımı |
+| `@napi-rs/webcodecs` (donanım) | 7,54 | geçerli alternatif; daha yavaş, paket birkaç günlük |
+| Playwright screenshot | 32,9 | tarayıcı, instance başına ~300 MB |
+| resvg SVG → PNG | 93,3 | pratik değil |
+
+
+## 3B sahneler
+
+`@medu/lerno-export` Lerno node ağaçlarını kaydeder. `@medu/lerno-three` tarayıcıda WebGL ile çizer ve
+render ağacı değil piksel üretir; bu nedenle bir Three.js sahnesi burada dışa aktarılamaz.
+`frameTrees`, `rgbaFrames` ve `exportMp4` çağrısı şu hatayla durur:
+
+`Three.js scenes cannot be exported headlessly: @medu/lerno-export records Lerno 2D node trees. Render the 3D layer with a browser or WebGL backend and composite it through exportMp4({ video }).`
+
+Çözüm birleştirmedir. 3B katmanı tarayıcıda veya bir WebGL arka ucunda videoya çıkarın, dosyayı
+`exportMp4({ video })` ile verin. 2B katmanlar, altyazılar ve anchor'lar üstüne eklenir.
+
+## Determinizm
+
+`step`, saat okumadan `fps`'ten türetilen `dt`'yi alır; bu yüzden aynı sahnenin iki çalıştırması bayt
+aynısı kareleri üretir. Bir render'ı test etmeyi, yeniden denemeyi veya worker'lara bölmeyi mümkün
+kılan da budur: sonuç değişmez.
+
+## Neyi çizmeyi reddeder
+
+İçeriği sessizce atlamak makul görünen ama yanlış bir video üretir, bu yüzden üç durum hata fırlatır:
+
+| Durum | Hata |
+| --- | --- |
+| `MathNode` | bu rasterizer'da TeX motoru yok |
+| Bilinmeyen `ExtensionNode` | kimliği için kayıtlı renderer yok |
+| Yüklenmemiş bitmap'e sahip görsel | `resolveImage` verin |
+
+## Bu bölümde
+
+| Sayfa | Kapsam |
+| --- | --- |
+| [Kullanım](/tr/docs/export/usage) | Yukarıdaki video, sahne fabrika deseni ve bütün seçenekler |
+| [Fontlar](/tr/docs/export/fonts) | `fontFamily` kuralı ve dile bağımlı olmayan glif kapsamı |
+| [API](/tr/docs/export/api) | Düşük seviyeli giriş noktaları ve boru hattını kendiniz kurmak |

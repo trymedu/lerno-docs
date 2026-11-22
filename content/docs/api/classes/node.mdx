@@ -1,0 +1,78 @@
+---
+title: Node
+description: 'The scene graph node: transform fields, tree operations, input, and the render output.'
+---
+
+`Node` is the building block of the scene graph. Each node carries its own transform, visibility,
+and children; `toRender()` lowers the whole subtree into a framework-agnostic render tree. Nodes are
+mutable, so a `Property` listener that writes a value updates the scene immediately, without
+re-rendering React.
+
+## Constructor
+
+<TypeTable type={{
+    "new Node(options?)": { description: <>Builds an empty node from <code>NodeOptions</code>. Missing fields fall back to defaults: <code>visible</code> on, <code>opacity</code> <code>1</code>, <code>translation</code> zero, <code>rotation</code> <code>0</code>, <code>scale</code> <code>1</code>.</> },
+}} />
+
+## Properties
+
+<TypeTable type={{
+    "children": { type: "Node[]", description: <>The child list. Owned by the node; changed by <code>addChild</code>, never re-assigned.</> },
+    "visible": { type: "boolean", description: <>When <code>false</code> the subtree is not drawn at all (<code>display: none</code>).</> },
+    "opacity": { type: "number", description: <>Opacity in the <code>0</code>–<code>1</code> range, applied to the subtree.</> },
+    "translation": { type: "Vector2", description: "Offset in local space. Immutable, so it is re-assigned rather than mutated." },
+    "rotation": { type: "number", description: "Rotation in radians around the origin." },
+    "scale": { type: "Vector2", description: <>Local scale; <code>v2(2, 1)</code> stretches horizontally only.</> },
+    "inputEnabled": { type: "boolean", description: <>When <code>true</code> the render output exposes the element to pointer events. Opens automatically when a listener is added.</> },
+}} />
+
+## Methods
+
+<TypeTable type={{
+    "addChild(child)": { type: "this", description: "Appends a child to the end of the list. Chainable." },
+    "removeChild(child)": { type: "this", description: "Removes a direct child. A child that is not in the list is ignored." },
+    "clearChildren()": { type: "this", description: "Removes every direct child." },
+    "get childCount()": { type: "number", description: "Number of direct children." },
+    "getTransform()": { type: "Matrix3", description: <>Builds the local matrix from <code>translation</code>, <code>rotation</code>, and <code>scale</code>.</> },
+    "addInputListener(listener)": { type: "this", description: <>Adds a listener and opens the <code>inputEnabled</code> flag.</> },
+    "removeInputListener(listener)": { type: "this", description: "Removes a listener. The flag closes when the last one is gone." },
+    "get listenerCount()": { type: "number", description: "Number of attached listeners." },
+    "handlePointer(type, pointer)": { type: "void", description: <>Forwards <code>down</code>, <code>move</code>, and <code>up</code> to listeners. Usually called by a renderer.</> },
+    "toRender()": { type: "RenderElement", description: <>Produces the safe render output for the subtree. Elements of nodes with listeners also carry <code>source</code>.</> },
+    "renderSelf()": { type: "RenderElement", description: "Draws only this node. Overridden when a new node type is defined." },
+}} />
+
+## Shape nodes
+
+These classes extend `Node` and each has its own constructor.
+
+<TypeTable type={{
+    "new RectNode(x, y, width, height, style?)": { description: <>Rectangle with its top-left at <code>(x, y)</code>, rounded by <code>radius</code>.</> },
+    "new CircleNode(centerX, centerY, radius, style?)": { description: "Circle at the given center." },
+    "new LineNode(x1, y1, x2, y2, style?)": { description: <>Straight segment between two points; <code>dash</code> makes it dashed.</> },
+    "new PathNode(shape, style?)": { description: <>Draws a <code>Shape</code> as a path.</> },
+    "new TextNode(text, x, y, style?)": { description: <>Text aligned at <code>(x, y)</code>; <code>anchor</code> and <code>baseline</code> set the placement.</> },
+    "new ImageNode(src, x, y, width, height, options?)": { description: <>Image in the given rectangle; <code>alt</code> adds an accessible label.</> },
+    "new ExtensionNode(rendererId, data)": { description: <>Hands <code>data</code> to a registered renderer unchanged.</> },
+}} />
+
+The `style` object is shared by every shape node: `fill`, `stroke`, `strokeWidth`, `dash`, and the
+transform fields (`translation`, `rotation`, `scale`, `opacity`, `visible`).
+
+## Module functions
+
+<TypeTable type={{
+    "group(options?)": { type: "Node", description: "An empty node that accepts children." },
+    "arrow(from, to, style?)": { type: "Node", description: <>A line from <code>from</code> to <code>to</code> with an arrowhead at the tip.</> },
+}} />
+
+## Render tree
+
+The output of `toRender()` is plain data: `{ type, ...geometry, ...paint, transform, children }`.
+The same output serves SVG, Canvas, WebGL, or a test, and contains no React types.
+
+## See also
+
+- Conceptual background: [Scene graph](/docs/concepts/scene-graph)
+- Binding values: [Property](/docs/api/classes/property)
+- Connecting to SVG: [Display](/docs/react/concepts/scenery)

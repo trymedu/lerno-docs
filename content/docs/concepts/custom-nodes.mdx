@@ -1,0 +1,63 @@
+---
+title: Writing a custom visual
+description: Customization without touching the core, using renderSelf, ExtensionNode, and a renderer registry.
+---
+
+Lerno is not a closed system; every layer has an extension point.
+
+## 1. Node subclassing
+
+`Node` is extended and `renderSelf()` is overridden. Changing the core is not required.
+
+```ts
+import { Node, Shape, type RenderElement } from '@medu/lerno';
+
+class ProgressRing extends Node {
+  constructor(public progress = 0, public radius = 40) {
+    super();
+  }
+
+  protected renderSelf(): RenderElement {
+    return {
+      type: 'path',
+      shape: Shape.circle(0, 0, this.radius),
+      fill: 'none',
+      stroke: 'var(--accent)',
+      strokeWidth: 4,
+      dash: `${this.progress * 2 * Math.PI * this.radius} 9999`,
+    };
+  }
+}
+```
+
+## 2. ExtensionNode and the registry
+
+A custom React, SVG, or Canvas drawing is registered:
+
+```tsx
+import { ExtensionNode } from '@medu/lerno';
+import { Display, registerNodeRenderer } from '@medu/lerno-react';
+
+registerNodeRenderer('heatmap', (data) => <Heatmap data={data as number[][]} />);
+
+const node = new ExtensionNode('heatmap', [[1, 2], [3, 4]]);
+<Display node={node} />;
+```
+
+## 3. A custom display
+
+The render tree is plain data, so a Canvas, WebGL, or test display can be provided.
+
+```ts
+const tree = root.toRender(); // { type, props, children }
+```
+
+## 4. A custom model-view transform
+
+`ModelViewTransform2` covers the common case. For a custom projection, compose `translation`,
+`rotation`, and `scale` on a `Node`, or subclass it and override `renderSelf`.
+
+<Callout type="info" title="The point">
+  Content types are only recipes. These extension points are why every layer in Lerno can
+  be customized; there is no fixed boundary.
+</Callout>

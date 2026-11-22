@@ -1,0 +1,43 @@
+---
+title: Overview
+description: 'Three surfaces for AI-assisted work: LLM text output, agent skills, and deterministic checks.'
+---
+
+AI-assisted work on Lerno runs on three surfaces. They are deliberately separate: the first one feeds
+a model context, the second one feeds an agent instructions, and the third one tells both whether
+the result is correct.
+
+## The three surfaces
+
+| Surface | What it is | Consumed by |
+| --- | --- | --- |
+| [LLM text output](/docs/ai/llms) | `llms.txt`, `llms-full.txt`, and per-page Markdown | Any model that reads a URL or a file |
+| [Agent skills](/docs/ai/skills) | `skills/lerno`, `skills/lerno-react`, `skills/lerno-motion` | Coding agents that edit the repository |
+| Verification | `type-check`, `test`, `build` | Both, as the feedback loop |
+
+## Why the third one matters
+
+Lerno is deterministic by construction: time arrives as `step(dt)`, documents are validated by
+zod schemas, and the render tree is plain data. That means an agent can produce a wrong answer and
+**prove it wrong within seconds** without a browser. A visual is either correct or the test says so.
+
+```bash
+bunx turbo run type-check --filter=@medu/lerno
+bunx turbo run test --filter=@medu/lerno
+cd apps/lerno-docs && bun run build
+```
+
+The docs build type-checks every embedded example, so a broken prop in a guide fails the build
+rather than shipping.
+
+## What a model is given
+
+- The public API is documented member by member in [API](/docs/api), generated from the English
+  JSDoc that sits next to the code.
+- The concepts a visual must satisfy live in [Core concepts](/docs/concepts).
+- Worked examples with live previews live in [Disciplines](/docs/disciplines).
+
+## What is deliberately not provided
+
+There is no code-generation endpoint and no natural-language-to-scene compiler. The library exposes
+typed primitives; composition and pedagogical judgement stay with the author.

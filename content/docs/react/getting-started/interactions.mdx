@@ -1,0 +1,58 @@
+---
+title: Interaction
+description: Making a node draggable with useDrag and forwarding pointer events.
+---
+
+Dragging is built on the core `DragListener`. `useDrag` only attaches the listener to a `Node` and tears
+it down when the component unmounts. `Display` handles pointer events for elements whose `inputEnabled`
+flag is set; the listener works in scene coordinates.
+
+## Example
+
+The component below makes a circle horizontally draggable.
+
+```tsx
+'use client';
+
+import { useMemo } from 'react';
+import { CircleNode, Node, Property, Vector2 } from '@medu/lerno';
+import { Display, useDrag, useProperty } from '@medu/lerno-react';
+
+export function Draggable() {
+  const position = useMemo(() => new Property(new Vector2(240, 160)), []);
+  const root = useMemo(() => {
+    const circle = new CircleNode(position.get().x, position.get().y, 20, { fill: 'var(--accent)' });
+    position.link((value) => {
+      circle.centerX = value.x;
+      circle.centerY = value.y;
+    });
+    return new Node({ children: [circle] });
+  }, [position]);
+
+  const node = useMemo(() => root.children[0] as CircleNode, [root]);
+
+  useDrag(node, {
+    drag: (pointer) => {
+      const delta = pointer.delta;
+      if (delta) position.set(position.get().plus(delta));
+    },
+  });
+
+  useProperty(position);
+
+  return <Display node={root} width={480} height={320} />;
+}
+```
+
+> Note: `position` is a `Property<Vector2>`, so `useProperty` is required. When a draggable
+> `Property<Vector2>` is used, `pointer.delta` is a `Vector2` and `plus` applies it directly.
+
+## Interaction rules
+
+- A listener is added with `node.addInputListener(listener)`; `inputEnabled` opens automatically.
+- `inputEnabled` stays open until the last listener is removed.
+- `Display` applies `pointer-events` and `cursor: grab` to elements whose `source.inputEnabled` is set.
+
+## Next step
+
+[Simulation](/docs/react/getting-started/simulation) combines interaction with `Sim`.

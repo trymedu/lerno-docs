@@ -1,0 +1,79 @@
+---
+title: Export
+description: Rendering a Lerno scene to a video file without React, a browser, or intermediate images.
+---
+
+`@medu/lerno-export` records a scene and writes an H.264 MP4 from a headless process. It never loads
+React, never opens a browser, and never writes an image to disk: pixels go from the rasterizer
+straight into ffmpeg's stdin.
+
+```bash
+bun add @medu/lerno-export @napi-rs/canvas
+```
+
+`ffmpeg` must be on `PATH`, pointed at by `FFMPEG_PATH`, or provided by `ffmpeg-static`.
+
+## The pipeline
+
+| Stage | Implementation | Cost |
+| --- | --- | --- |
+| Model | `scene.step(1/fps)` | scene-dependent |
+| Render tree | `root.toRender()` | plain data, no DOM |
+| Raster | `@napi-rs/canvas` | ~3.5 ms/frame |
+| Transport | raw RGBA → stdin | 0 |
+| Encode | `libx264` | ~3 ms/frame |
+
+Measured on an M5 at 1080p: 600 frames (ten seconds of video) export in **~1.9 seconds**, or
+**3.08 ms per frame**.
+
+The budget goes to the rasterizer, not the encoder, which is why intermediates were removed rather
+than made smaller: PNG encoding alone costs ~27 ms/frame, and a JPEG round trip adds a second
+quality step on top of the file I/O.
+
+### Why not the alternatives
+
+Every other path was benchmarked before this design was chosen:
+
+| Path | ms/frame | Problem |
+| --- | ---: | --- |
+| JPEG q92 → file → ffmpeg | 8.96 | 28.3 MB temp per 180 frames, **two** quality steps |
+| `@napi-rs/webcodecs` (hardware) | 7.54 | valid alternative; slower, and the package is days old |
+| Playwright screenshot | 32.9 | a browser, ~300 MB per instance |
+| resvg SVG → PNG | 93.3 | unusable |
+
+
+## 3D scenes
+
+`@medu/lerno-export` records Lerno node trees. `@medu/lerno-three` draws with WebGL in a browser and
+produces pixels, not a render tree, so a Three.js scene cannot be exported here. `frameTrees`,
+`rgbaFrames`, and `exportMp4` reject it with:
+
+`Three.js scenes cannot be exported headlessly: @medu/lerno-export records Lerno 2D node trees. Render the 3D layer with a browser or WebGL backend and composite it through exportMp4({ video }).`
+
+The workaround is compositing. Render the 3D layer to a video in a browser or a WebGL backend, then
+pass that file through `exportMp4({ video })`. The 2D layers, captions, and anchors compose on top.
+
+## Determinism
+
+`step` receives `dt` derived from `fps`, never a clock reading, so two runs of the same scene
+produce byte-identical frames. That is what lets a render be tested, retried, or split across
+workers without the result changing.
+
+## What it refuses to render
+
+Silently dropping content would produce a plausible-looking but wrong video, so three cases throw
+instead:
+
+| Case | Error |
+| --- | --- |
+| `MathNode` | this renderer has no TeX engine |
+| Unknown `ExtensionNode` | no renderer registered for its id |
+| Image without a loaded bitmap | pass `resolveImage` |
+
+## In this section
+
+| Page | Covers |
+| --- | --- |
+| [Usage](/docs/export/usage) | The video above, the scene factory pattern, and every option |
+| [Fonts](/docs/export/fonts) | The `fontFamily` rule and language-independent glyph coverage |
+| [API](/docs/export/api) | Lower-level entry points and composing your own pipeline |

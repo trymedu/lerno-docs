@@ -1,0 +1,42 @@
+---
+title: Riemann Toplamı
+description: 'RiemannSumExplorer: dikdörtgen sayısı ve örnekleme yöntemini değiştirin.'
+---
+
+import { RiemannSumExplorer } from '@medu/lerno-react';
+import { DocDemo } from '@/components/react/DocDemo';
+
+export const SOURCE = `import { RiemannSumExplorer } from '@medu/lerno-react';
+
+// usage
+<RiemannSumExplorer />;
+
+// how the lab is built
+import { CalculusEngine } from '@medu/lerno';
+import { RiemannSum } from '@medu/lerno-react';
+
+const { totalArea, dx } = CalculusEngine.getRiemannRectangles(plane, fn, a, b, n, 'midpoint');
+
+// the engine computes rectangles, the component draws them
+<RiemannSum plane={plane} fn={fn} a={a} b={b} n={n} method="midpoint" />;`;
+
+`RiemannSumExplorer`, belirtil integral yaklaşımını interaktif hale getirir. Dikdörtgen sayısını
+artırdıkça yaklaşık alanın gerçek alana yakınsadığını izleyin.
+
+**Preview** laboratuvarın kendisidir. **Code**, bileşenin iç kurulumunu gösterir: hangi motorun
+okunduğunu ve hangi çizim parçasına bağlandığını.
+
+<DocDemo source={SOURCE}>
+  <RiemannSumExplorer />
+</DocDemo>
+
+| Örnekleme | Açıklama |
+| --- | --- |
+| `left` | Sol kenar değeri (varsayılan) |
+| `right` | Sağ kenar değeri |
+| `midpoint` | Orta nokta değeri: en çabuk yakınsayan |
+
+<Callout type="info" title="Sınıf etkinliği">
+  Öğrencilere `n = 4`, `n = 16`, `n = 60` değerlerini denetip alan değerlerini tabloya yazdırın. Yakınsama
+  hızı somutlaşır.
+</Callout>

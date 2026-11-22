@@ -1,0 +1,38 @@
+---
+title: Yüzey Grafiği
+description: z = f(u, v) yüzeyleri, yüksekliğe göre renklendirme ve serileştirilebilir yükseklik verisi.
+---
+
+import { SurfaceDemo } from '@/components/react/three/SurfaceDemo';
+import { VisualDemo } from '@/components/react/VisualDemo';
+
+Bir fonksiyon yüzeyi, `u` ve `v` ızgarası üzerinde örneklenip üçgenlere bölünür. Köşe renkleri yüksekliğe göre hesaplanır; eğimler böylece ek bir açıklama olmadan okunur.
+
+<VisualDemo id="surface">
+  <SurfaceDemo />
+</VisualDemo>
+
+## Serileştirme
+
+Fonksiyon taşıyan geometri JSON'a yazılamaz. Kaydedilmesi gerektiğinde ızgara örneklenir ve veri saklanır:
+
+```ts
+import { sampleHeightfield, surfaceFromHeightfield } from '@medu/lerno-three';
+
+const data = sampleHeightfield((u, v) => u * u - v * v, { uSegments: 32, vSegments: 32 });
+const mesh = surfaceFromHeightfield(data);
+```
+
+`data.heights` düz bir sayı dizisidir; belgeye, veritabanına veya ağ üzerinden başka bir istemciye taşınabilir.
+
+## Bağlamalar
+
+Yüzey diğer 3B nesneler gibi davranır. Grup düğümüne bağlanan bir değişken, tüm yüzeyi tek kontrolle döndürür:
+
+```ts
+group('surface', [mesh], { bindings: { 'rotation.y': 'spin' } });
+```
+
+## Sınır
+
+Yükseklik yalnızca Y ekseni boyuncadır; kapalı yüzeyler (küre, torus) için hazır geometriler kullanılır. Renk geçişi iki uç arasındadır; üç renkli bir ölçek gerektiğinde `buildSurfaceGeometry` çıktısı özel olarak renklendirilir.

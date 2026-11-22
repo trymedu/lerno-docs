@@ -1,0 +1,69 @@
+---
+title: Animasyon
+description: useSpring, useAnimate ve useAnimationFrame ile hareket.
+---
+
+lerno-react üç mekanizma sunar. Hangisinin kullanılacağı işin niteliğine bağlıdır: kare döngüsü zaman
+kontrolü, yay yakınsama, tween belirli bir hedef.
+
+## useAnimationFrame
+
+`dt` (saniye) döndüren kare döngüsü. Çizim mantığı tamamen çağırana aittir.
+
+```tsx
+import { useRef } from 'react';
+import { Property } from '@medu/lerno';
+import { useAnimationFrame, useProperty } from '@medu/lerno-react';
+
+const angle = new Property(0);
+
+function Rotator() {
+  useAnimationFrame((dt) => {
+    angle.set(angle.get() + dt * 1.2);
+  });
+  useProperty(angle);
+  // angle değeri çizim için okunur
+}
+```
+
+## useSpring
+
+Bir kaynaktan yay fiziğiyle yakınsayan değer üretir. Kaynak sayı veya `Property` olabilir.
+
+```tsx
+import { useState } from 'react';
+import { useSpring } from '@medu/lerno-react';
+
+function SpringValue() {
+  const [target, setTarget] = useState(120);
+  const value = useSpring(target, { stiffness: 120, damping: 18 });
+  // value bir Property<number>; diğer Property'ler gibi okunabilir
+  return <input type="range" value={target} onChange={(event) => setTarget(Number(event.target.value))} />;
+}
+```
+
+## useAnimate
+
+Tek çağrıyla tween veya yay başlatır. Aynı bileşen içindeki tüm animasyonlar tek bir `requestAnimationFrame`
+döngüsünde koşar.
+
+```tsx
+import { Property } from '@medu/lerno';
+import { useAnimate } from '@medu/lerno-react';
+
+const radius = new Property(40);
+
+function Pulse() {
+  const { animate } = useAnimate();
+  // animate(radius, 90, { duration: 0.4, spring: true })
+  void animate;
+}
+```
+
+## Seçim özeti
+
+| Araç | Ne zaman |
+| --- | --- |
+| `useAnimationFrame` | Zamanı dışarıdan yönetmek gerekiyorsa (paralaks, duran çizim) |
+| `useSpring` | Hedefe canlı yakınsama gerekiyorsa (drag release, slider) |
+| `useAnimate` | Belirli süreli geçiş gerekiyorsa (giriş, çıkış, sekme) |

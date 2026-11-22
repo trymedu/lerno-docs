@@ -1,0 +1,51 @@
+---
+title: Genel Bakış
+description: Lerno'nun çekirdeği açık bir sahne grafiği + reaktif model + input/animasyon toolkit'idir.
+---
+
+Lerno'nun temel fikri içerik tipleri değil, altındaki **açık primitiflerdir**.
+İçerik tipleri bu primitiflerin üstünde yer alan değiştirilebilir *reçetelerdir*. Bir reçete
+uymadığında onunla sınırlı kalınmaz; simülasyon doğrudan primitiflerle yazılır.
+
+## Katmanlar
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ İçerik tipleri (reçeteler, değiştirilebilir)                 │
+├─────────────────────────────────────────────────────────────┤
+│ sim      Sim · SimScreen · Clock                            │
+│ twixt    Tween · PropertyAnimation · AnimationTimeline       │
+│ motion   Spring · Keyframes · Sequence  (extension)          │
+│ scenery  Node · şekil düğümleri · input · ModelViewTransform │
+│ kite     Shape (SVG path)                                    │
+│ axon     Property · DerivedProperty · Emitter                │
+│ dot      Vector2 · Matrix3                                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+| Katman | Sayfa | İçerik |
+| --- | --- | --- |
+| `dot` | [Matematik](/tr/docs/concepts/math) | `Vector2`, `Matrix3` |
+| `axon` | [Reaktif Model](/tr/docs/concepts/model) | `Property`, `DerivedProperty`, `Emitter` |
+| `kite` | [Şekiller](/tr/docs/concepts/shapes) | `Shape` |
+| `scenery` | [Sahne Grafiği](/tr/docs/concepts/scene-graph) | `Node`, düğümler, render ağacı |
+| `scenery` | [Model-View Dönüşümü](/tr/docs/concepts/model-view) | `ModelViewTransform2` |
+| `scenery` | [Input](/tr/docs/concepts/input) | `InputListener`, `DragListener` |
+| `twixt` | [Animasyon](/tr/docs/concepts/animation) | `Tween`, `PropertyAnimation` |
+| `motion` (extension paketi) | [Motion](/tr/docs/concepts/motion) | `@medu/lerno-motion`: spring, keyframes, sequence |
+| `sim` | [Simülasyon ve Ekranlar](/tr/docs/concepts/sim) | `Sim`, `SimScreen`, `Clock` |
+| Yok | [Kendi Görselini Yazmak](/tr/docs/concepts/custom-nodes) | `renderSelf`, `ExtensionNode` |
+
+## Felsefe
+
+- **Model view'ı bilmez.** Fizik/veri `Property` ile gözlemlenir; sahne grafiği buna bağlanır.
+- **Her görsel kompozisyondur.** Görsel bir `Node` ağacıdır; düğüm eklenebilir veya miras alınabilir.
+- **Kendi görsel her zaman yazılabilir.** `Node` miras alınabilir, `ExtensionNode` ile özel çizim sağlanabilir.
+- **Reçeteler opsiyonel.** `LernoDocument` ve içerik tipleri primitiflerin üstünde durur.
+
+<Callout type="info" title="Nereden başlamalı">
+  Kendi simülasyonunu yazan bir okuyucu şu sırayı izler: [Reaktif Model](/tr/docs/concepts/model) →
+  [Sahne Grafiği](/tr/docs/concepts/scene-graph) → [Input](/tr/docs/concepts/input) →
+  [Simülasyon](/tr/docs/concepts/sim).
+  Hazır grafik arayan bir okuyucu [Disiplinler](/tr/docs/disciplines) bölümüne geçebilir.
+</Callout>

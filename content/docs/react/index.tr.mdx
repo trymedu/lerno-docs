@@ -1,0 +1,58 @@
+---
+title: Genel Bakış
+description: '@medu/lerno-react. SVG bileşenleri ve interaktif STEM laboratuvarları.'
+---
+
+`@medu/lerno-react`, `@medu/lerno` çekirdek motorunun üzerine kurulu React katmanıdır. İki tür çıktı sunar:
+
+1. **İlkel bileşenler**: kendi düzeninize göre birleştirebileceğiniz SVG parçaları
+ (`CoordinateGrid`, `FunctionCurve`, `VectorArrow`, `TangentLine`, `RiemannSum`, `ProjectileTrajectory`, `MoleculeView`).
+2. **İnteraktif laboratuvarlar**: kontrolleri hazır, doğrudan sayfaya gömülebilen canlı simülasyonlar
+ (`FunctionExplorer`, `DerivativeExplorer`, `RiemannSumExplorer`, `ProjectileLab`, `MoleculeViewer`).
+
+Düşük seviye katman (`Display`, `useProperty`, `useDrag`) [Başlarken](/tr/docs/react/getting-started)
+bölümünde ele alınır; onun üstüne kurulan bileşenler bu sayfalarda açıklanır.
+
+## Kurulum
+
+```bash
+bun add @medu/lerno-react
+```
+
+`react` ve `react-dom` (18 veya 19) peer bağımlılıktır.
+
+## İlk Bileşen
+
+```tsx
+import { Scene, CoordinateGrid, FunctionCurve } from '@medu/lerno-react';
+import { CoordinatePlane, FunctionPlotter } from '@medu/lerno';
+
+export function Grafik() {
+  const plane = new CoordinatePlane({ xRange: [-4, 4], yRange: [-1, 10] });
+  const plotter = new FunctionPlotter({ fn: (x) => x * x });
+
+  return (
+    <Scene title="f(x) = x²">
+      <CoordinateGrid plane={plane} />
+      <FunctionCurve plane={plane} plotter={plotter} />
+    </Scene>
+  );
+}
+```
+
+<Callout type="info" title="İstemci bileşeni">
+  Tüm `@medu/lerno-react` bileşenleri `'use client'` taşır. Next.js App Router'da sunucu bileşenlerinden
+  doğrudan içe aktarabilirsiniz; etkileşim tarayıcıda çalışır.
+</Callout>
+
+## Tasarım İlkeleri
+
+- **Kendi stilleri yok**: SVG bileşenleri tema token'larını okur; laboratuvarlar ve oynatıcı HeroUI v3 ile çizilir, stil altyapısını uygulama sağlar.
+- **Duyarlı**: `Scene` sabit bir `viewBox` kullanır; her genişlikte ölçeklenir.
+- **Renk uyumlu**: Sahne renkleri sayfanın kalanıyla aynı token'ları okur; açık ve koyu mod ekstra kod olmadan çalışır.
+
+## Canlı Demo
+
+import { FunctionExplorer } from '@medu/lerno-react';
+
+<FunctionExplorer />

@@ -1,0 +1,66 @@
+---
+title: JavaScript (React'siz)
+description: Aynı manifest ve değişkenleri düz JavaScript ile sür.
+---
+
+Etkileşim sistemi React paketinde değil, `@medu/lerno` içinde. React yalnızca bir renderer; vanilla
+sayfa aynı belgeyi okur, runtime'a hangi katmanların görünür olduğunu sorar ve kendi DOM'unu çizer.
+
+Aşağıdaki adlar bilinçli seçilmiştir: `document` bir `LernoDocument`'tır; sayfanın DOM'u
+`window.document` üzerinden okunur.
+
+```js
+import { createSession, createInteractionRuntime, defineDocument } from '@medu/lerno';
+
+// sayfanın yüklediği manifest
+/** @type {import('@medu/lerno').LernoDocument} */
+const document = defineDocument(manifest);
+
+const session = createSession(document);
+const runtime = createInteractionRuntime(document, session);
+
+const dom = window.document;
+const video = dom.querySelector('video');
+const root = dom.querySelector('#layers');
+
+function render() {
+  root.replaceChildren();
+
+  for (const { layer, props, value } of runtime.layersAt('clip', video.currentTime * 1000)) {
+    const button = dom.createElement('button');
+    button.type = 'button';
+    button.textContent = String(props.label ?? layer.component);
+    button.setAttribute('aria-pressed', String(value === true));
+    button.addEventListener('click', () => runtime.change(layer, value !== true));
+    root.append(button);
+  }
+}
+
+video.addEventListener('timeupdate', render);
+runtime.subscribe(render);
+render();
+```
+
+## Çekirdeğin verdiği API
+
+| API | Döndürür |
+| --- | --- |
+| `createInteractionRuntime(document, session)` | Bir oturuma bağlı runtime |
+| `runtime.layersAt(nodeId, ms)` | Çözülmüş `$var` prop'ları ve bağlı değerle görünür katmanlar |
+| `runtime.change(layer, value)` | Bağlı değişkeni oturum üzerinden yazar |
+| `runtime.subscribe(listener)` | Değişkenler dahil oturum değişiklikleri |
+| `activeLayers(layers, ms, variables)` | Kendi döngün için saf yardımcı |
+| `resolveLayerProps(props, variables)` | Saf `$var` çözücü |
+
+## Sende kalanlar
+
+- Görsel componentler. React paketi `ui.switch`, `ui.select` ve arkadaşlarını verir; vanilla sayfa
+  native `<button>`, `<select>` veya herhangi bir DOM kütüphanesi kullanabilir; yeter ki yazmayı
+  `runtime.change` üzerinden yapsın.
+- Player chrome'u. `runtime` zaman, katman ve değişkenle ilgilenir; oynat/duraklat butonlarıyla değil.
+- Component eşlemesi. `layer.component` bir tip id'sidir; ne çizeceğine renderer karar verir.
+
+## Export
+
+Aynı runtime Node'da headless çalışır: `Timeline` veya bir kare zamanını `layersAt`'e ver, çizimi
+`@medu/lerno-export` ile yap. DOM gerekmez.

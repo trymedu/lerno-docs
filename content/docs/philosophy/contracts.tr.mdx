@@ -1,0 +1,39 @@
+---
+title: Davranış Garantileri
+description: Determinizm, seek-safe zaman, saf model ve serileştirme.
+---
+
+Bu sayfa, Lerno'nun verdiği ve beklediği garantileri listeler. Bir simülasyon veya görsel yazılırken bu
+kurallara uyulmadığında test, video dışa aktarımı ve önbellekleme bozulur.
+
+## Determinizm
+
+Aynı girdi ve aynı `dt` dizisi her zaman aynı çıktıyı üretir. Çekirdekte `Date.now()`, `Math.random()` ve
+global durum bulunmaz. Rastgelelik gerektiğinde `host.random` üzerinden enjekte edilir ve tohumlanır.
+
+## Seek-safe zaman
+
+Simülasyon `step(dt)` ile ilerletilir ve `runTo(t)` ile herhangi bir ana sıçrayabilir. Zamanı birikimli
+tutan ancak durumunu ana bağlı türeten modeller bu kurala uyar. Kare içinde önceki kareye bağlı önbellek
+tutan modeller uymaz ve video dışa aktarımında kayma üretir.
+
+## Saf model
+
+Model view'ı bilmez ve DOM'a dokunmaz. Bir model sınıfı içinde `document`, `window`, `Node` veya `React`
+adı geçmez. Bu kural, aynı modelin iki renderer'a bağlanmasını ve başsız test edilmesini mümkün kılar.
+
+## Serileştirme
+
+İçerik belgeleri (`LernoDocument`) ve değişken anlık görüntüleri (`VariableStore.snapshot`) JSON'a
+yazılabilir. Bir simülasyonun durumu paylaşılabilir veya kaydedilebilir olmalıdır. Fonksiyonlar, sınıf
+örnekleri ve DOM düğümleri belgeye konmaz.
+
+## Kabuk sınırı
+
+React DOM'a sahiptir; Lerno sahip değildir. `Display` ve `ThreeCanvas` bir kapsayıcı öğe oluşturur,
+gerisini React yönetir. Tarayıcı API'leri (`requestAnimationFrame`, `devicePixelRatio`) yalnızca renderer
+kabuğunda çağrılır; çekirdekte çağrılmaz.
+
+## Uyumluluk
+
+Bu sözleşmeler değiştiğinde paketin sürümü artırılır. Her paketin kökünde bir `CHANGELOG` dosyası tutulur.

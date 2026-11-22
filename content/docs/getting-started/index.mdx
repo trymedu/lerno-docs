@@ -1,0 +1,41 @@
+---
+title: Overview
+description: The scope of Lerno, its layers, and the reading order of this documentation.
+---
+
+Lerno is a visualization runtime with a declarative content layer. A single core defines the scene graph,
+the reactive model, the session, and the content document; the same scene is drawn by SVG, Canvas,
+WebGL, and headless targets. This section describes the scope of Lerno and the order in which the
+documentation is read.
+
+## Components
+
+| Package | Contents | Intended use |
+| --- | --- | --- |
+| `@medu/lerno` | Scene graph, reactive model, animation, simulation | Framework-agnostic use |
+| `@medu/lerno-react` | `Display`, hooks, `LernoPlayer`, labs | React applications |
+| `@medu/lerno-three` | 3D scene, variable management, bindings | 3D modeling |
+| `@medu/lerno-motion` | Spring, keyframes, sequence | Animation extension |
+
+## Scope
+
+Lerno takes on the following work:
+
+- Writing interactive graphics and simulations and drawing them to more than one target.
+- Separating model from view, so one model can be drawn in two presentations.
+- Advancing animation through a deterministic `step(dt)`, which testing and video export require.
+
+Lerno does not take on the following work:
+
+- It is not a game engine. It contains no multiplayer physics, collision solver, or scene gravity.
+- It is not a CAD tool. Heavy mesh processing and GPU compute are out of scope.
+- It is not a stock library. Preset content types exist; a visual outside its scope is built
+  from the primitives.
+
+## Reading order
+
+A reader writing their own visualization starts with [First scene](/docs/getting-started/first-scene)
+and then reads [Mental model](/docs/getting-started/mental-model). A reader looking for ready-made
+graphics can move directly to [Disciplines](/docs/disciplines). To see the same story built with
+Lerno, Remotion, and Manim, read [Comparison](/docs/getting-started/comparison). For the conceptual
+foundation, [Core concepts](/docs/concepts) is read in full.

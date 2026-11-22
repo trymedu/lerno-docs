@@ -1,0 +1,41 @@
+---
+title: Genel Bakış
+description: Lerno'nun kapsamı, katmanları ve dokümantasyonun okuma sırası.
+---
+
+Lerno, deklaratif bir içerik katmanı taşıyan bir görselleştirme çalışma zamanıdır. Çekirdek; sahne
+grafiğini, reaktif modeli, oturumu ve içerik belgesini tanımlar; aynı sahne SVG, Canvas, WebGL ve
+DOM'suz hedeflere çizilir. Bu bölüm, Lerno'nun kapsamını ve dokümantasyonun okuma sırasını açıklar.
+
+## Bileşenler
+
+| Paket | İçerik | Hedef kullanıcı |
+| --- | --- | --- |
+| `@medu/lerno` | Sahne grafiği, reaktif model, animasyon, simülasyon | Framework bağımsız kullanım |
+| `@medu/lerno-react` | `Display`, hook'lar, `LernoPlayer`, laboratuvarlar | React uygulamaları |
+| `@medu/lerno-three` | 3B sahne, değişken yönetimi, bağlamalar | 3B modelleme |
+| `@medu/lerno-motion` | Yay, keyframe, sequence | Animasyon uzantısı |
+
+## Kapsam
+
+Lerno aşağıdaki işleri üstlenir:
+
+- Etkileşimli grafiklerin ve simülasyonların yazılması ve birden çok hedefe çizilmesi.
+- Modelin view'dan ayrılması; tek bir modelin iki farklı görünümle çizilebilmesi.
+- Animasyonların deterministik `step(dt)` ile ilerletilmesi; bu, test ve video dışa aktarımı için
+  gereklidir.
+
+Lerno aşağıdaki işleri üstlenmez:
+
+- Oyun motoru değildir. Çok oyunculu fizik, çarpışma çözücü ve sahne yerçekimi içermez.
+- CAD aracı değildir. Ağır mesh işleme ve GPU compute kapsam dışıdır.
+- Hazır görsel kütüphanesi değildir. Ön tanımlı içerik tipleri bulunur; kapsam dışı bir
+  görselleştirme primitiflerle yazılır.
+
+## Okuma sırası
+
+Kendi görselleştirmesini yazacak okuyucu [İlk Sahne](/tr/docs/getting-started/first-scene) ile başlar ve
+ardından [Zihinsel Model](/tr/docs/getting-started/mental-model) sayfasını okur. Hazır grafik arayan
+okuyucu doğrudan [Disiplinler](/tr/docs/disciplines) bölümüne geçebilir. Aynı storyboard'un Lerno,
+Remotion ve Manim ile karşılaştırması için [Karşılaştırma](/tr/docs/getting-started/comparison)
+sayfasına bak. Kavramsal zemin için [Temel Kavramlar](/tr/docs/concepts) bölümü baştan sona okunmalıdır.

@@ -1,0 +1,10 @@
+{
+  "title": "Laboratuvarlar",
+  "pages": [
+    "function-explorer",
+    "derivative-explorer",
+    "riemann-sum",
+    "projectile-lab",
+    "molecule-viewer"
+  ]
+}

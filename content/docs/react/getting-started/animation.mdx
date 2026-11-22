@@ -1,0 +1,70 @@
+---
+title: Animation
+description: Movement with useSpring, useAnimate, and useAnimationFrame.
+---
+
+lerno-react offers three mechanisms. Which one applies depends on the nature of the work: a frame loop
+for time control, a spring for convergence, a tween for a defined target.
+
+## useAnimationFrame
+
+A frame loop that yields `dt` in seconds. The drawing logic belongs entirely to the caller.
+
+```tsx
+import { useRef } from 'react';
+import { Property } from '@medu/lerno';
+import { useAnimationFrame, useProperty } from '@medu/lerno-react';
+
+const angle = new Property(0);
+
+function Rotator() {
+  useAnimationFrame((dt) => {
+    angle.set(angle.get() + dt * 1.2);
+  });
+  useProperty(angle);
+  // the drawing reads angle
+}
+```
+
+## useSpring
+
+Produces a value that converges on a source with spring physics. The source can be a number or a
+`Property`.
+
+```tsx
+import { useState } from 'react';
+import { useSpring } from '@medu/lerno-react';
+
+function SpringValue() {
+  const [target, setTarget] = useState(120);
+  const value = useSpring(target, { stiffness: 120, damping: 18 });
+  // value is a Property<number>, read like any other property
+  return <input type="range" value={target} onChange={(event) => setTarget(Number(event.target.value))} />;
+}
+```
+
+## useAnimate
+
+Starts a tween or a spring with a single call. All animations inside the same component run on one
+`requestAnimationFrame` loop.
+
+```tsx
+import { Property } from '@medu/lerno';
+import { useAnimate } from '@medu/lerno-react';
+
+const radius = new Property(40);
+
+function Pulse() {
+  const { animate } = useAnimate();
+  // animate(radius, 90, { duration: 0.4, spring: true })
+  void animate;
+}
+```
+
+## Choosing a tool
+
+| Tool | When |
+| --- | --- |
+| `useAnimationFrame` | Time must be controlled from outside (parallax, idle drawing) |
+| `useSpring` | Live convergence on a target is required (drag release, slider) |
+| `useAnimate` | A transition with a fixed duration is required (enter, exit, tab change) |

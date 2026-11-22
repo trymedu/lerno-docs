@@ -1,0 +1,50 @@
+---
+title: Overview
+description: The built-in controls Lerno renders for interactive layers and scenes.
+---
+
+The contract lives in `@medu/lerno`. `@medu/lerno-react` is one reference renderer: it ships visual
+implementations, but the manifest, variables, and layer resolution do not depend on React. The types
+below are shared by either path.
+
+| Type | Contract | Notes |
+| --- | --- | --- |
+| [`ui.switch`](/docs/components/switch) | boolean `value` + `onChange` | Toggle bound to a variable |
+| [`ui.button`](/docs/components/button) | writes `true` when bound | One-shot action |
+| [`ui.select`](/docs/components/select) | `{ value, label }[]` | Custom listbox, keyboard accessible |
+| [`ui.slider`](/docs/components/slider) | numeric `value`, `min`, `max`, `step` | Range control |
+| [`lab.readout`](/docs/components/readout) | `rows: { label, value }[]` | Read-only value card |
+
+## Usage from plain JavaScript
+
+```js
+import { createSession, createInteractionRuntime } from '@medu/lerno';
+
+const runtime = createInteractionRuntime(document, createSession(document));
+const visible = runtime.layersAt('clip', video.currentTime * 1000);
+
+for (const { layer, props, value } of visible) {
+  // draw your own DOM control from layer.component / props / value
+  // write back with:
+  runtime.change(layer, nextValue);
+}
+```
+
+The React package mirrors the same contract with `<Switch>`, `<Select>`, and friends. Both paths read
+and write the same session variables.
+
+`value` / `onChange` in the tables describe the binding contract. In a JSON manifest they are
+`bind.value` for the read/write variable and `runtime.change(layer, next)` for the write.
+
+## Behaviour
+
+- Every control takes `value` / `onChange` when a layer binds it with `bind.value`.
+- Read-only components receive variables through `{ "$var": "id" }` props.
+- `tone="dark"` is the single dark variant for dark footage; there is no second theme.
+- `Select` is a custom listbox, not a native `<select>`: arrows, `Home`/`End`, `Enter`, `Space`, and
+  `Escape` work, and the menu closes on an outside click.
+- The visual surface is intentionally small: 1px border, 10px radius, white surface, focus ring, no
+  gradients.
+
+See [three live examples and three 7-second clips](/docs/components/examples). Prefer plain
+JavaScript? Use the [headless runtime](/docs/components/javascript).

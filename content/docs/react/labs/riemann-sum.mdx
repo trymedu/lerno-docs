@@ -1,0 +1,42 @@
+---
+title: Riemann sum
+description: 'RiemannSumExplorer: change the number of rectangles and the sampling method.'
+---
+
+import { RiemannSumExplorer } from '@medu/lerno-react';
+import { DocDemo } from '@/components/react/DocDemo';
+
+export const SOURCE = `import { RiemannSumExplorer } from '@medu/lerno-react';
+
+// usage
+<RiemannSumExplorer />;
+
+// how the lab is built
+import { CalculusEngine } from '@medu/lerno';
+import { RiemannSum } from '@medu/lerno-react';
+
+const { totalArea, dx } = CalculusEngine.getRiemannRectangles(plane, fn, a, b, n, 'midpoint');
+
+// the engine computes rectangles, the component draws them
+<RiemannSum plane={plane} fn={fn} a={a} b={b} n={n} method="midpoint" />;`;
+
+`RiemannSumExplorer` makes the definite integral approximation interactive. As the number
+of rectangles increases, the approximate area converges on the real one.
+
+**Preview** is the lab itself. **Code** shows its inner construction: which engine is read and
+which drawing part it is bound to.
+
+<DocDemo source={SOURCE}>
+  <RiemannSumExplorer />
+</DocDemo>
+
+| Sampling | Description |
+| --- | --- |
+| `left` | Left edge value (default) |
+| `right` | Right edge value |
+| `midpoint` | Midpoint value, the fastest to converge |
+
+<Callout type="info" title="Classroom activity">
+  Have students try `n = 4`, `n = 16`, and `n = 60` and record the area each time. The rate of
+  convergence becomes concrete.
+</Callout>

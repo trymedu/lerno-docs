@@ -1,0 +1,61 @@
+---
+title: Sınıflar
+description: '@medu/lerno''nun export ettiği her sınıf, katmana göre gruplanmış ve constructor imzasıyla.'
+---
+
+Çekirdek otuzdan fazla sınıf export eder. Yedisinin tam üye düzeyinde sayfası vardır: önce onlar
+listelenir; kalanı ait oldukları katmana göre gruplanır.
+
+<TypeTable type={{
+    "[Node](/tr/docs/api/classes/node)": { description: "Sahne grafiği düğümü; çizilen ağacın kökü." },
+    "[Property](/tr/docs/api/classes/property)": { description: "Değişim bildirimi taşıyan gözlemlenebilir değer." },
+    "[Vector2](/tr/docs/api/classes/vector2)": { description: "Sahne grafiğinin kullandığı değişmez 2B vektör." },
+    "[Matrix3](/tr/docs/api/classes/matrix3)": { description: "Dönüşümler ve sınırlar için 2B afin matris." },
+    "[Shape](/tr/docs/api/classes/shape)": { description: "SVG yol verisi üreten zincirleme yol oluşturucu." },
+    "[CoordinatePlane](/tr/docs/api/classes/coordinate-plane)": { description: "Model birimlerinde eksen, aralık ve ızgara." },
+    "[FunctionPlotter](/tr/docs/api/classes/function-plotter)": { description: "Bir fonksiyonu örnekleyip eğri olarak çizer." },
+}} />
+
+## Sahne grafiği ve matematik
+
+<TypeTable type={{
+    "MathNode": { type: "scenery", description: "Dizgilmiş matematiği bir çapa noktasına yerleştirir; LaTeX kaynağını taşır, dizgiyi görüntüleyici yapar." },
+    "ModelViewTransform2": { type: "scenery", description: "Model koordinatlarını piksel koordinatlarına çevirir ve geri çevirir." },
+    "Vector2D": { type: "math", description: "Sıcak döngüler için değişken 2B vektör; çizim ve fizik bunu kullanır, Vector2'yi değil." },
+    "CalculusEngine": { type: "math", description: "Örneklenmiş bir fonksiyon üzerinde sayısal türev ve belirli integral." },
+}} />
+
+## Animasyon ve zaman
+
+<TypeTable type={{
+    "Tween": { type: "twixt", description: "Tek bir değeri süre boyunca bir easing işleviyle ara değerler." },
+    "PropertyAnimation": { type: "twixt", description: "Birkaç tween'ı tek saate karşı birlikte yürütür." },
+    "AnimationTimeline": { type: "twixt", description: "Gecikme ve üst üste binme sıralı animasyon dizisi." },
+    "WriteShape": { type: "twixt", description: "`step` ile bir şekli adım adım çizer; herhangi bir Steppable kapsayıcıya girer." },
+    "Timeline": { type: "runtime", description: "Zaman damgalı içeriğe gitmek için çapa taşıyan medya zaman çizelgesi." },
+    "Clock": { type: "sim", description: "dt'yi sahiplenen ve Sim'i çalıştıran kare saati." },
+    "SimScreen": { type: "sim", description: "createScreen'nin kurduğu model ve view çifti; modeli adımlandırır." },
+    "Sim": { type: "sim", description: "Ekranları sabit dt ile ilerleten simülasyon döngüsü." },
+}} />
+
+## Disiplinler
+
+<TypeTable type={{
+    "ProjectileSimulation": { type: "physics", description: "Yerçekimi ve dirençli atış yörüngesi, menzil yardımcıları." },
+    "Molecule2D": { type: "chemistry", description: "Çizim için 2B'de yerleştirilmiş atom ve bağ grafiği." },
+}} />
+
+## React görünümleri
+
+`MathCanvas`, `CoordinateSystemView` ve `FunctionPlotView` sınıf değil React component'idir.
+`@medu/lerno/remotion` alt girişinde yaşarlar ve kök girişten yeniden export edilmezler.
+
+## Hatalar
+
+`LernoValidationError`, girdi şema doğrulamasından geçmediğinde `defineDocument` tarafından
+fırlatılır; `issues` dizisi hatalı yolları taşır.
+
+## İlgili
+
+- [Tipler](/tr/docs/api/types): arayüzler ve tip takma adları
+- [Fonksiyonlar](/tr/docs/api/functions): giriş noktaları

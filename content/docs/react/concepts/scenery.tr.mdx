@@ -1,0 +1,61 @@
+---
+title: Düşük Seviye Sahne Grafiği
+description: Display, useProperty, useSimStep ve custom node registry ile sıfırdan sahne kurun.
+---
+
+import { CustomScene } from '@/components/react/CustomScene';
+
+`@medu/lerno-react`, çekirdeğin sahne grafiğini React/DOM'a bağlayan ince bir katmandır. İçerik tipi
+kullanmak zorunda değilsiniz; kendi `Node` ağacınızı ve modelinizi doğrudan kurabilirsiniz.
+
+Aşağıdaki sahne tamamen düşük seviyede yazıldı: `Property` modeli, `Node` ağacı, `DragListener` ve
+`animateVector2` tween'i. `LernoDocument` yok.
+
+<CustomScene />
+
+## Display
+
+```tsx
+import { Display } from '@medu/lerno-react';
+
+<Display node={root} width={960} height={540} />;
+```
+
+`Display`, `node.toRender()` çıktısını (framework'süz render ağacı) SVG'ye bağlar. Pointer olayları
+`inputEnabled` düğümlere iletilir.
+
+## Hooks
+
+```tsx
+import { useProperty, useSimStep } from '@medu/lerno-react';
+
+function View({ model, sim }) {
+  const x = useProperty(model.x); // Property değişince yeniden render
+  useSimStep(sim); // rAF döngüsünde sim.step(dt)
+  return <Display node={scene} />;
+}
+```
+
+| Hook | Görev |
+| --- | --- |
+| `useProperty(property)` | Property'ye abone olur, değeri döndürür |
+| `useSimStep(sim, { running })` | Simülasyonu rAF ile ilerletir, kare sayısını döndürür |
+
+## Kendi Düğümün
+
+Çekirdek bir görsel sunmuyorsa `ExtensionNode` + `registerNodeRenderer` ile kendi çiziminizi verirsiniz:
+
+```tsx
+import { ExtensionNode } from '@medu/lerno';
+import { Display, registerNodeRenderer } from '@medu/lerno-react';
+
+registerNodeRenderer('sparkline', (data) => (
+  <polyline points={(data as number[]).map((v, i) => `${i * 10},${100 - v}`).join(' ')} fill="none" stroke="var(--accent)" />
+));
+
+const node = new ExtensionNode('sparkline', [10, 40, 20, 80, 55]);
+<Display node={node} />;
+```
+
+Bu, lerno'nun **her şeyi özelleştirilebilir** olmasını sağlayan temel mekanizmadır: yeni bir görsel
+türü eklemek için çekirdeği değiştirmeniz gerekmez.

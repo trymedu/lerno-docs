@@ -1,0 +1,58 @@
+---
+title: Etkileşim
+description: useDrag ile bir düğümü sürüklenebilir yapma ve pointer olaylarının iletimi.
+---
+
+Sürükleme, çekirdekteki `DragListener` ile kurulur. `useDrag` yalnızca dinleyiciyi bir `Node`'a bağlar,
+bileşen kaldırıldığında söker. `Display`, `inputEnabled` düğümün pointer olaylarını kendi üstüne alır
+ve kare içindeki koordinatı iletimde vermez; dinleyici sahne koordinatlarıyla çalışır.
+
+## Örnek
+
+Aşağıdaki bileşen, bir daireyi yatay olarak sürüklenebilir hâle getirir.
+
+```tsx
+'use client';
+
+import { useMemo } from 'react';
+import { CircleNode, Node, Vector2 } from '@medu/lerno';
+import { Display, useDrag, useProperty } from '@medu/lerno-react';
+
+export function Draggable() {
+  const position = useMemo(() => new Property(new Vector2(240, 160)), []);
+  const root = useMemo(() => {
+    const circle = new CircleNode(position.get().x, position.get().y, 20, { fill: 'var(--accent)' });
+    position.link((value) => {
+      circle.centerX = value.x;
+      circle.centerY = value.y;
+    });
+    return new Node({ children: [circle] });
+  }, [position]);
+
+  const node = useMemo(() => root.children[0] as CircleNode, [root]);
+
+  useDrag(node, {
+    drag: (pointer) => {
+      const delta = pointer.delta;
+      if (delta) position.set(position.get().plus(delta));
+    },
+  });
+
+  useProperty(position);
+
+  return <Display node={root} width={480} height={320} />;
+}
+```
+
+> Not: `position` bir `Property<Vector2>` olduğu için `useProperty` çağrısı gerekir. Sürükleyici bir
+> `Property<Vector2>` kullanırken `pointer.delta` `Vector2`'dir ve `plus` ile doğrudan uygulanır.
+
+## Etkileşim kuralları
+
+- Dinleyici, düğüme `node.addInputListener(listener)` ile eklenir; `inputEnabled` otomatik açılır.
+- Birden çok dinleyici eklenirse `inputEnabled` son çıkarıncaya kadar açık kalır.
+- `Display`, `source.inputEnabled` olan düğümler için `pointer-events` ve `cursor: grab` uygular.
+
+## Sonraki adım
+
+[Simülasyon](/tr/docs/react/getting-started/simulation) sayfası, etkileşimi `Sim` ile birleştirir.

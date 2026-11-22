@@ -1,0 +1,122 @@
+---
+title: İçerik Modeli
+description: LernoDocument sözleşmesi; node arketipleri, bloklar, akış ve puanlama.
+---
+
+Lerno'da her içerik bir **belgedir**: `LernoDocument`. Bir belge node'lardan,
+node'lar bloklardan oluşur; akış ve puanlama belge düzeyinde tanımlanır.
+
+## Belge Yapısı
+
+```ts
+import { defineDocument } from '@medu/lerno';
+
+const document = defineDocument({
+  id: 'ders-1',
+  type: 'lesson',
+  metadata: { title: 'Karesel Fonksiyonlar', subject: 'Matematik', grade: 10 },
+  scoring: { mode: 'sum', passingRatio: 0.5 },
+  nodes: [
+    { id: 'intro', type: 'slide', blocks: [{ type: 'text', markdown: 'Merhaba' }] },
+    {
+      id: 'q1',
+      type: 'question',
+      item: {
+        kind: 'multiple-choice',
+        prompt: 'f(x) = x² için f(2) kaçtır?',
+        choices: [
+          { id: 'a', label: '2', misconception: 'Kare alma unutuldu' },
+          { id: 'b', label: '4' },
+        ],
+        correct: ['b'],
+      },
+    },
+  ],
+});
+```
+
+`defineDocument` girdiyi zod ile doğrular ve varsayılanları uygular (`schemaVersion`, `language`, `flow.mode`…).
+Geçersiz belge `LernoValidationError` atar; doğrulamadan sonra tüm alanlar tip güvenlidir.
+
+## Node Arketipleri
+
+| Tip | Görev |
+| --- | --- |
+| `slide` | Başlık + bloklar (metin, başlık, görsel, callout) |
+| `question` | Cevaplanabilir soru |
+| `media` | Video/ses + zaman damgalı anchor'lar |
+| `branch` | Seçenekli dallanma; hedef node'a atlar |
+| `info` | Panel/bilgi kartları |
+| `custom` | Extension tarafından çizilen node |
+
+Blueprint'teki `interactive video`, `course presentation`, `branching scenario` gibi içerik tipleri bu
+arketiplerin presetleridir; her biri için ayrı motor yazılmaz.
+
+## Bloklar
+
+`slide` node'u şu blokları taşır: `heading`, `text`, `image`, `callout`.
+
+Her blok düz veridir; çizimini bloğun tipine göre bir görüntüleyici üstlenir:
+
+```ts
+{
+  type: 'callout',
+  tone: 'info',
+  body: 'Menzil, hızın karesi ile orantılıdır: v² sin(2θ) / g.',
+}
+```
+
+## Akış
+
+```ts
+flow: { mode: 'linear' }   // sırayla ilerler, node.next ile atlar
+flow: { mode: 'graph' }    // branch seçimleri + node.next
+flow: { mode: 'adaptive' } // host.flow çözücüsü sonraki node'u seçer
+```
+
+`adaptive` modda karar dışarıdan (host/extension) gelir; çekirdek yalnızca mekanizmayı sağlar.
+
+## Puanlama
+
+```ts
+scoring: { mode: 'sum', passingRatio: 0.7 }
+```
+
+Cevaplar `grader` katmanında değerlendirilir; ayrıntı için [Puanlama](/tr/docs/grading).
+
+## Doğrulama
+
+`defineDocument`, çalışma zamanında kırılacak grafiği kabul etmek yerine reddeder:
+
+- node id'leri, ayrıca katman, seçenek ve anchor id'leri tekildir;
+- her `next` ve dal `target` var olan bir node'u gösterir;
+- çoktan seçmeli her `correct` id'si o öğenin seçenekleri arasındadır;
+- katmanın `component` değeri `components` içinde bildirilmiştir ve `$var`, `bind.value`,
+  `visibleWhen` tanımlı bir değişkeni adlandırır.
+
+Hataların tamamı `LernoValidationError.issues` içinde yolla birlikte gelir; tek geçişte düzeltilir:
+
+```ts
+try {
+  defineDocument(input);
+} catch (error) {
+  for (const issue of (error as LernoValidationError).issues) {
+    console.error(issue.path.join('.'), issue.message);
+  }
+}
+```
+
+## Sürümleme
+
+Belge `schemaVersion` taşır ve `defineDocument` doğrulamadan önce `migrateDocument` çalıştırır. Kayıtlı
+belge adım adım yükseltilir; çalışma zamanının bilmediği sürüm veya zincirdeki boşluk, uymadığı bir
+şemaya okunmak yerine hata verir.
+
+```ts
+const steps: DocumentMigration[] = [
+  { from: 0, migrate: (doc) => ({ ...doc, schemaVersion: 1 }) },
+];
+```
+
+Varsayılanı olan yeni alanlar (`captions`, `fadeMs`) sürüm artışı gerektirmez, çünkü eski belge
+geçerli kalır. Alan adı değişikliği veya silinen alan gerektirir.

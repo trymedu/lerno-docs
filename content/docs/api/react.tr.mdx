@@ -1,0 +1,62 @@
+---
+title: React API
+description: Display, LernoPlayer ve hook'ların özellikleri.
+---
+
+React katmanı çekirdeğin üzerine biner ve hiçbir tipini değiştirmez. Bu sayfa paketin dışa aktardığı
+bileşenlerin ve hook'ların özelliklerini verir; kullanım senaryoları
+[Lerno React](/tr/docs/react) bölümündedir.
+
+## Display
+
+Bir `Node` ağacını SVG olarak çizen tek bileşen.
+
+<TypeTable type={{
+  "node": { type: "Node", required: true, description: "Çizilecek sahne grafiğinin kökü." },
+  "width": { type: "number", default: "960", description: "SVG görünüm kutusunun genişliği, sahne birimi." },
+  "height": { type: "number", default: "540", description: "SVG görünüm kutusunun yüksekliği." },
+  "className": { type: "string", description: "Kök `<svg>` ögesine uygulanan sınıf." },
+  "style": { type: "CSSProperties", description: "Kök `<svg>` ögesine uygulanan satır içi stil." },
+  "backgroundColor": { type: "string", description: "Görünüm kutusu arka rengi; varsayılan saydam." },
+  "title": { type: "string", description: "Sahne için erişilebilir ad." },
+}} />
+
+## LernoPlayer
+
+Bir `LernoDocument`'i ilk düğümden sonuna kadar oynatır.
+
+<TypeTable type={{
+  "document": { type: "LernoDocument", required: true, description: "Oynatılacak belge." },
+  "host": { type: "LernoHost", description: "Kalıcılık, telemetri, medya ve akış adaptörleri." },
+  "extensions": { type: "LernoExtension[]", description: "Kurulum sırasında bağlanan uzantılar." },
+  "components": { type: "LernoComponentMap", description: "Medya katmanlarının kullandığı component haritası." },
+  "componentVersions": { type: "Record<string, number>", description: "Manifest kontrolü için kayıtlı component sürümleri." },
+  "nodeRenderers": { type: "CustomNodeRendererMap", description: "`custom` node'lar için renderer'lar." },
+  "tone": { type: "'light' | 'dark'", description: "Koyu veya açık video için katman yüzeyi." },
+  "className": { type: "string", description: "Kök yüzeye uygulanan sınıf." },
+  "style": { type: "CSSProperties", description: "Kök yüzeye uygulanan satır içi stil." },
+}} />
+
+## useSimStep seçenekleri
+
+<TypeTable type={{
+  "running": { type: "boolean", default: "true", description: "Döngü asılı bırakılırsa döngü durur ve bileşen yeniden çizilmez." },
+  "maxDelta": { type: "number", default: "0.05", description: "Saniye cinsinden adım üst sınırı; arkada kalan sekmenin ileri sıçramasını engeller." },
+}} />
+
+## Hook'lar
+
+| İmza | Dönen | Açıklama |
+| --- | --- | --- |
+| `useProperty(property)` | `T` | Değere abone olur ve değişimde yeniden çizim tetikler. |
+| `useSimStep(sim, options?)` | `number` | Simülasyonu `requestAnimationFrame` ile ilerletir; dönen değer kare sayısıdır. |
+| `useDrag(node, handlers)` | `void` | Bir düğüme `DragListener` bağlar, bileşen kaldırılınca söker. |
+| `usePlayback(options?)` | `Playback` | Deterministik zaman çizelgesi: `progress`, `playing`, `play`, `pause`, `reset`. |
+| `useMotionValue(initial)` | `Property<T>` | Yaşam döngüsüne bağlı reaktif değer. |
+| `useAnimate()` | `{ animate }` | Tek çağrıyla tween veya yay başlatır; tüm animasyonlar tek döngüde koşar. |
+| `useSpring(source, options?)` | `Property<number>` | Kaynağa yay fiziğiyle yakınsayan değer üretir. |
+| `useLernoSession(document, options?)` | `Session` | Player chrome'u olmadan belge oturumu. |
+| `useLessonStage(document, options?)` | `LessonStageState` | Oturum + timeline, değişkenler ve katman çözümü. |
+
+`useProperty` ile `useDrag` ayrıntılı olarak [Başlarken](/tr/docs/react/getting-started) bölümünde,
+`usePlayback` ve animasyon hook'ları [Temel Kavramlar](/tr/docs/react/concepts) bölümünde anlatılır.

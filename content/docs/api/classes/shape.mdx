@@ -1,0 +1,54 @@
+---
+title: Shape
+description: Shape object that produces SVG path commands, plus factory methods.
+---
+
+`Shape` is a drawable 2D shape. It accumulates commands, produces an SVG path string through
+`pathData`, and tracks its bounding box. `PathNode` places that output in the scene.
+
+Every drawing method is chainable and returns `this`; the bounding box updates as the shape grows.
+
+## Constructor
+
+<TypeTable type={{
+    "new Shape()": { description: "An empty shape, filled by the drawing methods that follow." },
+}} />
+
+## Static methods
+
+<TypeTable type={{
+    "Shape.rect(x, y, width, height, radius?)": { type: "Shape", description: <>Rectangle; corners stay sharp when <code>radius</code> is zero.</> },
+    "Shape.circle(centerX, centerY, radius)": { type: "Shape", description: "Circle built from four curves." },
+    "Shape.polygon(points)": { type: "Shape", description: "Visits the points in order and **closes** the path." },
+    "Shape.polyline(points)": { type: "Shape", description: "Visits the points in order and leaves the path **open**." },
+}} />
+
+## Methods
+
+<TypeTable type={{
+    "moveTo(x, y)": { type: "this", description: "Starts a new subpath." },
+    "lineTo(x, y)": { type: "this", description: "Appends a straight segment to the current point." },
+    "quadraticCurveTo(cx, cy, x, y)": { type: "this", description: "Appends a curve with one control point." },
+    "bezierCurveTo(c1x, c1y, c2x, c2y, x, y)": { type: "this", description: "Appends a cubic curve with two control points." },
+    "close()": { type: "this", description: "Closes the subpath back to its start." },
+}} />
+
+## Properties
+
+<TypeTable type={{
+    "pathData": { type: "string", description: "SVG path string built from all commands. An empty shape returns an empty string rather than throwing." },
+    "commandList": { type: "readonly string[]", description: <>Raw commands in insertion order (<code>M 0 0</code>, <code>L 10 0</code>, …). Geometry helpers read this instead of parsing <code>pathData</code>; it is what <code>morphShape</code> and <code>revealShape</code> work on.</> },
+    "isEmpty": { type: "boolean", description: "Whether any drawing command exists." },
+    "bounds": { type: "Bounds2 | null", description: <>Bounding box with <code>minX</code>, <code>minY</code>, <code>maxX</code>, <code>maxY</code>; <code>null</code> for an empty shape.</> },
+}} />
+
+## Bounding box
+
+Bounds tracking runs on every `moveTo`, `lineTo`, and curve call. `bounds` feeds hit testing and
+hit area calculations; `Text` and `Image` compute their own bounds separately.
+
+## See also
+
+- Placing it in a scene: [Node](/docs/api/classes/node)
+- Usage example: [Scene graph](/docs/concepts/scene-graph)
+- Morphing and step-by-step drawing: [Shapes](/docs/concepts/shapes)

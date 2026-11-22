@@ -1,0 +1,74 @@
+---
+title: Misconception tags
+description: How selected wrong distractors are reported and how they affect the score.
+---
+
+Distractors may carry a `misconception` tag naming the intended misunderstanding. The tag reaches
+`GradeOutcome.misconceptions` only when the learner **selects that distractor**; unselected
+distractors are never recorded.
+
+## Shape
+
+A tag sits on the choice itself:
+
+```ts
+import { questionSet, createSession } from '@medu/lerno';
+
+const document = questionSet('quiz-1', { title: 'Squares' }, [
+  {
+    kind: 'multiple-choice',
+    prompt: 'What is 3²?',
+    choices: [
+      { id: 'a', label: '6', misconception: 'Squaring was skipped' },
+      { id: 'b', label: '9' },
+    ],
+    correct: ['b'],
+  },
+]);
+
+const session = createSession(document);
+const { outcome } = session.answer('q1', { selected: ['a'] });
+
+outcome.status;         // 'incorrect'
+outcome.misconceptions; // ['Squaring was skipped']
+```
+
+Selecting the correct choice leaves `misconceptions` empty.
+
+## When it is recorded
+
+The `multiple-choice` grader checks three conditions together: the distractor must be selected, it
+must be absent from the correct list, and the `misconception` field must be non-empty. When all three
+hold, the text is copied into the result verbatim.
+
+```
+selected && !correct && misconception present  →  added to misconceptions
+```
+
+## Relation to the score
+
+The tag does **not** affect the score. The score is computed separately:
+
+- In a single-answer question a wrong answer yields `incorrect` and, because `maxScore` is the full
+  credit, the score becomes zero.
+- In a multi-answer question the score is `hits - misses`, clamped between `0` and `maxScore`.
+
+Two learners can therefore end with the same score while one has a populated `misconceptions` list
+and the other has none. Scoring summaries keep them apart: `ratio` is the share of correct answers, and tags travel in
+their own field.
+
+## Where it is used
+
+- **Session report**: `state.answers[nodeId].outcome.misconceptions`
+- **Telemetry**: extensions can carry tags in an event payload; the core knows nothing about that
+- **Session score**: `ratio` counts correct answers only; tags never change it
+
+## Limit
+
+Tags are produced only by the `multiple-choice` kind. Kinds such as `ordering`, `matching`, and
+`equation` return the result rather than the failed step; the extra detail lives in `detail`.
+
+## See also
+
+- [Overview](/docs/grading): statuses and the scoring ratio
+- [Custom grader](/docs/grading/custom-grader): writing your own grader that emits tags

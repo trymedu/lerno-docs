@@ -1,0 +1,60 @@
+---
+title: Function explorer
+description: 'FunctionExplorer: pick a function family and replay its drawing.'
+---
+
+import { FunctionExplorer } from '@medu/lerno-react';
+import { DocDemo } from '@/components/react/DocDemo';
+
+export const SOURCE = `import { FunctionExplorer } from '@medu/lerno-react';
+
+// usage
+<FunctionExplorer />;
+
+// inside the lab: preset selection drives a shared scene
+import { CoordinateGrid, FunctionCurve, Scene } from '@medu/lerno-react';
+import { CoordinatePlane, FunctionPlotter } from '@medu/lerno';
+
+const plane = new CoordinatePlane({ xRange: [-4, 4], yRange: [-4, 10] });
+const plotter = new FunctionPlotter({ fn: preset.fn, domain: preset.domain });
+
+<Scene title={preset.label}>
+  <CoordinateGrid plane={plane} />
+  <FunctionCurve plane={plane} plotter={plotter} />
+</Scene>;`;
+
+`FunctionExplorer` is an interactive lab for selecting a function family and replaying its draw.
+
+**Preview** is the lab itself; **Code** shows its inner construction: the preset reaches a
+`FunctionPlotter`, and the drawing is bound to a `FunctionCurve`.
+
+<DocDemo source={SOURCE}>
+  <FunctionExplorer />
+</DocDemo>
+
+## Behaviour
+
+- **Function selection**: `x²`, `x³ − 3x`, `sin(x)`, `1/x`, `√x`, `eˣ` presets.
+- **Draw**: `drawProgress` animates from `0` to `1` through `usePlayback`.
+- **Show all**: stops the animation and shows the complete curve.
+
+## Custom preset
+
+The `functionPresets` array can be extended to add functions to the lab:
+
+```ts
+import { functionPresets } from '@medu/lerno-react';
+
+functionPresets.push({
+  id: 'log',
+  label: 'f(x) = ln(x)',
+  fn: Math.log,
+  domain: [0.1, 10],
+  yRange: [-2, 3],
+});
+```
+
+<Callout type="info" title="Presets are exported">
+  `functionPresets`, `getFunctionPreset`, and `clamp` are exported from the package and can be
+  reused in other labs.
+</Callout>

@@ -1,0 +1,13 @@
+{
+  "title": "Lerno React",
+  "description": "SVG scenes, interaction, and low-level React components.",
+  "pages": [
+    "getting-started",
+    "concepts",
+    "components",
+    "labs",
+    "player",
+    "interactive-video"
+  ],
+  "root": true
+}

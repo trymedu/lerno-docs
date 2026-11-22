@@ -1,0 +1,36 @@
+---
+title: Türev Keşfi
+description: 'DerivativeExplorer: x₀ noktasını kaydırıp anlık eğimi izleyin.'
+---
+
+import { DerivativeExplorer } from '@medu/lerno-react';
+import { DocDemo } from '@/components/react/DocDemo';
+
+export const SOURCE = `import { DerivativeExplorer } from '@medu/lerno-react';
+
+// usage
+<DerivativeExplorer />;
+
+// how the lab is built
+import { CalculusEngine } from '@medu/lerno';
+import { TangentLine } from '@medu/lerno-react';
+
+// the engine gives the slope, the component draws the tangent
+const slope = CalculusEngine.derivative(fn, x0);
+
+<TangentLine plane={plane} fn={fn} x0={x0} length={2} />;`;
+
+`DerivativeExplorer`, `CalculusEngine.derivative` ve `TangentLine` bileşenini birleştirir. `x₀` kaydırıcısı
+hareket ettikçe teğet doğrusu ve anlık eğim canlı güncellenir.
+
+**Preview** laboratuvarın kendisidir; **Code** eğimin nereden hesaplandığını ve teğetin nasıl
+çizildiğini gösterir.
+
+<DocDemo source={SOURCE}>
+  <DerivativeExplorer />
+</DocDemo>
+
+<Callout type="info" title="Kavramsal bağlantı">
+  Teğet doğrusunun eğimi tam olarak `f'(x₀)` değeridir. Öğrenci `x₀`'ı tepe noktasına getirdiğinde
+  eğimin `0`'a yaklaştığını gözlemleyebilir.
+</Callout>

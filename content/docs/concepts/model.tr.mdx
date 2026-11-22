@@ -1,0 +1,55 @@
+---
+title: Reaktif Model
+description: Property, DerivedProperty ve Emitter ile gözlemlenebilir model.
+---
+
+Model, uygulamanın verisi ve mantığıdır; **view'dan tamamen habersizdir**. Değişimler `Property`
+(observer deseni) ile yayınlanır, view `link` ile bağlanır.
+
+```ts
+import { Property, DerivedProperty, Emitter } from '@medu/lerno';
+
+const mass = new Property(2);
+const acceleration = new Property(3);
+
+// a derived value: recomputed when its dependencies change
+const force = new DerivedProperty([mass, acceleration], ([m, a]) => m * a);
+
+// a view binding: called immediately with the current value
+const unlink = force.link((value) => console.log('kuvvet', value));
+
+mass.set(4); // → kuvvet 12
+unlink();
+```
+
+## Property API
+
+| Üye | Açıklama |
+| --- | --- |
+| `get()` / `.value` | Mevcut değer |
+| `set(value)` | Değeri günceller, değiştiyse dinleyicileri çağırır |
+| `reset()` | Başlangıç değerine döner |
+| `link(listener)` | Hemen çağırır + abone olur; kaldırma fonksiyonu döner |
+| `lazyLink(listener)` | Hemen çağırmadan abone olur |
+| `validate` | `set` öncesi değeri dönüştürür |
+| `equals` | Değişim karşılaştırması (varsayılan `Object.is`) |
+
+```ts
+const ratio = new Property(0.5, { validate: (value) => Math.min(1, Math.max(0, value)) });
+ratio.set(2); // → 1
+```
+
+## Emitter
+
+`Property` tek değer içindir; çok argümanlı olaylar için `Emitter` kullanılır.
+
+```ts
+const onHit = new Emitter<[number, number]>();
+const off = onHit.addListener((x, y) => console.log(x, y));
+onHit.emit(1, 2);
+off();
+```
+
+<Callout type="tip" title="Determinizm">
+  Model `step(dt)` ile saf biçimde ilerletilebilir. Böylece aynı dt dizisi her zaman aynı sonucu verir: test ve video export için gereklidir.
+</Callout>

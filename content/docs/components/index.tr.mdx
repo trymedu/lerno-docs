@@ -1,0 +1,49 @@
+---
+title: Genel bakış
+description: Lerno'nun etkileşimli katmanlar ve sahneler için çizdiği yerleşik kontroller.
+---
+
+Sözleşme `@medu/lerno` içinde. `@medu/lerno-react` yalnızca bir referans renderer: görsel
+uygulamaları verir; manifest, değişkenler ve katman çözümü React'e bağlı değil. Aşağıdaki tipler iki
+yolda da aynı.
+
+| Tip | Sözleşme | Not |
+| --- | --- | --- |
+| [`ui.switch`](/tr/docs/components/switch) | boolean `value` + `onChange` | Değişkene bağlı anahtar |
+| [`ui.button`](/tr/docs/components/button) | bağlıysa `true` yazar | Tek seferlik aksiyon |
+| [`ui.select`](/tr/docs/components/select) | `{ value, label }[]` | Özel listbox, klavye erişilebilir |
+| [`ui.slider`](/tr/docs/components/slider) | sayısal `value`, `min`, `max`, `step` | Aralık kontrolü |
+| [`lab.readout`](/tr/docs/components/readout) | `rows: { label, value }[]` | Salt-okunur değer kartı |
+
+## Düz JavaScript'ten kullanım
+
+```js
+import { createSession, createInteractionRuntime } from '@medu/lerno';
+
+const runtime = createInteractionRuntime(document, createSession(document));
+const visible = runtime.layersAt('clip', video.currentTime * 1000);
+
+for (const { layer, props, value } of visible) {
+  // layer.component / props / value ile kendi DOM kontrolünü çiz
+  // geri yazmak için:
+  runtime.change(layer, nextValue);
+}
+```
+
+React paketi aynı sözleşmeyi `<Switch>`, `<Select>` ve arkadaşlarıyla yansıtır. İki yol da aynı oturum
+değişkenlerini okur/yazar.
+
+Tablolardaki `value` / `onChange` bağ sözleşmesini anlatır. JSON manifestte bunlar `bind.value` ile
+okunacak/yazılacak değişken, `runtime.change(layer, next)` ile yazma karşılığıdır.
+
+## Davranış
+
+- Layer `bind.value` ile bağlandığında her kontrol `value` / `onChange` alır.
+- Salt-okunur componentler değişkenleri `{ "$var": "id" }` prop'uyla okur.
+- `tone="dark"` koyu video için tek varyanttır; ikinci tema yoktur.
+- `Select` native `<select>` değil, özel bir listbox'tır: ok tuşları, `Home`/`End`, `Enter`, `Space`
+  ve `Escape` çalışır; dışarı tıklayınca menü kapanır.
+- Yüzey bilinçli olarak sade: 1px border, 10px radius, beyaz zemin, focus halkası; gradyan yok.
+
+[Üç canlı örneğe ve üç 7 saniyelik klibe](/tr/docs/components/examples) bak. Düz JavaScript mi
+istiyorsun? [Headless runtime](/tr/docs/components/javascript).

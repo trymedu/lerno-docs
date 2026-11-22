@@ -1,0 +1,90 @@
+---
+title: Spring, keyframes, and sequence
+description: 'A Motion-like animation API: spring, keyframes, sequence, stagger, and React hooks.'
+---
+
+The `@medu/lerno-motion` package sits on top of `twixt` and offers a more ergonomic API, in the spirit
+of Motion.dev. Everything runs on `Property` values and advances through a deterministic `step(dt)`.
+Keeping it separate holds the core to plain tweens.
+
+```bash
+bun add @medu/lerno-motion
+```
+
+## Spring
+
+```ts
+import { Property, v2 } from '@medu/lerno';
+import { springNumber, springVector2 } from '@medu/lerno-motion';
+
+const scale = new Property(1);
+const spring = springNumber(scale, 2, { stiffness: 180, damping: 14, mass: 1 });
+// on every frame: spring.step(dt)
+
+const position = new Property(v2(0, 0));
+const vectorSpring = springVector2(position, v2(400, 200));
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `stiffness` | `170` | Spring stiffness |
+| `damping` | `26` | Damping |
+| `mass` | `1` | Mass |
+| `restSpeed` / `restDelta` | `0.01` | Rest thresholds |
+
+## Keyframes
+
+```ts
+import { Easings, Property } from '@medu/lerno';
+import { keyframesNumber } from '@medu/lerno-motion';
+
+const x = new Property(0);
+const animation = keyframesNumber(x, [0, 100, 50, 120], { duration: 1.2, easing: Easings.easeInOut });
+```
+
+With explicit timestamps:
+
+```ts
+keyframesNumber(x, [0, 10, 100], { duration: 1, times: [0, 0.8, 1] });
+```
+
+## Sequence and stagger
+
+```ts
+import { Property } from '@medu/lerno';
+import { keyframesNumber, sequence, stagger } from '@medu/lerno-motion';
+
+const property = new Property(0);
+const seq = sequence([
+  keyframesNumber(property, [0, 10], { duration: 0.4 }),
+  keyframesNumber(property, [10, 30], { duration: 0.6 }),
+]);
+
+// on every frame: seq.step(dt)
+
+const delays = stagger(4, 0.08); // [0, 0.08, 0.16, 0.24]
+```
+
+## React hooks
+
+```tsx
+import { useMotionValue, useAnimate, useSpring, useAnimationFrame } from '@medu/lerno-react';
+
+function Demo() {
+  const scale = useMotionValue(1);
+  const { animate } = useAnimate();
+
+  return (
+    <button onPointerEnter={() => animate(scale, 1.4, { spring: true })} onPointerLeave={() => animate(scale, 1, { duration: 0.2 })}>
+      Grow
+    </button>
+  );
+}
+```
+
+| Hook | Role |
+| --- | --- |
+| `useMotionValue(initial)` | A lifecycle-managed `Property` |
+| `useAnimate()` | `animate(property, to, options)` inside a rAF loop |
+| `useSpring(source, options)` | A `Property` that springs toward a value |
+| `useAnimationFrame(cb)` | A loop called every frame with `dt` |

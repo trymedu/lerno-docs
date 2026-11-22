@@ -1,0 +1,28 @@
+---
+title: Branching scenario
+description: A flow that branches on choices.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+A flow that branches on choices.
+
+## Usage
+
+```ts
+branchingScenario('scenario-1', { title: 'Choosing a Path' }, [
+  { id: 'fork', type: 'branch', prompt: 'Which way?', choices: [{ id: 'c1', label: 'A', target: 'end' }] },
+  { id: 'end', type: 'slide', blocks: [] },
+]);
+```
+
+## Embedded Example
+
+<LernoPlayer document={contentTypeDemos['branching-scenario']} />
+
+## How It Is Built
+
+It is not a separate engine; it is a recipe that assembles the right nodes:
+
+- `branch` nodes on a graph flow

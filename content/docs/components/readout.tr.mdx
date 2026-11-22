@@ -1,0 +1,63 @@
+---
+title: Readout
+description: Canlı değişkenler için salt-okunur değer kartı.
+---
+
+import { ReadoutDemo } from '@/components/react/ComponentDemos';
+
+Readout etkileşimin çıktı yarısıdır: hiçbir şey yazmaz, yalnızca sahnenin zaten kullandığı değerleri
+gösterir.
+
+<ReadoutDemo />
+
+## Manifest katmanı
+
+```json
+{
+  "id": "values",
+  "component": "lab.readout",
+  "fromMs": 0,
+  "props": {
+    "title": "Anlık değerler",
+    "rows": [
+      { "label": "Hava", "value": { "$var": "airOn" } },
+      { "label": "g", "value": "10 m/s²" }
+    ]
+  }
+}
+```
+
+## JavaScript
+
+```js
+import { createSession, createInteractionRuntime } from '@medu/lerno';
+
+const runtime = createInteractionRuntime(document, createSession(document));
+const item = runtime.layersAt('clip', video.currentTime * 1000)
+  .find((entry) => entry.layer.id === 'values');
+
+const list = document.createElement('dl');
+for (const row of item.props.rows) {
+  const term = document.createElement('dt');
+  term.textContent = row.label;
+  const value = document.createElement('dd');
+  value.textContent = String(row.value);
+  list.append(term, value);
+}
+```
+
+## Prop'lar
+
+| Prop | Tip | Varsayılan |
+| --- | --- | --- |
+| `title` | `string` | `Live values` |
+| `rows` | `{ label: string; value: unknown }[]` | `[]` |
+| `tone` | `'light' \| 'dark'` | `light` |
+
+## Davranış
+
+- Boolean'lar **Açık / Kapalı**, sayılar `tr-TR` biçiminde, string'ler olduğu gibi çizilir.
+- Bilinmeyen veya eksik değerler `: ` olarak görünür.
+- Değerler `{ "$var": "id" }` prop'uyla gelebilir; aynı readout hem manifest layer'ında hem düz React
+  componenti olarak çalışır.
+- `value` / `onChange` yoktur; düzenleme gerekiyorsa kontrol componenti kullan.

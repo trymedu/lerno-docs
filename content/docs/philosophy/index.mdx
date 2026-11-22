@@ -1,0 +1,31 @@
+---
+title: Design rationale
+description: The trade-off between primitives and presets.
+---
+
+Most teaching tools begin with a list of content types: question set, slides, interactive video. That
+approach delivers the first output, but its limit appears early; when a requirement outside the list
+arises, the tool has to be left behind.
+
+Lerno reverses the order. Primitives come first: a reactive model, a scene graph, input, and animation.
+Content types are recipes that sit above the primitives, and the visuals on the discipline pages are
+built the same way. When a recipe meets the requirement, it is used; when it does not, the layer below
+is used and the tool is not replaced.
+
+## The cost of each layer
+
+| | Preset (content type) | Primitive (Node, Property, tween) |
+| --- | --- | --- |
+| Time to a first result | Fast. A document is written and played. | Slow. The model and the scene are built by hand. |
+| Flexibility | Up to the boundary of the preset. | No boundary. |
+| Code volume | Low. | High. |
+| Suitable work | Standard assessment, slides, ready simulation | Original simulation, new interaction, new visual kind |
+
+## The rule
+
+An existing content type or ready-made visual is examined first. If none fits, its source is inspected:
+every discipline page shows how the same visual is built from primitives. Where necessary, a node is
+subclassed or custom drawing is supplied through `ExtensionNode`.
+
+The cost of this approach is explicit: the learning curve is steeper than that of a content tool. In
+return, no wall appears when the list runs out.

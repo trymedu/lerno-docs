@@ -1,0 +1,112 @@
+---
+title: Shapes
+description: SVG path commands and bounds through Shape.
+---
+
+A `Shape` is a drawable 2D figure. It produces `pathData` and computes its bounds. In the scene graph,
+`PathNode` carries a `Shape`.
+
+```ts
+import { Shape, v2 } from '@medu/lerno';
+
+const shape = new Shape()
+  .moveTo(0, 0)
+  .lineTo(100, 0)
+  .quadraticCurveTo(120, 0, 120, 20)
+  .lineTo(120, 80)
+  .close();
+
+shape.pathData; // "M 0 0 L 100 0 Q 120 0 120 20 L 120 80 Z"
+shape.bounds;   // { minX: 0, minY: 0, maxX: 120, maxY: 80 }
+```
+
+## Ready-made shapes
+
+```ts
+Shape.rect(0, 0, 100, 50, 8);          // rounded rectangle
+Shape.circle(400, 300, 60);            // circle
+Shape.polygon([v2(0, 0), v2(80, 0), v2(40, 60)]);
+Shape.polyline([v2(0, 0), v2(50, 30), v2(100, 0)]);
+```
+
+## Commands
+
+| Method | SVG |
+| --- | --- |
+| `moveTo(x, y)` | `M` |
+| `lineTo(x, y)` | `L` |
+| `quadraticCurveTo(cx, cy, x, y)` | `Q` |
+| `bezierCurveTo(c1x, c1y, c2x, c2y, x, y)` | `C` |
+| `close()` | `Z` |
+
+## Morphing one shape into another
+
+`morphShape` interpolates every operand from its value in `from` to its value in `to`. Curves stay
+curves: control points move, so the outline never snaps through a polygon.
+
+```ts
+import { Shape, canMorph, morphShape } from '@medu/lerno';
+
+const from = Shape.rect(0, 0, 100, 100);
+const to = Shape.rect(0, 0, 200, 200);
+
+morphShape(from, to, 0.5)?.pathData;
+// 'M 0 0 L 150 0 L 150 150 L 0 150 Z'
+
+// A rectangle is M L L L Z, a circle is M Q Q Q Q Z: those cannot morph.
+canMorph(Shape.rect(0, 0, 10, 10), Shape.circle(0, 0, 10)); // false
+morphShape(Shape.rect(0, 0, 10, 10), Shape.circle(0, 0, 10), 0.5); // null
+```
+
+The pair must use the same commands in the same order with the same operand counts. `canMorph`
+answers the question up front so a scene can choose a fallback: cross-fade two nodes, or rebuild
+the target from matching primitives: instead of discovering `null` mid-animation.
+
+To drive it, hand the ratio to a `Tween`:
+
+```ts
+const tween = new Tween({
+  duration: 0.6,
+  onUpdate: (ratio) => {
+    node.shape = morphShape(from, to, ratio) ?? to;
+  },
+});
+```
+
+## Drawing a shape step by step
+
+`revealShape` returns the prefix of a path up to a ratio: the pen effect. Whole commands are
+emitted in order, and the one straddling the cut is split geometrically: straight segments shorten,
+curves are cut with de Casteljau so the partial outline stays exactly on the original path.
+
+```ts
+import { Shape, revealShape } from '@medu/lerno';
+
+const square = Shape.rect(0, 0, 100, 100);
+
+revealShape(square, 0).pathData;   // '': nothing drawn
+revealShape(square, 0.5).pathData; // 'M 0 0 L 100 0 L 100 50'
+revealShape(square, 1);            // the shape itself
+```
+
+Progress is a fraction of the **command list**, not a dash offset, so the same code runs headless
+and in the browser: no `getTotalLength()`, no layout.
+
+`WriteShape` wraps that in a `Steppable`, which means it drops into a `Sequence` or any other
+container that steps on `dt`:
+
+```ts
+const pathNode = new PathNode(square, { stroke: 'var(--accent)', fill: 'none' });
+
+const write = new WriteShape(square, {
+  duration: 2,
+  onUpdate: (visible) => (pathNode.shape = visible),
+});
+
+write.step(1 / 60); // call from a Sim screen or requestAnimationFrame
+write.isFinished;   // false until the last command lands
+write.progress;     // 0…1, after easing
+```
+
+`duration` is in seconds and `onComplete` fires once. Easing defaults to linear, which reads as a
+steady hand; pass `Easings.easeInOut` for a softer start and stop.

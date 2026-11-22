@@ -1,0 +1,32 @@
+---
+title: Overview
+description: Five self-contained live labs with built-in controls.
+---
+
+The labs are components that demonstrate one concept with controls that can be changed live. Each
+lab owns its state and builds its own scene, and it can be embedded in a page without further
+configuration.
+
+| Page | Demonstrates |
+| --- | --- |
+| [Function explorer](/docs/react/labs/function-explorer) | Function families and the drawing animation |
+| [Derivative explorer](/docs/react/labs/derivative-explorer) | The slope at a movable point |
+| [Riemann sum](/docs/react/labs/riemann-sum) | Convergence as rectangles are added |
+| [Projectile lab](/docs/react/labs/projectile-lab) | Flight as speed and angle change |
+| [Molecule viewer](/docs/react/labs/molecule-viewer) | Switching molecular geometries |
+
+## Embedding
+
+One line is enough:
+
+```tsx
+import { ProjectileLab } from '@medu/lerno-react';
+
+<ProjectileLab />;
+```
+
+## Customising
+
+A lab is not a template; the same pattern repeats in your own component: `useState` for the control
+value, `useMemo` for the scene, `Display` for drawing. Building the behaviour from the parts in
+[Primitive components](/docs/react/components/primitives) is the general route.

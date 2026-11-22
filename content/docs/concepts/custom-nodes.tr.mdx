@@ -1,0 +1,63 @@
+---
+title: Kendi Görselini Yazmak
+description: renderSelf, ExtensionNode ve registry ile çekirdek değiştirilmeden özelleştirme.
+---
+
+Lerno kapalı bir sistem değildir; her katmanda bir genişletme noktası bulunur.
+
+## 1. Düğümü Miras Alma
+
+`Node` genişletilir ve `renderSelf()` metodu ezilir. Çekirdeğin değiştirilmesi gerekmez.
+
+```ts
+import { Node, Shape, type RenderElement } from '@medu/lerno';
+
+class ProgressRing extends Node {
+  constructor(public progress = 0, public radius = 40) {
+    super();
+  }
+
+  protected renderSelf(): RenderElement {
+    return {
+      type: 'path',
+      shape: Shape.circle(0, 0, this.radius),
+      fill: 'none',
+      stroke: 'var(--accent)',
+      strokeWidth: 4,
+      dash: `${this.progress * 2 * Math.PI * this.radius} 9999`,
+    };
+  }
+}
+```
+
+## 2. ExtensionNode ve Registry
+
+Özel bir React, SVG veya Canvas görseli kaydedilir:
+
+```tsx
+import { ExtensionNode } from '@medu/lerno';
+import { Display, registerNodeRenderer } from '@medu/lerno-react';
+
+registerNodeRenderer('heatmap', (data) => <Heatmap data={data as number[][]} />);
+
+const node = new ExtensionNode('heatmap', [[1, 2], [3, 4]]);
+<Display node={node} />;
+```
+
+## 3. Özel Display Yazımı
+
+Render ağacı saf veri olduğu için Canvas, WebGL veya test amaçlı bir Display yazılabilir.
+
+```ts
+const tree = root.toRender(); // { type, props, children }
+```
+
+## 4. Özel Model-View Dönüşümü
+
+`ModelViewTransform2` genel çözümdür; özel projeksiyonlar için `Node` üzerinde
+`translation`, `rotation` ve `scale` birleştirin veya alt sınıf yazıp `renderSelf`'i ezin.
+
+<Callout type="info" title="Felsefe">
+  İçerik tipleri yalnızca reçetedir. Bu genişletme noktaları sayesinde Lerno'da her katman
+  özelleştirilebilir; değiştirilemez bir sınır yoktur.
+</Callout>

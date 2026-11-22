@@ -1,0 +1,117 @@
+---
+title: 3D Scene (Three.js)
+description: '@medu/lerno-three: 3D modeling and animation driven by variable management.'
+---
+
+import { ThreeDemo } from '@/components/react/ThreeDemo';
+
+`@medu/lerno-three` is an **extension** that connects Lerno's reactive layer to Three.js. Instead of a
+2D scene, 3D models are built. Every transform channel is bound to a **variable**, and animation moves
+those variables.
+
+<ThreeDemo />
+
+## Install
+
+```bash
+bun add @medu/lerno-three three
+```
+
+## Declarative scene
+
+```ts
+import { ambientLight, box, directionalLight, group, sphere, torus, type Scene3DSpec } from '@medu/lerno-three';
+
+const spec: Scene3DSpec = {
+  background: '#0b0f19',
+  camera: { position: [4, 3, 6], lookAt: [0, 1, 0] },
+  objects: [
+    ambientLight('#ffffff', 0.7),
+    directionalLight([5, 8, 5], 1.4),
+    group('set', [
+      box({ width: 1.6, height: 1.6, depth: 1.6 }, { color: '#42a5f5' }, { position: [-2, 1, 0] }),
+      sphere(1, { color: '#10b981' }, { position: [0, 1, 0] }),
+      torus({ radius: 1, tube: 0.35 }, { color: '#f59e0b' }, { position: [2, 1, 0] }),
+    ]),
+  ],
+};
+```
+
+## Variable management
+
+`VariableStore` holds named `Property` values, with derived variables and snapshots.
+
+```ts
+import { VariableStore } from '@medu/lerno-three';
+
+const store = new VariableStore();
+store.defineNumber('ballY', 1);
+store.define('mode', 'demo');
+store.derive('doubleY', ['ballY'], ([y]) => Number(y) * 2);
+
+const snapshot = store.snapshot(); // serializable
+store.restore(snapshot);
+```
+
+## Bindings
+
+Any transform channel of a 3D object can be bound to a variable, and the runtime applies it every frame.
+
+```ts
+sphere(1, { color: '#10b981' }, {
+  position: [0, 1, 0],
+  bindings: {
+    'position.y': 'ballY',
+    'scale.x': 'ballScale',
+    'scale.y': 'ballScale',
+    'scale.z': 'ballScale',
+    'material.opacity': 'ballOpacity',
+  },
+});
+```
+
+| Channel | Effect |
+| --- | --- |
+| `position.x/y/z` | Position |
+| `rotation.x/y/z` | Rotation in radians |
+| `scale.x/y/z` | Scale |
+| `material.opacity` | Opacity |
+| `material.metalness` | Metalness |
+
+## Runtime and animation
+
+```ts
+import { ThreeRuntime } from '@medu/lerno-three';
+
+const runtime = new ThreeRuntime(spec, { store });
+runtime.mount(container);
+
+// on every frame:
+runtime.step(dt);
+runtime.render();
+
+// animate a variable with spring physics
+runtime.animate('ballY', 2.6, { spring: true, stiffness: 180, damping: 14 });
+```
+
+## React
+
+```tsx
+import { ThreeCanvas } from '@medu/lerno-three';
+
+<ThreeCanvas spec={spec} store={store} autoRotateSpeed={0.4} style={{ height: 380 }} />;
+```
+
+## Headless export
+
+The runtime draws through `WebGLRenderer` and needs a DOM canvas. `mount()` throws
+`THREE_HEADLESS_ERROR` outside a browser, and `render()` throws when the runtime is not mounted.
+`@medu/lerno-export` cannot record a 3D scene; passing one to `frameTrees`, `rgbaFrames`, or
+`exportMp4` raises the same guidance. Render the 3D layer in a browser or a WebGL backend and
+composite the result with `exportMp4({ video })`.
+
+<Callout type="info" title="Extension architecture">
+  `@medu/lerno-three` adds nothing to the core; it uses the `Property` and `Node` layers. In the same
+  way a custom render backend (Canvas, WebGL, WebGPU) can be written as an extension
+  ([Writing Your Own Visual](/docs/concepts/custom-nodes)).
+</Callout>

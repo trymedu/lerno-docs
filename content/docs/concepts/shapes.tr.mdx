@@ -1,0 +1,112 @@
+---
+title: Şekiller
+description: Shape ile SVG path komutları ve sınır kutusu.
+---
+
+`Shape`, çizilebilir bir 2B şekildir; `pathData` üretir ve sınır kutusunu hesaplar. `scenery`'deki
+`PathNode` bir `Shape` taşır.
+
+```ts
+import { Shape, v2 } from '@medu/lerno';
+
+const shape = new Shape()
+  .moveTo(0, 0)
+  .lineTo(100, 0)
+  .quadraticCurveTo(120, 0, 120, 20)
+  .lineTo(120, 80)
+  .close();
+
+shape.pathData; // "M 0 0 L 100 0 Q 120 0 120 20 L 120 80 Z"
+shape.bounds;   // { minX: 0, minY: 0, maxX: 120, maxY: 80 }
+```
+
+## Hazır Şekiller
+
+```ts
+Shape.rect(0, 0, 100, 50, 8);          // yuvarlatılmış dikdörtgen
+Shape.circle(400, 300, 60);            // daire
+Shape.polygon([v2(0, 0), v2(80, 0), v2(40, 60)]);
+Shape.polyline([v2(0, 0), v2(50, 30), v2(100, 0)]);
+```
+
+## Komutlar
+
+| Metot | SVG |
+| --- | --- |
+| `moveTo(x, y)` | `M` |
+| `lineTo(x, y)` | `L` |
+| `quadraticCurveTo(cx, cy, x, y)` | `Q` |
+| `bezierCurveTo(c1x, c1y, c2x, c2y, x, y)` | `C` |
+| `close()` | `Z` |
+
+## Bir şekli diğerine dönüştürme
+
+`morphShape` her operandı `from`'daki değerinden `to`'daki değerine ara değerler. Eğriler eğri
+kalır: kontrol noktaları hareket eder, böylece kontur hiçbir zaman çokgenin üzerinden sıçramaz.
+
+```ts
+import { Shape, canMorph, morphShape } from '@medu/lerno';
+
+const from = Shape.rect(0, 0, 100, 100);
+const to = Shape.rect(0, 0, 200, 200);
+
+morphShape(from, to, 0.5)?.pathData;
+// 'M 0 0 L 150 0 L 150 150 L 0 150 Z'
+
+// Dikdörtgen M L L L Z, daire M Q Q Q Q Z: ikisi birbirine geçemez.
+canMorph(Shape.rect(0, 0, 10, 10), Shape.circle(0, 0, 10)); // false
+morphShape(Shape.rect(0, 0, 10, 10), Shape.circle(0, 0, 10), 0.5); // null
+```
+
+Çift, aynı komutları aynı sırada ve aynı operand sayısıyla kullanmalıdır. `canMorph` soruyu baştan
+yanıtlar; böylece bir sahne animasyonun ortasında `null` ile karşılaşmak yerine baştan yedek
+seçebilir: iki düğümü çapraz geçiş yapmak ya da hedefi eşleşen primitiflerden yeniden kurmak.
+
+Sürmek için oranı bir `Tween`'a verin:
+
+```ts
+const tween = new Tween({
+  duration: 0.6,
+  onUpdate: (ratio) => {
+    node.shape = morphShape(from, to, ratio) ?? to;
+  },
+});
+```
+
+## Bir şekli adım adım çizme
+
+`revealShape`, bir yolun oranına kadar olan öneki döndürür: kalem etkisi. Tam komutlar sırayla
+üretilir, sınırı aşan komut geometrik olarak bölünür: düz parçalar kısalır, eğriler de Casteljau ile
+bölünür; böylece kısmi kontur orijinal yolun tam üzerinde kalır.
+
+```ts
+import { Shape, revealShape } from '@medu/lerno';
+
+const square = Shape.rect(0, 0, 100, 100);
+
+revealShape(square, 0).pathData;   // '': hiçbir şey çizilmez
+revealShape(square, 0.5).pathData; // 'M 0 0 L 100 0 L 100 50'
+revealShape(square, 1);            // şeklin kendisi
+```
+
+İlerleme bir **dash offset**'i değil, **komut listesinin** oranıdır; bu yüzden aynı kod hem başsız
+hem tarayıcıda çalışır: `getTotalLength()` yok, düzen ölçümü yok.
+
+`WriteShape` bunu bir `Steppable`'a sarar ve `dt` ile adımlayan bir `Sequence`'e veya başka bir
+kapsayıcıya girer:
+
+```ts
+const pathNode = new PathNode(square, { stroke: 'var(--accent)', fill: 'none' });
+
+const write = new WriteShape(square, {
+  duration: 2,
+  onUpdate: (visible) => (pathNode.shape = visible),
+});
+
+write.step(1 / 60); // bir Sim ekranından ya da requestAnimationFrame'den çağırın
+write.isFinished;   // son komut çizilene kadar false
+write.progress;     // 0…1, easing sonrası
+```
+
+`duration` saniyedir ve `onComplete` yalnızca bir kez çağrılır. Easing varsayılan olarak doğrusaldır;
+bu sakin bir el hissi verir. Daha yumuşak başlangıç ve duruş için `Easings.easeInOut` verin.

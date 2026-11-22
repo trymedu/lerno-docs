@@ -1,0 +1,74 @@
+---
+title: Kavram Yanılgısı Etiketleri
+description: Seçilen yanlış çeldiricilerin nasıl raporlandığı ve puana etkisi.
+---
+
+Çeldiriciler, hedeflenen yanlış anlaşılmayı ifade eden bir `misconception` etiketi taşıyabilir. Etiket,
+öğrenci **o çeldiriciyi seçtiğinde** `GradeOutcome.misconceptions` dizisine düşer; seçilmemiş
+çeldiriciler hiçbir yere yazılmaz.
+
+## Şekil
+
+Etiket, seçeneğin kendisinde durur:
+
+```ts
+import { questionSet, createSession } from '@medu/lerno';
+
+const document = questionSet('quiz-1', { title: 'Kareler' }, [
+  {
+    kind: 'multiple-choice',
+    prompt: '3² kaçtır?',
+    choices: [
+      { id: 'a', label: '6', misconception: 'Kare alma unutuldu' },
+      { id: 'b', label: '9' },
+    ],
+    correct: ['b'],
+  },
+]);
+
+const session = createSession(document);
+const { outcome } = session.answer('q1', { selected: ['a'] });
+
+outcome.status;         // 'incorrect'
+outcome.misconceptions; // ['Kare alma unutuldu']
+```
+
+Doğru şık seçildiğinde `misconceptions` boş kalır.
+
+## Ne zaman kaydedilir
+
+`multiple-choice` değerlendiricisi yalnızca üç koşulu birlikte karşılar: çeldirici seçilmiş olmalı,
+doğru cevap listesinde olmamalı ve `misconception` alanı dolu olmalı. Üçü de sağlandığında metin
+aynen sonuca yazılır.
+
+```
+seçildi && !doğru && misconception dolu  →  misconceptions'a eklenir
+```
+
+## Puan ile ilişkisi
+
+Etiket, puanı **etkilemez**. Puan ayrı hesaplanır:
+
+- Tek seçimli soruda yanlış cevap `incorrect` üretir; `maxScore` tamamı olduğundan puan sıfırlanır.
+- Çok seçimli soruda puan `hits - misses` oranıyla hesaplanır; bu da `0` ile `maxScore` arasına
+  kırpılır.
+
+Yani iki öğrenci aynı puanı alabilir; birinin `misconceptions` dizisi dolu, diğerinin boş olur.
+Puanlama özetleri bunu ayrı tutar: `ratio` doğru cevap oranıdır, etiketler ayrı
+alan taşır.
+
+## Nerelerde kullanılır
+
+- **Oturum raporu**: `state.answers[nodeId].outcome.misconceptions`
+- **Telemetri**: uzantılar etiketleri olay yüküyle taşıyabilir; çekirdek bunu bilmez
+- **Oturum puanı**: `ratio` yalnızca doğru cevapları sayar, etiketler onu değiştirmez
+
+## Sınır
+
+Etiket yalnızca `multiple-choice` tipinde üretilir. `ordering`, `matching` ve `equation` gibi tipler
+hangi adımın yanlış gittiğini değil, sonucu döndürür; ayrıntı `detail` alanındadır.
+
+## İlgili
+
+- [Genel Bakış](/tr/docs/grading): durumlar ve puan oranı
+- [Özel Değerlendirici](/tr/docs/grading/custom-grader): etiket üreten kendi değerlendiricinizi yazmak

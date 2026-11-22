@@ -1,0 +1,28 @@
+---
+title: Out of scope
+description: The work Lerno leaves out of scope, with the recommended alternative for each item.
+---
+
+Knowing the limits of a tool matters as much as knowing its features. The work below is out of scope for
+Lerno; each row names an alternative.
+
+| Out-of-scope work | Rationale | Alternative |
+| --- | --- | --- |
+| Multiplayer physics and collision solving | Conflicts with determinism and the low-hardware target | A server-side physics engine; the result is bound as a `Property` |
+| Heavy CAD and mesh processing | Package size and GPU memory limits | Authored in an external tool, then loaded as an `ImageNode` or 3D model |
+| GPU compute and custom shaders | Leaves the `three` boundary | Use `three` directly and connect it through an `ExtensionNode` |
+| Real-time audio synthesis | Browser APIs are kept out of the core | Write Web Audio as a host adapter |
+| Server-side persistence | The core is technology-agnostic | Implement the `LernoHost.storage` adapter |
+| Authentication and authorization | It is an application responsibility | Solve it in the application layer |
+
+## In scope, but requiring attention
+
+- Large scenes: SVG slows down past a few thousand nodes; at that point Canvas or WebGL is used.
+- Low hardware: shadows, reflections, and high segment counts must remain switchable; the defaults are
+  restrained for this reason.
+- Accessibility: `accessibleName` and keyboard navigation are expected behavior, not an option.
+
+## Principle
+
+When a task should belong to Lerno, it is written as an extension or a host adapter. Technology is not
+added to the core.

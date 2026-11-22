@@ -1,0 +1,36 @@
+---
+title: İlk Simülasyon
+description: Model, view ve zamanın ayrılması; createScreen, Sim ve step.
+---
+
+import { FallingBallExample } from '@/components/react/examples/FallingBallExample';
+
+Simülasyon, zaman boyutu ekler. Model `step(dt)` ile ilerletilir, view yalnızca modeli okur.
+
+## Örnek
+
+Aşağıdaki bileşen, serbest düşen bir cismi modeller ve çizer. **Preview** simülasyonun kendisini,
+**Code** modeli ve view'ı kuran kodu, **JSON** ise view'ın başlangıç durumundaki `toRender()`
+çıktısını gösterir.
+
+<FallingBallExample />
+
+## Ayrımın sonuçları
+
+- Model view'ı bilmez. `FallModel` sınıfı `CircleNode` adını içermez.
+- Zamanın tek kaynağı `sim.step(dt)` çağrısıdır. `dt` dışarıdan verilir; aynı `dt` dizisi her zaman aynı
+  sonucu üretir.
+- `useSimStep` yalnızca `requestAnimationFrame` döngüsünü kurar ve React'i yeniden çizer.
+
+Bu ayrım sayesinde aynı model SVG yerine WebGL'e veya DOM'suz bir teste bağlanabilir.
+
+## JSON sekmesinde ne var
+
+JSON, `createView()`'ün döndürdüğü kök düğümün `toRender()` çıktısıdır: tek bir `circle` elemanı ve
+bunu saran `group`. `ball.centerY` değeri modelin ilk `height` değerinden gelir; animasyon
+başladığında JSON **değişmez**, çünkü sahne grafiği her karede yeniden çizilir ve JSON yalnızca
+kurulum anının kaydıdır.
+
+## Sonraki adım
+
+Etkileşim için [Zihinsel Model](/tr/docs/getting-started/mental-model) sayfası dört kuralı özetler.

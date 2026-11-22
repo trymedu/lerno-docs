@@ -1,0 +1,86 @@
+---
+title: Troubleshooting
+description: The errors Lerno actually throws, what causes them, and the fix.
+---
+
+## Quick table
+
+| Message | Cause | Fix |
+| --- | --- | --- |
+| `Invalid Lerno document` | Schema validation failed | Read `error.issues`; see below |
+| `Document schema version N; this runtime supports M.` | Document is newer than the runtime | Upgrade the package or lower `schemaVersion` |
+| `No migration defined for version N.` | No step for that version | Add a `DocumentMigration` or re-save the document |
+| `Component not registered: ui.switch` | Manifest type missing from the component map | `createComponentMap({ 'ui.switch': Switch })` |
+| `no canvas painter for: app.custom` | Custom layer has no canvas renderer | Paint it or accept the skip |
+| `Could not register font "Arial" from /path` | Font file missing or unreadable | Point `registerFont` at a real file |
+| `Font family "X" cannot render: ş ı` | Font lacks those glyphs | Use a font that covers them |
+| `Audio track not found: /path` | `audio` points at a missing file | Fix the path |
+| `ffmpeg could not decode /path` | Corrupt file or unsupported codec | Probe it with `ffprobe` |
+| `Three.js scenes cannot be exported headlessly` | A Three.js scene was passed to the 2D exporter | Render the 3D layer separately and composite it with `exportMp4({ video })` |
+| `Cannot find module '@medu/lerno'` | Package not built (dist is the import target) | `bun run build` in `packages/lerno` |
+
+## Validation errors
+
+`defineDocument` throws one `LernoValidationError`; the message is generic and the reasons are in
+`issues`. Print them:
+
+```ts
+try {
+  defineDocument(input);
+} catch (error) {
+  for (const issue of (error as LernoValidationError).issues) {
+    console.error(issue.path.join('.'), issue.message);
+  }
+}
+```
+
+Current checks: duplicate node, choice, layer and anchor ids; `next` and branch `target` pointing at a
+missing node; a multiple-choice `correct` id that is not among its choices; a layer component missing
+from `components`; unknown variables in `$var`, `bind.value`, and `visibleWhen`.
+
+## Document version
+
+The runtime refuses a document from the future instead of parsing it into a shape it does not match.
+If a document says `schemaVersion: 2` and the runtime is 1, either upgrade the package or bring the
+document down to the supported version.
+
+For an older document, `defineDocument` runs `migrateDocument` first. A gap in the chain throws
+`No migration defined for version N`: register the missing step:
+
+```ts
+import { migrateDocument, type DocumentMigration } from '@medu/lerno';
+
+const steps: DocumentMigration[] = [
+  { from: 0, migrate: (doc) => ({ ...doc, schemaVersion: 1 }) },
+];
+```
+
+## Layers that never appear
+
+1. Is the component registered? An unregistered type renders “Component not registered”.
+2. Is the time window right? `fromMs <= time < toMs`; a zero-length window never shows.
+3. Does `visibleWhen` hold? The variable must equal the expected value.
+4. In an export, is the document passed to `layers`? Without it the MP4 has no layers.
+
+## Video and layers drift apart
+
+The player needs one clock. Pass the stage to `InteractiveVideo` / `LernoPlayer`; the video time is
+then written into the stage and the layers read that. Without a stage the component keeps its own
+time, which is fine for a toy but wrong next to a session.
+
+## Export looks different from the app
+
+The app draws React components; the export draws canvas painters. Colours and geometry follow the
+built-in table, but a custom component has no painter and is skipped with a warning. Keep custom
+visuals inside the scene graph if they must appear in the file.
+
+## The HTML page has no questions
+
+`exportHtml` writes labels and bodies for anchors, not the question widget or grading. Use
+`LernoPlayer` in an app when answers must be collected; the HTML export is for playback.
+
+## Related
+
+- [FAQ](/docs/faq)
+- [Document model](/docs/content-types/model)
+- [Compositing](/docs/export/compositing)

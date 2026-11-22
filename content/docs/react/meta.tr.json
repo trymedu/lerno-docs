@@ -1,0 +1,13 @@
+{
+  "title": "Lerno React",
+  "description": "SVG sahnesi, etkileşim ve düşük seviye React bileşenleri.",
+  "pages": [
+    "getting-started",
+    "concepts",
+    "components",
+    "labs",
+    "player",
+    "interactive-video"
+  ],
+  "root": true
+}

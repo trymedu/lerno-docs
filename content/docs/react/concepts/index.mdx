@@ -1,0 +1,23 @@
+---
+title: Overview
+description: Display, Property binding, the simulation loop, and animation hooks.
+---
+
+This section covers the low-level layer that binds the core scene graph to React. The components
+draw a `Node` tree as SVG, carry `Property` changes into React, and advance time on a
+deterministic loop.
+
+| Page | Covers |
+| --- | --- |
+| [Drawing and interaction](/docs/react/concepts/scenery) | `Display`, `useProperty`, `useSimStep`, `useDrag` |
+| [Playback hook](/docs/react/concepts/playback) | `useAnimationFrame`, `useAnimate`, `useSpring` |
+
+## Order
+
+These pages continue [Getting started](/docs/react/getting-started), where the first scene and
+the first simulation are built; here the APIs underneath them are introduced.
+
+## Limits
+
+This layer does **not** replace the core `Node`, `Property`, and `Sim` types; it only connects them
+to React. For the core itself see [Core concepts](/docs/concepts).

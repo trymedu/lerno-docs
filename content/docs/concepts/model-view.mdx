@@ -1,0 +1,31 @@
+---
+title: Model-View transform
+description: Mapping between model coordinates (metres) and view coordinates (pixels).
+---
+
+Physics works in metres; the screen works in pixels. `ModelViewTransform2` connects the two. Because
+math has y pointing up and the screen has y pointing down, the default mapping inverts y.
+
+```ts
+import { ModelViewTransform2, v2 } from '@medu/lerno';
+
+const mvt = ModelViewTransform2.createSinglePointScaleInvertedYMapping(
+  v2(0, 0),      // model (0,0)…
+  v2(480, 270),  // …to the centre of the screen
+  40,            // 1 metre = 40 pixels
+);
+
+mvt.modelToViewPosition(v2(2, 1)); // → view coordinates
+mvt.viewToModelPosition(v2(560, 230));
+mvt.modelToViewDelta(v2(1, 0));    // a direction
+mvt.scale;                          // 40
+```
+
+The model never expresses itself in pixels; the transform is applied in the view.
+
+```ts
+position.link((modelPosition) => {
+  ball.centerX = mvt.modelToViewPosition(modelPosition).x;
+  ball.centerY = mvt.modelToViewPosition(modelPosition).y;
+});
+```

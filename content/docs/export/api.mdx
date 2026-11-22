@@ -1,0 +1,117 @@
+---
+title: API
+description: Every export from @medu/lerno-export and how the pieces compose.
+---
+
+`exportMp4` is one convenience over five independent pieces. Each can be used on its own, which is
+what lets the pipeline be sharded, tested, or redirected without reimplementing anything.
+
+## Exports
+
+<TypeTable type={{
+    "exportMp4(scene, options)": { type: "Promise<EncodeResult>", description: "One pass: rasterize and encode. Runs the font probe first." },
+    "rgbaFrames(scene, options)": { type: "Generator<Uint8Array>", description: "One RGBA buffer per frame. No I/O at all." },
+    "renderToCanvas(ctx, tree, options)": { type: "void", description: "Render tree onto any 2D context: the headless twin of `Display`." },
+    "frameTrees(scene, options)": { type: "Generator<RenderElement>", description: "Deterministic render trees; the input to a frame log or a test." },
+    "serializeTree(tree)": { type: "SerializedTree", description: "JSON-safe form of a tree: `Shape` becomes its `pathData`, functions are dropped." },
+    "encodeFrames(frames, options)": { type: "Promise<EncodeResult>", description: "Pipes frames into ffmpeg. Catches a wrong frame size before encoding." },
+    "resolveFfmpeg(override?)": { type: "string", description: "Binary path: override, then `FFMPEG_PATH`, then `ffmpeg-static`, then PATH." },
+    "registerFont(descriptor)": { type: "string", description: "Makes a font file available under a family name; returns that name." },
+    "missingGlyphs(family, text)": { type: "string[]", description: "Characters the family would draw as tofu." },
+    "collectText(tree)": { type: "string", description: "Every string a render tree will typeset." },
+    "assertGlyphCoverage(family, text)": { type: "void", description: "Throws naming each missing character and how to fix it." },
+}} />
+
+<TypeTable type={{
+    "RenderOptions.fontFamily": { type: "string", description: "Required; see [Fonts](/docs/export/fonts)." },
+    "RenderOptions.resolveImage": { type: "(href) => unknown", description: "Returns a preloaded bitmap; loading is deliberately not done here because it is async and rendering is not." },
+    "RenderOptions.extensions": { type: "Record<string, (ctx, data) => void>", description: "Renderers for custom node kinds. An unregistered id throws." },
+    "EncodeOptions.crf": { type: "number", description: "H.264 quality, default 20. `preset` defaults to `veryfast`." },
+}} />
+
+## Composing your own pipeline
+
+The same four calls `exportMp4` makes, spelled out:
+
+```ts
+import { createCanvas } from '@napi-rs/canvas';
+import { encodeFrames, frameTrees, renderToCanvas } from '@medu/lerno-export';
+
+function* frames(scene: Scene, options: { width: number; height: number; fontFamily: string }) {
+  const canvas = createCanvas(options.width, options.height);
+  const ctx = canvas.getContext('2d');
+
+  for (const tree of frameTrees(scene, { fps: 60, duration: 4 })) {
+    ctx.fillStyle = '#0B0F19';
+    ctx.fillRect(0, 0, options.width, options.height);
+    renderToCanvas(ctx, tree, { fontFamily: options.fontFamily });
+    yield new Uint8Array(ctx.getImageData(0, 0, options.width, options.height).data);
+  }
+}
+
+await encodeFrames(frames(myScene, { width: 1280, height: 720, fontFamily: 'Helvetica' }), {
+  width: 1280,
+  height: 720,
+  fps: 60,
+  out: 'custom.mp4',
+});
+```
+
+Keeping the pieces separate is what makes the next step possible.
+
+## Sharding across workers
+
+`frameTrees` is deterministic, so a worker does not need the frames before its own: it can replay
+`step(dt)` from zero to its starting frame and encode from there:
+
+```ts
+// worker 2 takes frames 400..799
+const scene = buildScene();
+for (let i = 0; i < 400; i += 1) scene.step(1 / 60);
+const chunk = framesFrom(scene, 400);
+```
+
+Each worker writes a segment, and the segments concatenate. On a 10-core machine this takes the
+600-frame benchmark from ~1.9 s toward ~0.3 s; the exact gain depends on how expensive the scene's
+`step` is compared to the encode.
+
+## Testing a scene without encoding
+
+`serializeTree` exists so a scene can be asserted on without ever touching a codec:
+
+```ts
+import { frameTrees, serializeTree } from '@medu/lerno-export';
+
+const run = () => JSON.stringify([...frameTrees(scene, { fps: 30, duration: 1 })].map(serializeTree));
+expect(run()).toBe(run()); // byte-identical across runs
+```
+
+That check runs in milliseconds and catches a scene that accidentally reads a clock.
+
+## See also
+
+- [Usage](/docs/export/usage): the factory pattern and options
+- [Fonts](/docs/export/fonts): coverage probing
+
+## Compositing and HTML
+
+<TypeTable type={{
+    "composeFrames(scene, options)": { type: "AsyncGenerator<Uint8Array>", description: "Video plate, scene, layers, captions: one RGBA frame at a time." },
+    "videoFrames(path, options)": { type: "AsyncGenerator<Uint8Array>", description: "Decodes a video at the export size and frame rate, so the two streams cannot drift." },
+    "parseVtt(source)": { type: "CaptionCue[]", description: "Parses WebVTT: hour-less timestamps, comma decimals, NOTE/STYLE blocks skipped." },
+    "paintLayer(ctx, layer, props, value, frame, options)": { type: "boolean", description: "Draws one built-in component; false when it has no painter." },
+    "layersAtTime(document, nodeId, timeMs, variables)": { type: "ResolvedLayerPaint[]", description: "Visible layers with `$var` resolved, binding value, and fade opacity." },
+    "unpaintedLayers(document)": { type: "string[]", description: "Component types the canvas painter cannot draw." },
+    "exportHtml(document, options)": { type: "string", description: "A self-contained player page: video, layers, captions, anchors, controls." },
+}} />
+
+<TypeTable type={{
+    "ExportMp4Options.video": { type: "string", description: "Video plate drawn under the scene; scaled and centre-cropped." },
+    "ExportMp4Options.vtt": { type: "string", description: "WebVTT file burned over the composed frames." },
+    "ExportMp4Options.audio": { type: "string", description: "Track muxed as AAC, trimmed to the shorter stream." },
+    "ExportMp4Options.layers": { type: "LayerBurnOptions", description: "Document, media node id, optional variables and tone." },
+    "ExportMp4Options.captionFontSize": { type: "number", description: "Caption size in pixels; defaults to 4% of the height." },
+}} />
+
+See [Compositing](/docs/export/compositing) for the pipeline and [HTML output](/docs/export/html) for
+the page generator.

@@ -1,0 +1,126 @@
+---
+title: Content model
+description: 'The LernoDocument contract: node archetypes, blocks, flow, and scoring.'
+---
+
+In Lerno every piece of content is a **document**: a `LernoDocument`. A document is made of nodes, and
+nodes are made of blocks. Flow and scoring are defined at the document level.
+
+## Document structure
+
+```ts
+import { defineDocument } from '@medu/lerno';
+
+const document = defineDocument({
+  id: 'lesson-1',
+  type: 'lesson',
+  metadata: { title: 'Quadratics', subject: 'Mathematics', grade: 10 },
+  scoring: { mode: 'sum', passingRatio: 0.5 },
+  nodes: [
+    { id: 'intro', type: 'slide', blocks: [{ type: 'text', markdown: 'Hello' }] },
+    {
+      id: 'q1',
+      type: 'question',
+      item: {
+        kind: 'multiple-choice',
+        prompt: 'For f(x) = x², what is f(2)?',
+        choices: [
+          { id: 'a', label: '2', misconception: 'Forgot to square' },
+          { id: 'b', label: '4' },
+        ],
+        correct: ['b'],
+      },
+    },
+  ],
+});
+```
+
+`defineDocument` validates the input with zod and applies defaults (`schemaVersion`, `language`,
+`flow.mode`, and so on). Invalid input throws `LernoValidationError`; after validation every field is
+fully typed.
+
+## Node archetypes
+
+| Type | Role |
+| --- | --- |
+| `slide` | A title plus blocks (text, heading, image, callout) |
+| `question` | An answerable item |
+| `media` | Video or audio with timestamped anchors |
+| `branch` | Choices that jump to a target node |
+| `info` | Panel or information cards |
+| `cards` | Flip, match, or order a deck |
+| `hotspot` | Points on an image |
+| `custom` | A node drawn by an extension |
+
+Content types such as interactive video, course presentation, and branching scenario are presets over
+these archetypes. None of them needs its own engine.
+
+## Blocks
+
+A `slide` node carries `heading`, `text`, `image`, and `callout` blocks.
+Every block is plain data; a viewer picks the rendering from the block type:
+
+```ts
+{
+  type: 'callout',
+  tone: 'info',
+  body: 'Range scales with the square of speed: v² sin(2θ) / g.',
+}
+```
+
+## Flow
+
+```ts
+flow: { mode: 'linear' }   // advances in order, with optional node.next jumps
+flow: { mode: 'graph' }    // branch choices plus node.next
+flow: { mode: 'adaptive' } // a host.flow resolver picks the next node
+```
+
+In `adaptive` mode the decision comes from outside, through a host or extension. The core only provides
+the mechanism.
+
+## Scoring
+
+```ts
+scoring: { mode: 'sum', passingRatio: 0.7 }
+```
+
+Answers are graded by the grader layer. See [Grading](/docs/grading) for details.
+
+## Validation
+
+`defineDocument` rejects a graph that would break at runtime instead of accepting it and failing later:
+
+- node ids are unique, and so are layer, choice, and anchor ids;
+- every `next` and branch `target` points at a node that exists;
+- every multiple-choice `correct` id appears among that item's choices;
+- a layer's `component` is declared in `components`, and `$var`, `bind.value`, and `visibleWhen` name a
+  declared variable.
+
+All failures arrive together in `LernoValidationError.issues`, each with a path, so one pass fixes
+every problem:
+
+```ts
+try {
+  defineDocument(input);
+} catch (error) {
+  for (const issue of (error as LernoValidationError).issues) {
+    console.error(issue.path.join('.'), issue.message);
+  }
+}
+```
+
+## Versioning
+
+The document carries `schemaVersion`, and `defineDocument` runs `migrateDocument` before validation.
+A stored document is upgraded step by step; a version the runtime does not know, or a gap in the chain,
+throws rather than being parsed into a shape it does not match.
+
+```ts
+const steps: DocumentMigration[] = [
+  { from: 0, migrate: (doc) => ({ ...doc, schemaVersion: 1 }) },
+];
+```
+
+New fields with defaults (captions, `fadeMs`) do not need a version bump, because an older document
+still validates. A rename or a removed field does.

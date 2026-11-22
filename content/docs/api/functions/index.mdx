@@ -1,0 +1,88 @@
+---
+title: Functions
+description: Every function exported by @medu/lerno, grouped by the layer it belongs to.
+---
+
+Functions are the entry points: they build documents, open sessions, register extensions, and grade
+answers. None of them keeps state between calls: state lives in a class or in the session.
+
+## Documents
+
+<TypeTable type={{
+    "defineDocument(input)": { type: "LernoDocument", description: "Validates raw input with zod, applies defaults, and throws LernoValidationError on failure." },
+    "parseDocument(input)": { type: "{ success, data } | { success, issues }", description: "Non-throwing variant of defineDocument." },
+    "getNode(document, nodeId)": { type: "LernoNode | undefined", description: "Looks a node up by id." },
+    "getNodeIndex(document, nodeId)": { type: "number", description: "Position of a node in document order, or -1." },
+    "collectQuestions(document)": { type: "QuestionRef[]", description: "Every question reachable from the document, with its node id." },
+    "getNodePoints(node)": { type: "number", description: "Points a node contributes." },
+    "getDocumentPoints(document)": { type: "number", description: "Total points available in the document." },
+}} />
+
+## Presets
+
+Each preset assembles the right nodes and flow; none has its own engine.
+
+<TypeTable type={{
+    "questionSet(id, metadata, items, options?)": { type: "LernoDocument", description: "Linear assessment. Node ids are q1, q2, …" },
+    "coursePresentation(id, metadata, slides, options?)": { type: "LernoDocument", description: "Slides with blocks." },
+    "interactiveBook(id, metadata, pages, options?)": { type: "LernoDocument", description: "Paged book with a linear flow." },
+    "interactiveVideo(id, metadata, media, options?)": { type: "LernoDocument", description: "Video with timestamped anchors." },
+    "branchingScenario(id, metadata, nodes, options?)": { type: "LernoDocument", description: "Graph flow driven by branch choices." },
+    "cardsDeck(id, metadata, cards, mode, options?)": { type: "LernoDocument", description: "Flip, match, or order deck." },
+    "hotspotImage(id, metadata, image, hotspots, options?)": { type: "LernoDocument", description: "Points on an image." },
+    "infoPage(id, metadata, panels, options?)": { type: "LernoDocument", description: "Static panels." },
+    "virtualLab(id, metadata, steps, options?)": { type: "LernoDocument", description: "Sequenced lab steps." },
+}} />
+
+## Grading
+
+<TypeTable type={{
+    "defineQuestion(config)": { type: "QuestionDefinition", description: "Registers a kind: item schema, response schema, and the grade function. Validated before grade runs, so it never sees malformed data." },
+    "ungradedOutcome(detail?)": { type: "GradeOutcome", description: "The result returned when a kind has no grader." },
+}} />
+
+See [Custom grader](/docs/grading/custom-grader) for a worked example.
+
+## Geometry
+
+Shape transitions and progressive drawing. Both are pure: they read the command list and return a
+new `Shape`, so they run headless as happily as in a browser. See
+[Shapes](/docs/concepts/shapes) for the worked sections.
+
+<TypeTable type={{
+    "morphShape(from, to, ratio)": { type: "Shape | null", description: "Interpolates every operand from its value in `from` to its value in `to`. Null when the command sequences differ." },
+    "canMorph(from, to)": { type: "boolean", description: "Whether the two shapes have matching command sequences, so a scene can pick a fallback before animating." },
+    "revealShape(shape, ratio)": { type: "Shape", description: <>The visible prefix of a path: whole commands in order, the straddling one split with de Casteljau so partial curves stay on the original path.</> },
+}} />
+
+## Extensions
+
+<TypeTable type={{
+    "createLerno(options?)": { type: "LernoInstance", description: "Builds a registry preloaded with built-ins, plus the host and any extensions." },
+    "createRegistry()": { type: "LernoRegistry", description: "An empty registry." },
+    "defineExtension(extension)": { type: "LernoExtension", description: "Identity helper that gives an extension its type." },
+    "createHost(partial?)": { type: "LernoHost", description: "A host where only the adapters you pass are replaced; the rest stay no-op." },
+}} />
+
+## Session
+
+<TypeTable type={{
+    "createSession(document, options?)": { type: "LernoSession", description: <>The runtime: cursor, answering, scoring, and subscription. <a href="/docs/api/functions/session">Full reference</a>.</> },
+}} />
+
+### Flow and media helpers
+
+<TypeTable type={{
+    "linearFlow(document)": { type: "string | null", description: "Next node id in document order." },
+    "graphFlow(document, state, nodeId)": { type: "string | null", description: "Next node id for graph mode, following explicit next pointers." },
+    "getExplicitNext(node)": { type: "string | null", description: "The node's own next pointer, if it has one." },
+    "crossedAnchors(anchors, time)": { type: "MediaAnchor[]", description: "Anchors whose timestamp has been passed at the given time." },
+    "firstUnseenAnchor(anchors, seen)": { type: "MediaAnchor | null", description: "First anchor the learner has not reached." },
+    "findCrossedAnchor(anchors, time)": { type: "MediaAnchor | null", description: "Most recently crossed anchor." },
+}} />
+
+## See also
+
+- [Classes](/docs/api/classes): stateful exports
+- [Types](/docs/api/types): interfaces and type aliases
+- [Extensions](/docs/extensions): the registry and host contract

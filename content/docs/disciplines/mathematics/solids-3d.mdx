@@ -1,0 +1,25 @@
+---
+title: 3D solids
+description: Basic solid bodies, transform bindings, and spring animation.
+---
+
+import { SolidsDemo } from '@/components/react/three/SolidsDemo';
+import { VisualDemo } from '@/components/react/VisualDemo';
+
+Cube, sphere, cylinder, cone, and torus, all bound to the same `spin` variable. The buttons drive the variable toward a target with spring physics, and the scene applies the binding on every frame.
+
+<VisualDemo id="solids-3d">
+  <SolidsDemo />
+</VisualDemo>
+
+## Animation
+
+```ts
+runtime.animate('spin', Math.PI * 2, { spring: true });
+```
+
+The `rotation.y` channel is bound to `spin`, so as the spring advances every solid rotates together. Binding one variable to several objects is the shortest path to consistent motion from a single control.
+
+## Limit
+
+Bindings are numeric. There is no `material.color` channel, so changing an object's color means either rebuilding it or reaching into the `three` object directly.

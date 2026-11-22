@@ -1,0 +1,101 @@
+---
+title: Interactive video
+description: Declare components at the top of a document and bind them to variables.
+---
+
+A video can carry timed, interactive layers. The document declares which component **types** it uses;
+the application owns the imports and renders the layers over the `<video>` element.
+
+## Manifest
+
+The document starts with the component list and the variables the layers share:
+
+```json
+{
+  "schemaVersion": 2,
+  "components": [
+    { "type": "ui.switch", "version": 1 },
+    { "type": "lab.readout", "version": 1 }
+  ],
+  "variables": {
+    "airOn": { "type": "boolean", "initial": false }
+  }
+}
+```
+
+## Layers
+
+A layer is active between `fromMs` and `toMs`. Placement is normalized (`0`–`1`), so the same document
+works at any width. `bind.value` connects a control to a variable; `{ "$var": "id" }` reads one.
+
+```json
+{
+  "id": "clip",
+  "type": "media",
+  "assetId": "clip",
+  "layers": [
+    {
+      "id": "air",
+      "component": "ui.switch",
+      "fromMs": 12000,
+      "placement": { "x": 0.03, "y": 0.75, "w": 0.27, "h": 0.11 },
+      "props": { "label": "Air resistance" },
+      "bind": { "value": "airOn" }
+    },
+    {
+      "id": "readout",
+      "component": "lab.readout",
+      "fromMs": 12000,
+      "placement": { "x": 0.55, "y": 0.66, "w": 0.28, "h": 0.2 },
+      "props": {
+        "rows": [
+          { "label": "Air", "value": { "$var": "airOn" } },
+          { "label": "g", "value": "9.8 m/s²" }
+        ]
+      }
+    }
+  ]
+}
+```
+
+## Register components
+
+The data never carries a module path. The application maps type ids to React components once:
+
+```ts
+import { createComponentMap, preloadComponents } from '@medu/lerno-react';
+
+// Built-ins plus your own:
+const components = createComponentMap({ 'app.graph': GraphOverlay });
+
+// Or load only what the document declares:
+const loaded = await preloadComponents(document, {
+  'app.graph': () => import('./GraphOverlay'),
+});
+```
+
+`preloadComponents` deduplicates types, ignores unused loaders, and loads a declared type only once.
+
+## Built-ins
+
+| Type | Contract |
+| --- | --- |
+| `ui.switch` | boolean `value` + `onChange` |
+| `ui.button` | writes `true` when bound |
+| `ui.select` | `{ value, label }[]` options |
+| `ui.slider` | numeric `value`, `min`, `max`, `step` |
+| `lab.readout` | read-only `rows: { label, value }[]` |
+
+Every control uses the same neutral, shadcn-like surface: 1px border, 10px radius, white surface, and
+a single `tone: 'dark'` variant for dark footage.
+
+## Rules and limits
+
+- An undeclared or unregistered type renders a visible **Missing component** card; the page does not crash.
+- A version mismatch is reported by `componentVersionErrors` (for example `ui.switch@2 required, @1 registered`); the
+  content stays visible while the author sees the message.
+- Variables live in the session state, so they survive layer disappearance and are persisted with the session.
+- Seeking recalculates visibility; variable values are kept.
+- Video pixels do not react. Interactivity happens in overlay layers, or in a scene layer that replaces the
+  footage. Baking interactions into an exported MP4 is out of scope.
+- The video controls stay reachable: the overlay container ignores pointer events, each layer opts in.

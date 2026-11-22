@@ -1,0 +1,15 @@
+{
+  "title": "Content Types",
+  "pages": [
+    "model",
+    "question-set",
+    "course-presentation",
+    "interactive-book",
+    "interactive-video",
+    "branching-scenario",
+    "cards",
+    "hotspot",
+    "info-page",
+    "virtual-lab"
+  ]
+}

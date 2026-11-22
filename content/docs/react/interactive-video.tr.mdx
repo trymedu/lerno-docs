@@ -1,0 +1,101 @@
+---
+title: Etkileşimli video
+description: Belgenin başında component tiplerini bildir, katmanları değişkenlere bağla.
+---
+
+Video, zaman aralıklı etkileşim katmanları taşıyabilir. Belge yalnız component **tiplerini** bildirir;
+import eşlemesi uygulamada kalır ve katmanlar `<video>` üstünde çizilir.
+
+## Manifest
+
+Belge, kullanılan componentleri ve katmanların paylaştığı değişkenleri baştan söyler:
+
+```json
+{
+  "schemaVersion": 2,
+  "components": [
+    { "type": "ui.switch", "version": 1 },
+    { "type": "lab.readout", "version": 1 }
+  ],
+  "variables": {
+    "airOn": { "type": "boolean", "initial": false }
+  }
+}
+```
+
+## Katmanlar
+
+Bir katman `fromMs`–`toMs` aralığında görünür. Konum normalize (`0`–`1`) olduğu için aynı belge her
+genişlikte çalışır. `bind.value` bir kontrolü değişkene bağlar; `{ "$var": "id" }` değişkeni okur.
+
+```json
+{
+  "id": "clip",
+  "type": "media",
+  "assetId": "clip",
+  "layers": [
+    {
+      "id": "air",
+      "component": "ui.switch",
+      "fromMs": 12000,
+      "placement": { "x": 0.03, "y": 0.75, "w": 0.27, "h": 0.11 },
+      "props": { "label": "Hava direnci" },
+      "bind": { "value": "airOn" }
+    },
+    {
+      "id": "readout",
+      "component": "lab.readout",
+      "fromMs": 12000,
+      "placement": { "x": 0.55, "y": 0.66, "w": 0.28, "h": 0.2 },
+      "props": {
+        "rows": [
+          { "label": "Hava", "value": { "$var": "airOn" } },
+          { "label": "g", "value": "9,8 m/s²" }
+        ]
+      }
+    }
+  ]
+}
+```
+
+## Component kaydı
+
+Data modül yolu taşımaz. Uygulama, tip id'lerini bir kez React componentlerine eşler:
+
+```ts
+import { createComponentMap, preloadComponents } from '@medu/lerno-react';
+
+// Yerleşikler + kendi componentlerin:
+const components = createComponentMap({ 'app.graph': GraphOverlay });
+
+// Ya da yalnız belgenin bildirdiklerini yükle:
+const loaded = await preloadComponents(document, {
+  'app.graph': () => import('./GraphOverlay'),
+});
+```
+
+`preloadComponents` tipleri tekilleştirir, kullanılmayan loader'ı atlar ve bir tipi yalnız bir kez yükler.
+
+## Yerleşikler
+
+| Tip | Sözleşme |
+| --- | --- |
+| `ui.switch` | boolean `value` + `onChange` |
+| `ui.button` | bağlıysa `true` yazar |
+| `ui.select` | `{ value, label }[]` seçenekleri |
+| `ui.slider` | sayısal `value`, `min`, `max`, `step` |
+| `lab.readout` | salt-okunur `rows: { label, value }[]` |
+
+Tüm kontroller aynı nötr, shadcn benzeri yüzeyi kullanır: 1px border, 10px radius, beyaz zemin ve
+koyu video için tek `tone: 'dark'` varyantı.
+
+## Kurallar ve sınırlar
+
+- Bildirilmemiş veya kayıtlı olmayan tip görünür bir **Component kayıtlı değil** kartı çizer; sayfa çökmez.
+- Sürüm uyuşmazlığını `componentVersionErrors` raporlar (örnek: `ui.switch@2 gerekli, kayıtlı @1`); içerik
+  görünür kalır, mesajı içerik yazarı görür.
+- Değişkenler oturum state'inde yaşar; katman kaybolsa da korunur ve oturumla birlikte kaydedilir.
+- Seek görünürlüğü yeniden hesaplar; değişken değerleri korunur.
+- Video pikseli değişkenle değişmez. Etkileşim overlay katmanında ya da videonun yerini alan sahne
+  katmanında olur. Etkileşimi MP4'e gömmek kapsam dışıdır.
+- Video kontrolleri erişilebilir kalır: overlay kapsayıcısı olayları yakalamaz, her katman kendi seçer.

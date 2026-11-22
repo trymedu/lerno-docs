@@ -1,0 +1,72 @@
+---
+title: Genel Bakış
+description: Uzantı sözleşmesi, registry kayıtları ve host adaptörleri.
+---
+
+Çekirdek hiçbir somut teknolojiyi bilmez. Veritabanı, gerçek zamanlı kanal, medya deposu, telemetri
+ve LLM gibi bileşenler **host adaptörü** olarak dışarıdan gelir. Yeni node, soru, grader veya akış
+ise **uzantı** ile eklenir.
+
+## Uzantı Sözleşmesi
+
+Aşağıdaki kayıt, uygulamanın çekirdeğe eklediği tek yapıdır:
+
+```ts
+import { defineExtension } from '@medu/lerno';
+
+const myExtension = defineExtension({
+  name: 'my-extension',
+  setup(registry, host) {
+    registry.addQuestion(questionDefinition);
+    registry.addNode({ type: 'flashcard', label: 'Kart' });
+    registry.addFlow('mastery', (document, state) => pickNext(document, state));
+  },
+});
+```
+
+## Registry
+
+| Kayıt | Ne ekler |
+| --- | --- |
+| `addNode` | yeni node arketipi |
+| `addQuestion` | yeni soru tipi veya mevcut değerlendiricinin yerine geçen |
+| `addFlow` | yeni akış çözücü (`linear`, `graph`, `adaptive` dışında) |
+
+## Host Adaptörleri
+
+`LernoHost`, uygulamanın enjekte ettiği arayüzlerdir. Çekirdek varsayılan olarak **no-op / in-memory**
+sürümlerle tek başına çalışır.
+
+```ts
+import { createLerno } from '@medu/lerno';
+
+const { registry, host } = createLerno({
+  host: {
+    storage: mySessionStorage,   // session persistence
+    telemetry: myTelemetry,      // event output
+    media: myMediaResolver,      // asset → URL
+    realtime: myRealtimeChannel, // live channel (for example a WebSocket)
+    identity: myIdentity,        // learner id
+    flow: myAdaptiveResolver,    // adaptive flow decisions
+    clock, random,               // for determinism
+  },
+  extensions: [myExtension],
+});
+```
+
+## Uygulamaya Ait Olan Nerede?
+
+Ürüne özgü bileşenler ayrı bir pakette durur ve yalnızca bu arayüzleri uygular:
+
+```ts
+// @your/product-plugin-lerno (outside the core)
+export const productPlugin = defineExtension({
+  name: 'product',
+  setup(registry, host) {
+    registry.addFlow('mastery', productMasteryResolver);
+    registry.addNode({ type: 'live-quiz', label: 'Canlı quiz' });
+  },
+});
+```
+
+Böylece Lerno tek başına yayınlanabilir, test edilebilir ve başka bir üründe yeniden kullanılabilir.

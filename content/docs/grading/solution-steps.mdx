@@ -1,0 +1,61 @@
+---
+title: Step-by-step solution
+description: Per-step scoring that keeps the order of a multi-step solution.
+---
+
+`solution-steps` accepts a multi-step solution as a single question. Each step scores
+independently, so a learner who gets stuck mid-way keeps the credit earned earlier.
+
+## Usage
+
+```ts
+import { questionSet, createSession } from '@medu/lerno';
+
+// 1) Put the item in a document; questionSet names the nodes q1, q2, ...
+const document = questionSet('quiz-1', { title: 'Quadratic equations' }, [
+  {
+    kind: 'solution-steps',
+    prompt: 'Solve x² − 4 = 0.',
+    steps: [
+      { id: 's1', prompt: 'Factor it', accepted: ['(x-2)(x+2)'], caseSensitive: false },
+      { id: 's2', prompt: 'Write the roots', accepted: ['2,-2', '-2,2'], caseSensitive: false },
+    ],
+  },
+]);
+
+// 2) Open a session and grade one answer
+const session = createSession(document);
+const { outcome } = session.answer('q1', { steps: ['(x-2)(x+2)', 'wrong'] });
+
+outcome.status;   // 'partial': the first step hit, the second did not
+outcome.score;    // 1
+outcome.maxScore; // 2
+```
+
+`accepted` is an array, so one step can be spelled several ways. The response shape is
+`{ steps: string[] }`, one entry per step.
+
+## Scoring
+
+```
+maxScore = steps.length
+hits      = number of steps that matched at their index
+score     = hits / maxScore
+```
+
+Comparison runs **by index**: the first answer element is compared with the first step, the second
+with the second. A shifted order never matches, and a skipped step is not scored, which prevents
+shifting outside the solution from being rewarded.
+
+With `caseSensitive: false` normalisation is applied; the same rule holds for every value in
+`accepted`.
+
+## Partial credit
+
+When `score` is non-zero but below `maxScore`, the status is `partial`. A learner who solved half the
+solution is not marked `incorrect`; the report carries a distinct status.
+
+## See also
+
+- [Overview](/docs/grading): statuses and the scoring ratio
+- [Equation question](/docs/grading/equation): text comparison normalisation

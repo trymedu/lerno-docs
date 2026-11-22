@@ -1,0 +1,31 @@
+---
+title: Tasarım Gerekçeleri
+description: Primitif ile preset arasındaki denge ve bu tercihin bedeli.
+---
+
+Çoğu eğitim aracı bir içerik tipi listesiyle başlar: soru seti, slayt, interaktif video. Bu yaklaşım ilk
+çıktıyı verir; ancak sınırı erken görünür olur, listede bulunmayan bir gereksinim doğduğunda aracın
+dışına çıkmak gerekir.
+
+Lerno bu dengeyi tersine kurar. Önce primitifler gelir: reaktif bir model, bir sahne grafiği, input ve
+animasyon. İçerik tipleri bu primitiflerin üzerinde yer alan reçetelerdir; disiplin sayfalarındaki
+görseller de primitiflerle kurulur. Bir reçete
+gereksinimi karşılıyorsa kullanılır; karşılamadığında alt katmana inilir ve araç değiştirilmez.
+
+## Katmanların bedeli
+
+| | Preset (içerik tipi) | Primitif (Node, Property, tween) |
+| --- | --- | --- |
+| İlk sonuca ulaşma | Hızlı. Belge yazılır ve oynatılır. | Yavaş. Model ve sahne elle kurulur. |
+| Esneklik | Presetin sınırına kadar. | Sınır yoktur. |
+| Kod hacmi | Düşük. | Yüksek. |
+| Uygun olduğu iş | Standart değerlendirme, slayt, hazır simülasyon | Özgün simülasyon, yeni etkileşim, yeni görsel türü |
+
+## Kural
+
+Öncelikle var olan içerik tipi veya hazır görsel araştırılır. Uygun değilse kaynağı incelenir: her disiplin
+sayfası, aynı görselin primitiflerle nasıl kurulduğunu gösterir. Gerektiğinde düğüm miras alınır veya
+`ExtensionNode` ile özel çizim sağlanır.
+
+Bu yaklaşımın bedeli açıktır: öğrenme eğrisi bir içerik aracından diktir. Karşılığında, listede
+bulunmayan bir gereksinim doğduğunda engel oluşmaz.

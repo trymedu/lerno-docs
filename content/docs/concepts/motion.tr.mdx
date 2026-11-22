@@ -1,0 +1,90 @@
+---
+title: Yay, Keyframe ve Sequence
+description: 'Motion benzeri animasyon: spring, keyframes, sequence, stagger ve React hook’ları.'
+---
+
+`twixt`'in üstüne kurulu `@medu/lerno-motion` paketi, Motion.dev benzeri ergonomik bir animasyon API'si sunar.
+Hepsi `Property` üzerinde çalışır ve deterministik `step(dt)` ile ilerler. Ayrı bir paket olması,
+çekirdeği yalnızca temel tween ile sınırlı tutar.
+
+```bash
+bun add @medu/lerno-motion
+```
+
+## Yay (Spring)
+
+```ts
+import { Property, v2 } from '@medu/lerno';
+import { springNumber, springVector2 } from '@medu/lerno-motion';
+
+const scale = new Property(1);
+const spring = springNumber(scale, 2, { stiffness: 180, damping: 14, mass: 1 });
+// her karede: spring.step(dt)
+
+const position = new Property(v2(0, 0));
+const vectorSpring = springVector2(position, v2(400, 200));
+```
+
+| Seçenek | Varsayılan | Açıklama |
+| --- | --- | --- |
+| `stiffness` | `170` | Yay sertliği |
+| `damping` | `26` | Sönümleme |
+| `mass` | `1` | Kütle |
+| `restSpeed` / `restDelta` | `0.01` | Durma eşikleri |
+
+## Keyframe
+
+```ts
+import { Easings, Property } from '@medu/lerno';
+import { keyframesNumber } from '@medu/lerno-motion';
+
+const x = new Property(0);
+const animation = keyframesNumber(x, [0, 100, 50, 120], { duration: 1.2, easing: Easings.easeInOut });
+```
+
+Zaman damgalı duraklar:
+
+```ts
+keyframesNumber(x, [0, 10, 100], { duration: 1, times: [0, 0.8, 1] });
+```
+
+## Sequence ve Stagger
+
+```ts
+import { Property } from '@medu/lerno';
+import { keyframesNumber, sequence, stagger } from '@medu/lerno-motion';
+
+const property = new Property(0);
+const seq = sequence([
+  keyframesNumber(property, [0, 10], { duration: 0.4 }),
+  keyframesNumber(property, [10, 30], { duration: 0.6 }),
+]);
+
+// her karede: seq.step(dt)
+
+const delays = stagger(4, 0.08); // [0, 0.08, 0.16, 0.24]
+```
+
+## React Hook'ları
+
+```tsx
+import { useMotionValue, useAnimate, useSpring, useAnimationFrame } from '@medu/lerno-react';
+
+function Demo() {
+  const scale = useMotionValue(1);
+  const { animate } = useAnimate();
+
+  return (
+    <button onPointerEnter={() => animate(scale, 1.4, { spring: true })} onPointerLeave={() => animate(scale, 1, { duration: 0.2 })}>
+      Büyüt
+    </button>
+  );
+}
+```
+
+| Hook | Görev |
+| --- | --- |
+| `useMotionValue(initial)` | Yaşam döngüsü yönetilen `Property` |
+| `useAnimate()` | rAF döngüsünde `animate(property, to, options)` |
+| `useSpring(source, options)` | Bir değere yay fiziğiyle yakınsayan `Property` |
+| `useAnimationFrame(cb)` | Her karede `dt` ile çağrılan döngü |

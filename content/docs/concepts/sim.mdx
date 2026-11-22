@@ -1,0 +1,50 @@
+---
+title: Simulation and screens
+description: Multi-screen MVC simulations with Sim, SimScreen, and Clock.
+---
+
+`Sim` manages the model and the view together, `SimScreen` binds the two, and `Clock` holds
+deterministic time.
+
+```ts
+import { CircleNode, Node, Property, Sim, createScreen } from '@medu/lerno';
+
+class FreeFallModel {
+  readonly height = new Property(100);
+  readonly velocity = new Property(0);
+  step(dt: number): void {
+    this.velocity.set(this.velocity.get() + 9.8 * dt);
+    this.height.set(Math.max(0, this.height.get() - this.velocity.get() * dt));
+  }
+}
+
+const screen = createScreen(
+  'Free Fall',
+  () => new FreeFallModel(),
+  (model) => new Node({ children: [new CircleNode(480, model.height.get(), 16)] }),
+);
+
+const sim = new Sim({ screens: [screen], width: 960, height: 540 });
+sim.screens[0].createModel();
+sim.step(1 / 60); // on every frame
+```
+
+## Screens
+
+| Member | Role |
+| --- | --- |
+| `createScreen(name, createModel, createView)` | Produces a model and view pair |
+| `screen.createModel()` | Creates the model instance |
+| `screen.createView()` | Builds the scene graph |
+| `screen.step(dt)` | Calls the model's `step` |
+
+## In React
+
+```tsx
+import { Display, useSimStep } from '@medu/lerno-react';
+
+function View({ sim, root }) {
+  useSimStep(sim); // advances sim.step(dt) inside a rAF loop
+  return <Display node={root} />;
+}
+```

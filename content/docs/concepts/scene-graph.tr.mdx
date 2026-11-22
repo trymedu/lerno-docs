@@ -1,0 +1,62 @@
+---
+title: Sahne Grafiği
+description: Node ağacı, şekil düğümleri ve framework'süz render ağacı.
+---
+
+import { SceneGraphExample } from '@/components/react/examples/SceneGraphExample';
+
+Her görsel bir **Node ağacı**dır. Her düğüm çocuklar, dönüşüm (öteleme/döndürme/ölçek),
+görünürlük ve opaklık taşır. `toRender()` framework'ten bağımsız bir **render ağacı** üretir; herhangi
+bir Display (React/SVG, Canvas, WebGL) bunu çizer.
+
+Aşağıdaki örnek dört farklı düğüm tipini tek bir ağaçta toplar. **Preview** canlı sahneyi,
+**Code** bu ağacı kuran kodu, **JSON** ise `root.toRender()` çıktısını gösterir.
+
+<SceneGraphExample />
+
+## Düğümler
+
+| Düğüm | Görsel |
+| --- | --- |
+| `Node` / `group()` | Boş grup (çocuk kapsayıcı) |
+| `RectNode` | Dikdörtgen (`radius` ile yuvarlatılır) |
+| `CircleNode` | Daire |
+| `LineNode` | Çizgi (`dash`) |
+| `PathNode` | `Shape` tabanlı yol |
+| `TextNode` | Metin (`anchor`, `baseline`) |
+| `ImageNode` | Görsel |
+| `ExtensionNode` | Özel görsel (genişletme noktası) |
+
+## Ortak Alanlar
+
+Her düğüm aynı altı alanı taşır; dönüşüm ve görünürlik bunlardır:
+
+| Alan | Tip | Açıklama |
+| --- | --- | --- |
+| `translation` | `Vector2` | Yerel eksendeki öteleme. Değişmez bir vektördür, yeniden atanır. |
+| `rotation` | `number` | Radyan cinsinden dönme, orijine göre. |
+| `scale` | `Vector2` | Yerel ölçek; yalnızca bir ekseni değiştirmek için de kullanılır. |
+| `opacity` | `number` | `0`–`1` aralığında saydamlık, alt ağaçla birlikte katlanır. |
+| `visible` | `boolean` | `false` ise alt ağaç hiç çizilmez. |
+| `children` | `Node[]` | Çocuk listesi; `addChild`, `removeChild` ve `clearChildren` ile yönetilir. |
+
+```ts
+node.translation = v2(100, 50);
+node.rotation = Math.PI / 6;
+node.opacity = 0.5;
+node.visible = false;
+node.scale = v2(1.2, 1.2);
+```
+
+Ağaç üzerinde çalışan yöntemler (`getTransform`, `toRender`, `addInputListener`) ile şekil
+düğümlerinin kurucuları, [Node API sayfasında](/tr/docs/api/classes/node) tek tek açıklanmıştır.
+
+## React'te Çizim
+
+```tsx
+import { Display } from '@medu/lerno-react';
+
+<Display node={root} width={960} height={540} />;
+```
+
+`Display` render ağacını SVG'ye bağlar ve input olaylarını ilgili düğümlere iletir.

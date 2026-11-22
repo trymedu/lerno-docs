@@ -1,0 +1,54 @@
+---
+title: Matrix3
+description: 'Affine transform matrix: translation, rotation, scaling, and point transforms.'
+---
+
+`Matrix3` is a 3×3 affine transform matrix. The last row stays `(0, 0, 1)`, so a point transforms
+with a single multiply. The output of a node's `getTransform()` is one of these; conversion between
+model and pixel coordinates runs through `ModelViewTransform2`.
+
+The matrix is **immutable** as well: `times` and `inverted` produce a new matrix.
+
+## Constructor
+
+<TypeTable type={{
+    "new Matrix3(m00, m01, m02, m10, m11, m12)": { description: <>Takes the values in row-major order. The last row defaults to <code>(0, 0, 1)</code>.</> },
+}} />
+
+## Static methods
+
+<TypeTable type={{
+    "Matrix3.translation(x, y)": { type: "Matrix3", description: <>Translation by <code>(x, y)</code>.</> },
+    "Matrix3.rotation(radians)": { type: "Matrix3", description: "Rotation around the origin; positive is counter-clockwise." },
+    "Matrix3.scaling(sx, sy?)": { type: "Matrix3", description: <>Axis-aligned scale; <code>sy</code> defaults to <code>sx</code>.</> },
+}} />
+
+## Properties
+
+<TypeTable type={{
+    "m00, m01, m02":  { type: "number", description: <>First row; translation lives in <code>m02</code> and <code>m12</code>.</> },
+    "m10, m11, m12":  { type: "number", description: "Second row." },
+    "determinant": { type: "number", description: "Determinant; zero means the matrix cannot be inverted." },
+    "translation": { type: "Vector2", description: "The translation components as a vector." },
+}} />
+
+## Methods
+
+<TypeTable type={{
+    "times(other)": { type: "Matrix3", description: <>Combines the transforms; <code>other</code> applies first.</> },
+    "transformPoint(point)": { type: "Vector2", description: "Transforms a point, including translation." },
+    "transformDelta(delta)": { type: "Vector2", description: "Transforms a direction, ignoring translation." },
+    "inverted()": { type: "Matrix3", description: "Produces the inverse matrix." },
+    "equals(other, epsilon?)": { type: "boolean", description: "Compares all nine values with a tolerance." },
+    "toSVG()": { type: "string", description: <>An SVG or CSS <code>matrix(...)</code> string.</> },
+}} />
+
+## Failure case
+
+`inverted()` throws an `Error` when the determinant approaches zero. That means the transform
+collapsed space; a `Node` scaled to `0` produces it.
+
+## See also
+
+- The vector that carries values: [Vector2](/docs/api/classes/vector2)
+- Model-to-pixel conversion: [Model-view transform](/docs/concepts/model-view)

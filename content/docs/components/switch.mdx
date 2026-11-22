@@ -1,0 +1,60 @@
+---
+title: Switch
+description: Boolean toggle bound to a variable.
+---
+
+import { SwitchDemo } from '@/components/react/ComponentDemos';
+
+A switch is the smallest boolean control. When a layer binds it with `bind.value`, the checked state is
+the variable itself; no local state is kept.
+
+<SwitchDemo />
+
+## Manifest layer
+
+```json
+{
+  "id": "air",
+  "component": "ui.switch",
+  "fromMs": 12400,
+  "bind": { "value": "airOn" },
+  "props": { "label": "Air resistance" }
+}
+```
+
+## JavaScript
+
+```js
+import { createSession, createInteractionRuntime } from '@medu/lerno';
+
+const runtime = createInteractionRuntime(document, createSession(document));
+const item = runtime.layersAt('clip', video.currentTime * 1000)
+  .find((entry) => entry.layer.id === 'air');
+
+const control = document.createElement('button');
+control.type = 'button';
+control.setAttribute('role', 'switch');
+control.setAttribute('aria-checked', String(item.value === true));
+control.textContent = String(item.props.label);
+control.addEventListener('click', () => runtime.change(item.layer, item.value !== true));
+```
+
+`@medu/lerno-react` provides one reference renderer for the same contract. The code above uses only the core.
+
+## Props
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `label` | `string` | `Toggle` |
+| `value` | `boolean` | `false` |
+| `onChange` | `(value: boolean) => void` | None |
+| `disabled` | `boolean` | `false` |
+| `tone` | `'light' \| 'dark'` | `light` |
+
+## Behaviour
+
+- Track and knob follow the shadcn switch shape: 44×24 track, 20px knob, one focus ring.
+- The whole row is the hit target; minimum height is 44px on touch.
+- `tone="dark"` inverts the track for dark footage.
+- A click writes the opposite boolean through `onChange`; the runtime then updates every layer bound to
+  the same variable.

@@ -1,0 +1,42 @@
+---
+title: Genel Bakış
+description: lerno-react'in kapsamı, katmanları ve kurulumu.
+---
+
+`@medu/lerno-react`, `@medu/lerno` çekirdeğini React'e bağlayan ince katmandır. Çekirdek sahne grafiği
+(`Node`, `Property`, `Shape`) burada değişmez; yalnızca React bileşenleri ve hook'lar eklenir. Bileşen
+kütüphanesi uygulama mantığı içermez.
+
+## Kapsam
+
+| Katman | İçerik |
+| --- | --- |
+| Çizim | `Display`: `Node` ağacını SVG'ye çizer |
+| Hook'lar | `useProperty`, `useSimStep`, `useAnimationFrame`, `useMotionValue` |
+| Etkileşim | `useDrag`: bir `Node`'a sürükleme dinleyicisi bağlar |
+| Animasyon | `useSpring`, `useAnimate` |
+| Bileşenler | `Scene`, `CoordinateGrid`, `FunctionCurve`, `VectorArrow` |
+| Belge oynatıcı | `LernoPlayer`: `LernoDocument` oynatır |
+
+## Kurulum
+
+Kitap, React 18 veya 19 ile çalışır. HeroUI bileşenleri kullanıldığı için stil paketi de yüklenir:
+
+```bash
+bun add @medu/lerno-react @medu/lerno @heroui/react @heroui/styles
+```
+
+Tüketici uygulama, HeroUI stillerini ve lerno-react kaynak taramasını tanımlar:
+
+```css
+@import 'tailwindcss';
+@import '@heroui/styles';
+
+/* include the lerno-react source package in the Tailwind scan */
+@source '../../packages/lerno-react/src';
+```
+
+## Sonraki adım
+
+[İlk Display](/tr/docs/react/getting-started/first-display) sayfası, bir `Property`'yi bir `Node`
+ağacına bağlar ve SVG olarak çizer.

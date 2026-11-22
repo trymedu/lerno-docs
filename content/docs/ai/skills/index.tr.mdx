@@ -1,0 +1,77 @@
+---
+title: Agent Skill'leri
+description: 'Kodlama ajanına verilen üç skill: çekirdek, React katmanı ve hareket.'
+---
+
+Skill, kodlama ajanının depoya dokunmadan önce okuduğu bir Markdown dosyasıdır. Lerno üç adet
+sunar: biri çekirdek kütüphane, biri React katmanı, biri hareket. Bunlar **kod değil, talimattır**: hangi dosyanın okunacağını, hangi kurallara uyulacağını ve işi kanıtlayan komutları söyler.
+
+## Üç skill
+
+| Skill | Yol | Görev şununla ilgiliyse yönlen |
+| --- | --- | --- |
+| [`lerno`](/tr/docs/ai/skills/lerno) | `skills/lerno/SKILL.md` | Sahne, simülasyon, içerik belgesi, değerlendirici, host adaptörü, uzantı |
+| [`lerno-react`](/tr/docs/ai/skills/react) | `skills/lerno-react/SKILL.md` | React bileşeni, hook, HeroUI kontrolü, laboratuvar |
+| [`lerno-motion`](/tr/docs/ai/skills/motion) | `skills/lerno-motion/SKILL.md` | Easing, yay, keyframe, durma, ritim, animasyonun hissi |
+
+`lerno` ve `lerno-react` aynı kompozisyon tablosunu anlatır; yanlış olanı okuyan bir ajan hâlâ geçerli
+kod üretir, yalnızca daha fazla kod üretir. `lerno-motion` bu tabloyu tekrarlamaz; koddan önce
+storyboard, teslimden önce kare denetimi ister. Bağlantılı her sayfa, skill'in dokümantasyon olarak
+render edilmiş hâlidir; içerik burada okunur, dosyadan kopyalanır.
+
+## Bir skill ne içerir
+
+| Bölüm | Amacı |
+| --- | --- |
+| Tarif tablosu | Niyetten çalışan görsele en kısa yol |
+| Değişmezler | Zaman parametre olarak, model view'ı görmez, serileştirilebilir belgeler, `any` yok |
+| API envanteri | Bilinmesi gereken exportlar; kalanı [API](/docs/api) sayfasına işaret eder |
+| Doğrulama | Onaydan önce geçmesi gereken tam komutlar |
+| Sık hatalar | Derlenen ama yanlış davranan hatalar |
+
+## Kurulum
+
+Skill, ismiyle keşfedilmesi için ajanın skill dizinine kopyalanır:
+
+```bash
+mkdir -p ~/.agents/skills/lerno
+cp skills/lerno/SKILL.md ~/.agents/skills/lerno/
+
+mkdir -p ~/.agents/skills/lerno-motion
+cp -R skills/lerno-motion/. ~/.agents/skills/lerno-motion/
+```
+
+Hareket skill'i tek dosya değildir; `references/` ve `scripts/` dizinlerini de taşır. Dosyalar bu
+deponun `skills/` altında durur, kodla birlikte taşınır ve tarif ettikleri kodla aynı pull request
+içinde incelenebilir.
+
+## Doğrulama skill'in parçasıdır
+
+`lerno` ve `lerno-react` aynı üç komutla biter. Bunlar sözleşmedir: bunları geçiremeyen bir ajan işi
+bitirmemiştir.
+
+```bash
+bunx turbo run type-check --filter=@medu/lerno --filter=@medu/lerno-react
+bunx turbo run test --filter=@medu/lerno --filter=@medu/lerno-react
+cd apps/lerno-docs && bun run build
+```
+
+`lerno-motion` kendi denetimini taşır. Statik denetim determinizmi, kare çıkarma ise görüntünün
+incelenmesini zorunlu kılar.
+
+```bash
+bun skills/lerno-motion/scripts/motion-lint.ts <sahne.ts>
+bun skills/lerno-motion/scripts/frames.ts <sahne.ts> --out .motion
+```
+
+## Skill'i güncel tutmak
+
+Bir skill, tarif ettiği API değiştiğinde çürür. İki kural hizalar:
+
+- API envanteri her imzayı tekrarlamak yerine üretilmiş referansa işaret eder.
+- Tarif tablosu dosya yolları verir; taşınan bir dosya sessizce değil, sesli başarısız olur.
+
+## İlgili
+
+- [Genel Bakış](/docs/ai): yapay zekâ destekli çalışma için üç yüzey
+- [LLM Metin Çıktısı](/docs/ai/llms): model için Markdown rotaları

@@ -1,0 +1,64 @@
+---
+title: Kavram Haritası Sorusu
+description: İlişki kümesinin yön duyarsız karşılaştırılması ve yanlış ilişki cezası.
+---
+
+`concept-map`, öğrencinin kavramlar arasındaki ilişkileri kurmasını bekler. Değerlendirici, cevabı
+**ilişki kümesi** olarak alır ve doğru kümeyle karşılaştırır; sıralama ve yön farkları yok sayılır.
+
+## Kullanım
+
+```ts
+import { questionSet, createSession } from '@medu/lerno';
+
+const document = questionSet('quiz-1', { title: 'Hücre' }, [
+  {
+    kind: 'concept-map',
+    prompt: 'Kavramları ilişkilendirin.',
+    concepts: [{ id: 'hücre', label: 'Hücre' }, { id: 'zar', label: 'Hücre zarı' }],
+    relations: [{ from: 'zar', to: 'hücre', label: 'çevreler' }],
+  },
+]);
+
+const session = createSession(document);
+const { outcome } = session.answer('q1', { relations: [{ from: 'hücre', to: 'zar' }] });
+
+outcome.status; // 'correct': çift iki yönde de karşılaştırılır
+```
+
+Cevap yalnızca ilişkileri taşır: `{ relations: [{ from, to }] }`. Bir çifti ters çevirmek sonucu
+değiştirmez; tanımada olmayan bir ilişki eklemek ise puan götürür.
+
+## Karşılaştırma
+
+Anahtar, iki kimliğin sıralanmış hâlidir:
+
+```
+relationKey(from, to) = [from, to].sort().join('|')
+```
+
+Böylece `zar → hücre` ile `hücre → zar` aynı anahtarı üretir; ilişki **yönsüz** sayılır. Etiket
+(`label`) karşılaştırmaya girmez, yalnızca sunumda kullanılır.
+
+## Puanlama
+
+```
+maxScore = relations.length
+hits      = doğru anahtarlardan cevapta bulunanlar
+misses    = cevapta olan ama doğru olmayanlar
+score     = clamp(hits - misses, 0, maxScore)
+```
+
+Yanlış ilişki **cezalandırılır**: fazladan çizilen bir bağlantı, doğru bir bağlantının puanını götürür.
+`score` sıfıra kırpması (`clamp`) sayesinde cevabın tamamı yanlış olsa bile `incorrect` durumu oluşur,
+negatif puan görünmez.
+
+## Maksimum puan
+
+`maxScore`, tanım içindeki ilişki sayısıdır. Daha fazla ilişki **eklenemez**; soru tasarımı bunu
+kapatır. Bu, sınırsız türetmeyi engeller.
+
+## İlgili
+
+- [Genel Bakış](/tr/docs/grading): durumlar ve puan oranı
+- [Adım Adım Çözüm](/tr/docs/grading/solution-steps): sıralı, adım bazlı puanlama

@@ -1,0 +1,75 @@
+---
+title: Select
+description: 'Özel listbox: native select menüsü yok.'
+---
+
+import { SelectDemo } from '@/components/react/ComponentDemos';
+
+`Select` özel bir listbox'tır. İşletim sisteminin native menüsünü hiç açmaz; seçenekler player'ın
+içinde çizilir, böylece görünüm ve klavye davranışı her yerde aynı kalır.
+
+<SelectDemo />
+
+## Manifest katmanı
+
+```json
+{
+  "id": "gravity",
+  "component": "ui.select",
+  "fromMs": 0,
+  "bind": { "value": "g" },
+  "props": {
+    "label": "Yerçekimi",
+    "options": [
+      { "value": 10, "label": "10 m/s²" },
+      { "value": 9.8, "label": "9,8 m/s²" }
+    ]
+  }
+}
+```
+
+## JavaScript
+
+```js
+import { createSession, createInteractionRuntime } from '@medu/lerno';
+
+const runtime = createInteractionRuntime(document, createSession(document));
+const item = runtime.layersAt('clip', video.currentTime * 1000)
+  .find((entry) => entry.layer.id === 'gravity');
+
+const menu = document.createElement('div');
+menu.setAttribute('role', 'listbox');
+
+for (const option of item.props.options) {
+  const choice = document.createElement('button');
+  choice.type = 'button';
+  choice.setAttribute('role', 'option');
+  choice.setAttribute('aria-selected', String(String(item.value) === String(option.value)));
+  choice.textContent = option.label;
+  choice.addEventListener('click', () => runtime.change(item.layer, option.value));
+  menu.append(choice);
+}
+```
+
+Çekirdek yalnızca seçenekleri ve bağlı değeri verir. Listbox boyası, klavye döngüsü ve dışarı tıklama
+renderer'a aittir; React paketi bir tanesini uygular, vanilla sayfa kendininkini yazabilir.
+
+## Prop'lar
+
+| Prop | Tip | Varsayılan |
+| --- | --- | --- |
+| `label` | `string` | `Select` |
+| `value` | `string \| number` | ilk seçenek |
+| `options` | `{ value: string \| number; label: string }[]` | `[]` |
+| `onChange` | `(value: string \| number) => void` | Yok |
+| `disabled` | `boolean` | `false` |
+| `tone` | `'light' \| 'dark'` | `light` |
+
+## Davranış
+
+- Trigger etiketi ve seçili değeri gösterir; açılınca chevron döner.
+- Seçili seçenekte ✓ bulunur.
+- Klavye: `ArrowUp` / `ArrowDown`, `Home`, `End`, `Enter`, `Space`, `Escape`.
+- Dışarı tıklama menüyü kapatır; menü trigger'ın altında absolute konumlanır.
+- Menü portalda çizilmez; `overflow: hidden` olan ebeveyn onu kırpabilir. Layer kapsayıcısını
+  `overflow: visible` tut.

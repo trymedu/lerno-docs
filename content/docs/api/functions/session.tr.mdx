@@ -1,0 +1,91 @@
+---
+title: createSession
+description: 'Çalışma zamanı: bir belge üzerinde imleç, cevaplama, puanlama ve abonelik.'
+---
+
+`createSession` bir `LernoDocument`'ı çalışan bir oturuma çevirir. İmleci yönetir, cevapları
+registry üzerinden puanlar, skoru tutar ve abonelere haber verir. Kalıcılık, telemetri ve akış
+çözümü host adaptörlerinden gelir; bu yüzden aynı oturum tarayıcıda da, testte de, sunucuda da
+çalışır.
+
+## İmza
+
+<TypeTable type={{
+    "createSession(document, options?)": { type: "LernoSession", description: "Doğrulanmış bir belge üzerinde oturum açar." },
+}} />
+
+### Seçenekler
+
+<TypeTable type={{
+    "host": { type: "LernoHost", description: "Depolama, telemetri, medya ve kimlik adaptörleri. Varsayılan createHost(): hepsi boş davranış." },
+    "registry": { type: "LernoRegistry", description: "Soru tiplerinin arandığı yer. Varsayılan createRegistry(); içeri hazır olanlarla doludur." },
+    "state": { type: "LernoSessionState", description: "Devam edilecek önceden kaydedilmiş anlık görüntü. Verilmezse önce storage'a bakılır, sonra yeni durum kurulur." },
+}} />
+
+## Metodlar
+
+<TypeTable type={{
+    "getState()": { type: "LernoSessionState", description: "Saf anlık görüntü: documentId, cursor, visited, answers, status. Serileştirilebilir." },
+    "currentNode()": { type: "LernoNode | undefined", description: "İmleçteki düğüm; imleç yoksa undefined." },
+    "answer(questionId, response)": { type: "AnswerRecord", description: "Cevabı tipin şemasına göre doğrular, puanlar ve saklar. Kaydı döndürür." },
+    "choose(nodeId, choiceId)": { type: "string | null", description: "Dal seçimini izler; hedef çözülemezse null." },
+    "next()": { type: "string | null", description: "Belge sırasında ileri gider; sonda null." },
+    "back()": { type: "string | null", description: "Geçmişteki önceki düğüme döner; yoksa null." },
+    "goTo(nodeId)": { type: "void", description: "Rastgele bir düğüme atlar. Bilinmeyen kimlikler yok sayılır." },
+    "score()": { type: "SessionScore", description: "Puanlanmış cevaplardan hesaplanan kazanılan, en fazla, oran ve geçme bayrağı." },
+    "subscribe(listener)": { type: "() => void", description: "Her mutasyondan sonra yeni durumla çağrılır. Aboneliği kaldırma işlevini döndürür." },
+    "reset()": { type: "void", description: "Cevapları ve geçmişi temizler, imleci ilk düğüme döndürür." },
+}} />
+
+<TypeTable type={{
+    "session.document": { type: "LernoDocument", description: "Oturumun açıldığı belge." },
+}} />
+
+## Sonuç tipleri
+
+<TypeTable type={{
+    "AnswerRecord": { type: "interface", description: "questionId, nodeId, response, outcome, answeredAt." },
+    "GradeOutcome": { type: "interface", description: "status, score, maxScore, isteğe bağlı detail ve misconceptions." },
+    "SessionScore": { type: "interface", description: "earned, max, ratio, passed (cevapsız sorular varken null)." },
+    "LernoSessionState": { type: "interface", description: "documentId, schemaVersion, cursor, visited, answers, status." },
+}} />
+
+## Kullanım
+
+```ts
+import { questionSet, createSession } from '@medu/lerno';
+
+const document = questionSet('quiz-1', { title: 'İkinci dereceden denklemler' }, [
+  {
+    kind: 'solution-steps',
+    prompt: 'x² − 4 = 0 denklemini çözün.',
+    steps: [
+      { id: 's1', prompt: 'Çarpanlara ayırın', accepted: ['(x-2)(x+2)'] },
+      { id: 's2', prompt: 'Kökleri yazın', accepted: ['2,-2', '-2,2'] },
+    ],
+  },
+]);
+
+const session = createSession(document);
+
+session.getState().cursor;          // 'q1': questionSet düğümlere q1, q2… adlarını verir
+const { outcome } = session.answer('q1', { steps: ['(x-2)(x+2)', 'yanlış'] });
+outcome.status;                     // 'partial'
+session.score();                    // { earned: 1, max: 2, ratio: 0.5, passed: null }
+
+session.next();                     // null: belge burada biter
+```
+
+## Determinizm
+
+`answer`, cevabın ve belgenin saf bir işlevdir: aynı cevap her zaman aynı `GradeOutcome`'u üretir
+ve `answeredAt` dışında hiçbir yere saat okunmaz. Bir testin saati taklit etmeden oturum üzerinde
+iddia kurabilmesi bunun sağlar.
+
+`score().passed`, puanlanabilir her soru cevaplanana kadar `null` kalır; bu yüzden yarım bırakılmış
+bir test asla geçme ya da kalma raporu vermez.
+
+## İlgili
+
+- [Fonksiyonlar](/tr/docs/api/functions): diğer her giriş noktası
+- [Değerlendirme](/tr/docs/grading): durumlar ve puan oranı

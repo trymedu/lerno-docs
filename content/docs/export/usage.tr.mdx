@@ -1,0 +1,156 @@
+---
+title: Kullanım
+description: Bir sahneyi fabrika fonksiyonu olarak kurup exportMp4'e vermek.
+---
+
+Bölümün başındaki video, aşağıdaki kodun kendisi tarafından üretildi: tarayıcı yok, React yok, tek
+komut:
+
+<video src="/media/lerno-export-demo.mp4" controls muted loop playsInline className="w-full rounded-xl" />
+
+Kaynak: `packages/lerno-export/examples/curve-reveal.ts`: 720p'de 3 sn, 90 kare, **24 KB**.
+Aynı sahnenin tek bir PNG karesi 26 KB'dir; bütün video tek bir durağan görselin maliyetine denk
+gelir.
+
+## Bir sahnenin biçimi
+
+Bir kayıt iki şey ister: çizilecek bir kök ve onu ilerletecek bir yol. İkisi de kendi durumunu
+kullanan tek bir fabrika fonksiyonundan gelir: hiçbir şey modül kapsamına sızmaz ve aynı sahne iki
+kez, birebir aynı sonuçla kaydedilebilir.
+
+```ts
+import { CircleNode, Easings, LineNode, Node, PathNode, Shape, TextNode, revealShape, v2 } from '@medu/lerno';
+import { exportMp4 } from '@medu/lerno-export';
+
+function curveReveal() {
+  const root = new Node();
+
+  // Izgara ve eksenler
+  for (let x = 80; x < 1280; x += 80) {
+    root.addChild(new LineNode(x, 90, x, 640, { stroke: '#1E293B', strokeWidth: 1 }));
+  }
+  root.addChild(new LineNode(80, 400, 1200, 400, { stroke: '#475569', strokeWidth: 2 }));
+
+  // Eğrinin tamamı; her karede yalnızca bir öneki çizilir
+  const points = Array.from({ length: 241 }, (_, i) => {
+    const u = i / 240;
+    return v2(80 + u * 1120, 400 - 210 * Math.sin(u * Math.PI * 3) * Math.exp(-u * 2.1));
+  });
+  const full = Shape.polyline(points);
+
+  const curve = new PathNode(revealShape(full, 0), { stroke: '#F59E0B', strokeWidth: 4 });
+  const label = new TextNode('Adım adım eğri çizimi', 80, 56, { fill: '#F8FAFC', fontSize: 34 });
+  root.addChild(curve);
+  root.addChild(label);
+
+  let progress = 0;
+  return {
+    root,
+    step(dt: number) {
+      progress = Math.min(progress + dt, 1); // 1 model-saniye: gerçek hızda oynatsanız çevik kalır
+      const eased = Easings.easeInOut(progress);
+      curve.shape = revealShape(full, eased);
+      label.text = `${Math.round(eased * 100)}%`;
+    },
+  };
+}
+
+await exportMp4(curveReveal(), {
+  width: 1280,
+  height: 720,
+  fps: 30, // yavaş gösterim: yarım kare, gözle görülür fark yok
+  duration: 3, // 2 sn'de çizilir, ardından 1 sn tutulur
+  timeScale: 0.5, // sahne 1 model-saniyede çizer; export yarım hızda oynatır
+  fontFamily: 'Helvetica',
+  background: '#0B0F19',
+  out: 'curve-reveal.mp4',
+  crf: 26,
+});
+```
+
+Bunu doğru yapan üç şey:
+
+- **Fabrika durumu sahiplenir.** `progress` ve `full` kapalı alanın içindedir; bu yüzden sahneyi
+  iki kez kaydetmek ilk çalışmanın kaldığı yerden devam etmez.
+- **`step(dt)` ilerletir, ölçmez.** `dt`, kayıtçının verdiği `(1 / fps) * timeScale`'tir. Hiçbir
+  yerde saat okunmaz; bu yüzden çıktı bayt bayt tekrar üretilebilir: ve bu yüzden bu sahne tek
+  model-saniyede çevik kalırken, export onu iki saniyeye yayabilir.
+- **Düğümler yeniden kullanılır.** `curve.shape = …` ağacı yeniden kurmaz, tek bir `PathNode`'u
+  değiştirir; böylece 90 karenin tamamında `toRender()` ucuz kalır.
+
+## Seçenekler
+
+Boyut üç ayarla belirlenir; yukarıdaki sahnede 1280×720 ile ölçüldü:
+
+| Ayar | Sonuç |
+| --- | --- |
+| `fps: 60, crf: 24, duration: 6` | 54 KB, 360 kare: varsayılanlar |
+| `fps: 30, crf: 26, duration: 6` | 31 KB, 180 kare: yarım kare, gözle görülür kayıp yok |
+| `duration: 3, timeScale: 0.5` | **24 KB, 90 kare: bu video** |
+| `width: 854, height: 480, crf: 28` | 15 KB, 180 kare: belirgin şekilde yumuşak |
+
+Yavaş hareket eden bir çizgide kare hızı göründüğü kadar önemli değildir: H.264 yalnızca değişen
+şeyi kaydeder, bu yüzden yavaş bir gösterimde kareyi yarıya indirmek neredeyse bedavadır.
+
+<TypeTable type={{
+    "width, height": { type: "number", description: "Piksel cinsinden çıkış boyutu. yuv420p için ikisi de çift olmalı." },
+    "fps": { type: "number", description: "Kare hızı ve `dt` kaynağı. Varsayılan 60." },
+    "duration": { type: "number", description: "Kaç saniye kaydedileceği: `fps * duration` kare. Varsayılan 1." },
+    "timeScale": { type: "number", description: "Kayda göre model hızı. `0.5` ağır çekim, `2` hızlandırılmış. Varsayılan 1." },
+    "fontFamily": { type: "string", description: "Zorunlu. Her metin elemanının ailesi; bkz. [Fontlar](/tr/docs/export/fonts)." },
+    "background": { type: "string", description: "Sahnenin arkasına boyanır. Varsayılan #000000." },
+    "out": { type: "string", description: "Çıktı yolu." },
+    "crf": { type: "number", description: "H.264 kalitesi; küçüğü iyidir ve dosya büyür. Varsayılan 20." },
+    "preset": { type: "string", description: "x264 hız ön ayarı. Varsayılan veryfast." },
+    "extensions": { type: "Record<string, (ctx, data) => void>", description: "Özel düğüm tipleri için renderer'lar." },
+}} />
+
+## Ağır çekim ve hızlandırılmış gösterim
+
+`duration` videonun ne kadar süreceğini, `timeScale` ise içinden ne kadar model zamanı geçeceğini
+belirler. Ayrıldıklarında bir sahne bir hızda yazılır, başka bir hızda oynatılır:
+
+```ts
+await exportMp4(scene, { ...options, duration: 4, timeScale: 0.5 }); // yarım hız, modelde değişiklik yok
+```
+
+Aynı sahne, aynı 4 saniyelik kayıt, 2. saniyede ölçüldü:
+
+| Ayar | t = 2 sn'de ilerleme |
+| --- | --- |
+| `timeScale: 1` | **%78** çizili |
+| `timeScale: 0.5` | **%22** çizili |
+
+Bir gerçek zamanlı simülasyonu izlenebilir kılan da budur: `0.25` ile gösterilen bir atış veya
+yörünge fiziğine dokunmaz, ama izleyicinin takip etmesi için video dört kat süre verir. Tersi de
+işler: `timeScale: 8` yavaş bir süreci kısa klibe sığdırır.
+
+**Sınır:** ağır çekimde gösterecek ara durumlar olmalıdır. Tek bir `step`'te son hesaplayıp oraya
+zıplayan bir sahnenin başlangıçlason arasında hiçbir şey yoktur; hiçbir `timeScale` onu
+yavaşlatamaz: model hâlâ geçen zamanın fonksiyonu olmalıdır.
+
+## Parçalı dışa aktarım
+
+`duration` ve `fps` kare sayısını belirlediği için uzun bir ders ayrı bir kurgu adımı olmadan
+parçalara bölünebilir: her parça aynı fabrikayla kendi `exportMp4` çağrısıdır:
+
+```ts
+for (const [i, start] of [0, 4, 8].entries()) {
+  await exportMp4(sceneAt(start), { ...options, duration: 4, out: `part-${i}.mp4` });
+}
+```
+
+`step(dt)` deterministik olduğu için bir sahne, kayda başlamadan hedef kareye kadar adım atarak
+konumlanabilir: videoyu geri sarmanıza gerek yoktur.
+
+## Bu videoyu yeniden üretmek
+
+```bash
+cd packages/lerno-export
+bun examples/curve-reveal.ts ../../apps/lerno-docs/public/media/lerno-export-demo.mp4
+```
+
+## İlgili
+
+- [Fontlar](/tr/docs/export/fonts): `fontFamily` neden zorunlu
+- [API](/tr/docs/export/api): düşük seviyeli giriş noktaları

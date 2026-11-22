@@ -1,0 +1,60 @@
+---
+title: Fonksiyon Keşfi
+description: 'FunctionExplorer: fonksiyon seçin ve çizimi adım adım canlandırın.'
+---
+
+import { FunctionExplorer } from '@medu/lerno-react';
+import { DocDemo } from '@/components/react/DocDemo';
+
+export const SOURCE = `import { FunctionExplorer } from '@medu/lerno-react';
+
+// usage
+<FunctionExplorer />;
+
+// inside the lab: preset selection drives a shared scene
+import { CoordinateGrid, FunctionCurve, Scene } from '@medu/lerno-react';
+import { CoordinatePlane, FunctionPlotter } from '@medu/lerno';
+
+const plane = new CoordinatePlane({ xRange: [-4, 4], yRange: [-4, 10] });
+const plotter = new FunctionPlotter({ fn: preset.fn, domain: preset.domain });
+
+<Scene title={preset.label}>
+  <CoordinateGrid plane={plane} />
+  <FunctionCurve plane={plane} plotter={plotter} />
+</Scene>;`;
+
+`FunctionExplorer`, hazır fonksiyon ailelerini seçip çizim animasyonunu oynatan interaktif laboratuvardır.
+
+**Preview** laboratuvarın kendisidir; **Code** iç kurulumunu gösterir: ön ayar `FunctionPlotter`'a
+gider, çizim `FunctionCurve`'a bağlanır.
+
+<DocDemo source={SOURCE}>
+  <FunctionExplorer />
+</DocDemo>
+
+## Davranış
+
+- **Fonksiyon seçimi**: `x²`, `x³ − 3x`, `sin(x)`, `1/x`, `√x`, `eˣ` ön ayarları.
+- **Çiz**: `usePlayback` ile `0` → `1` arası `drawProgress` animasyonu.
+- **Tamamını göster**: Animasyonu durdurup grafiği bütün olarak gösterir.
+
+## Özel Ön Ayar
+
+`functionPresets` dizisi genişletilerek laboratuvara yeni fonksiyonlar eklenebilir:
+
+```ts
+import { functionPresets } from '@medu/lerno-react';
+
+functionPresets.push({
+  id: 'log',
+  label: 'f(x) = ln(x)',
+  fn: Math.log,
+  domain: [0.1, 10],
+  yRange: [-2, 3],
+});
+```
+
+<Callout type="info" title="Ön ayarlar dışa aktarılır">
+  `functionPresets`, `getFunctionPreset` ve `clamp` yardımcıları paketten dışa aktarılır; başka
+  laboratuvarlarda yeniden kullanılabilir.
+</Callout>

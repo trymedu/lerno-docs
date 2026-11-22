@@ -1,0 +1,25 @@
+---
+title: DNA (3B)
+description: İki iplikli sarmalın 3B geometrisi ve baz çifti işaretleri.
+---
+
+import { DnaDemo } from '@/components/react/three/DnaDemo';
+import { VisualDemo } from '@/components/react/VisualDemo';
+
+Sarmal, iki ipliğin Y ekseni çevresinde döndürülmesiyle kurulur. Her basamakta bir baz çifti, iki omurga atomu ve arada bir işaret bulunur.
+
+<VisualDemo id="dna-3d">
+  <DnaDemo />
+</VisualDemo>
+
+## Döndürme
+
+```ts
+group('helix', children, { bindings: { 'rotation.y': 'spin' } });
+```
+
+Grup düğümü tüm sarmalı tek bir değişkene bağlar. Sarmalı döndürmek için her atomu ayrı ayrı güncellemek gerekmez.
+
+## Sınır
+
+Bu bir moleküler dinamik modeli değildir. Bağ açıları ve baz yığınlanması yaklaşıktır; amaç yapıyı tanımak, enerji hesabı yapmak değil.

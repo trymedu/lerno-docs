@@ -1,0 +1,28 @@
+---
+title: Dallanan Senaryo
+description: Seçime göre dallanan akış.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+Seçime göre dallanan akış.
+
+## Kullanım
+
+```ts
+branchingScenario('senaryo-1', { title: 'Yol Seçimi' }, [
+  { id: 'fork', type: 'branch', prompt: 'Hangi yol?', choices: [{ id: 'c1', label: 'A', target: 'end' }] },
+  { id: 'end', type: 'slide', blocks: [] },
+]);
+```
+
+## Gömülü Örnek
+
+<LernoPlayer document={contentTypeDemos['branching-scenario']} />
+
+## Nasıl Kurulur
+
+Ayrı bir motor değildir; doğru düğümleri bir araya getiren bir reçetedir:
+
+- `branch` node + graf akış

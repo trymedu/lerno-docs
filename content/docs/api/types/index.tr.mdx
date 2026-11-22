@@ -1,0 +1,121 @@
+---
+title: Tipler
+description: '@medu/lerno''nun export ettiği arayüz ve tip takma adları, alana göre gruplanmış.'
+---
+
+Arayüz ve tip takma adları, çalışma zamanının kabul ettiği ve ürettiği biçimleri tarif eder.
+Buradaki hiçbir şey çalışma zamanında bir değer değildir: bu tipler derleyici içindir ve derleme
+sonrası yok olur.
+
+Aşağıdaki her tip `@medu/lerno`'dan export edilir.
+
+## Belge
+
+İçerik sözleşmesi: bir `LernoDocument`'ın neyden oluştuğu.
+
+<TypeTable type={{
+    "LernoDocument": { description: "Doğrulanmış belge: metadata, düğümler, akış, puanlama, varlıklar." },
+    "LernoNode": { description: "Sekiz düğüm arketipinin birleşimi." },
+    "SlideNode | QuestionNode | MediaNode | BranchNode": { description: "İçerik taşıyan arketipler." },
+    "InfoNode | CardsNode | HotspotNode | CustomNode": { description: "Bir görüntüleyici veya uzantı tarafından çizilen arketipler." },
+    "SlideBlock": { description: "Başlık, metin, görsel, callout ve soru bloklarının birleşimi." },
+    "MediaAnchor": { description: "Medya düğümünün bir parçasını vurgulayan zaman damgası." },
+    "BranchChoice": { description: "Tek bir dal seçeneği: etiket ve hedef düğüm kimliği." },
+    "Card | CardsMode | Hotspot": { description: "Kartlar ve hotspot düğümleri için veri tipleri." },
+    "DocumentMetadata": { description: "Başlık, ders, sınıf, dil ve yazarlık alanları." },
+    "Theme | Scoring | Flow": { description: "Belge düzeyinde ayarlar." },
+    "AssetRef | OutcomeRef": { description: "Medya varlıklarına ve sonuçlara referanslar." },
+}} />
+
+### Girdiler
+
+Girdi tipleri çalışma zamanı tiplerini yansıtır ama kısmi veri kabul eder: `LernoDocumentInput`,
+varsayılanlar uygulanmadan önce `defineDocument`'ın aldığı şeydir.
+
+<TypeTable type={{
+    "LernoDocumentInput": { description: "defineDocument'ın kabul ettiği ham belge girdisi." },
+    "LernoNodeInput": { description: "Preset yardımcılarının kabul ettiği ham düğüm girdisi." },
+    "QuestionItemInput": { description: "Varsayılanlar uygulanmadan önce ham soru maddesi." },
+    "SlideBlockInput | MediaAnchorInput | CardInput | HotspotInput": { description: "Karşılık gelen veri tiplerinin ham girdileri." },
+}} />
+
+## Sorular
+
+Her soru tipi `QuestionItem`'ın `kind` ile daraltılan bir üyesidir.
+
+<TypeTable type={{
+    "QuestionItem": { description: "On üç soru tipinin birleşimi." },
+    "QuestionKind": { description: "kind değerlerinin literal birleşimi." },
+    "MultipleChoiceItem | TrueFalseItem | PollItem": { description: "Seçim ve doğru/yanlış soruları." },
+    "ShortAnswerItem | OpenItem": { description: "Serbest metin." },
+    "NumericItem | ScaleItem": { description: "Sayılar." },
+    "FillBlanksItem | OrderingItem | MatchingItem": { description: "Yapılandırılmış cevaplar." },
+    "EquationItem | ConceptMapItem | SolutionStepsItem": { description: "Matematik ve kavram soruları." },
+    "Choice | ConceptRelation | SolutionStep": { description: "Yukarıdaki maddelerin içindeki giriş biçimleri." },
+    "RubricCriterion | Feedback": { description: "Maddeye eklenen puanlama detayı." },
+}} />
+
+## Değerlendirme
+
+<TypeTable type={{
+    "GradeStatus": { description: "'correct' | 'incorrect' | 'partial' | 'pending' | 'ungraded'." },
+    "GradeOutcome": { description: "Her grade çağrısının döndürdüğü: durum, puan, en fazla, detay, yanılgılar." },
+    "QuestionDefinition": { description: "Kayıtlı bir tip: madde şeması, cevap şeması ve grade işlevi." },
+    "QuestionRef": { description: "Belgede bulunan soru: düğüm kimliği, madde ve puan." },
+}} />
+
+## Oturum
+
+<TypeTable type={{
+    "LernoSession": { description: "createSession'ın döndürdüğü: imleç, cevaplama, puanlama, abonelik." },
+    "LernoSessionState": { description: "Serileştirilebilir anlık görüntü: imleç, ziyaret edilenler, cevaplar, durum." },
+    "AnswerRecord": { description: "Tek bir puanlanmış cevap: yanıt, sonuç ve ait olduğu düğüm." },
+    "SessionScore": { description: "Kazanılan puan, ulaşılabilir puan, oran ve geçme bayrağı." },
+    "SessionOptions": { description: "host, registry ve devam edilecek bir state." },
+}} />
+
+## Host adaptörleri
+
+Bir uygulamanın kalıcılık, telemetri ve kimlik sağlamak için uyguladığı arayüzler. Sözleşmeleri
+[Uzantılar](/tr/docs/extensions) bölümünde anlatılır.
+
+<TypeTable type={{
+    "LernoHost": { description: "Boş davranışlı varsayılanlarla her adaptörün demeti." },
+    "TelemetryEvent | TelemetrySink": { description: "Olay biçimi ve tüketicisi." },
+    "SessionStorage": { description: "Oturum durumunun belge kimliğine göre kaydı ve okuması." },
+    "MediaResolver": { description: "Bir varlık kimliğini oynatılabilir adresle çözer." },
+    "RealtimeChannel": { description: "Canlı sınıf için asgari yayın/abone yüzeyi." },
+    "IdentityProvider": { description: "Kayıtlarda kullanılan öğrenci kimliğini döndürür." },
+    "FlowResolver": { description: "Uyumlu modda sıradaki düğümü seçer." },
+}} />
+
+## Registry ve uzantı
+
+<TypeTable type={{
+    "LernoRegistry": { description: "Düğüm tiplerini, soru tiplerini ve akış kiplerini uygulamalarıyla eşler." },
+    "LernoExtension": { description: "Bir uzantının registry'ye katkıda bulunduğu." },
+    "LernoOptions | LernoInstance": { description: "createLerno'nun girdisi ve dönüşü." },
+    "NodeDefinition": { description: "Özel bir düğüm tipinin nasıl doğrulandığı ve çizildiği." },
+}} />
+
+## Seçenekler ve yardımcı tipler
+
+<TypeTable type={{
+    "CoordinateOptions": { description: "CoordinatePlane boyutları, aralıkları ve aralık ayarları." },
+    "FunctionPlotOptions": { description: "FunctionPlotter örnekleme seçenekleri." },
+    "TimelineOptions | TimelineAnchor": { description: "Timeline kurulumu ve işaretçileri." },
+    "PresetOptions": { description: "Her preset yardımcısının kabul ettiği type, scoring, assets, theme." },
+    "VirtualLabStep": { description: "Sanal laboratuvar preset'inin bir adımı." },
+    "AtomNode | ChemicalBond": { description: "Molecule2D için molekül grafiği girdileri." },
+}} />
+
+## Zod şemaları
+
+Yukarıdaki her tipin bir `*Schema` sabiti vardır: `LernoDocumentSchema`, `QuestionItemSchema`,
+`ScoringSchema` ve diğerleri. Bunlar, güvensiz girdiyi kendi sınırında doğrulamak isteyen uygulamalar
+için export edilir; kütüphane dahili olarak bunlarla doğrular.
+
+## İlgili
+
+- [Sınıflar](/tr/docs/api/classes): durum taşıyan exportlar
+- [Fonksiyonlar](/tr/docs/api/functions): giriş noktaları

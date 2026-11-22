@@ -1,0 +1,61 @@
+---
+title: Classes
+description: Every class exported by @medu/lerno, grouped by layer, with its constructor signature.
+---
+
+The core exports more than thirty classes. Seven have a full member-level page: they are listed
+first; the remainder are grouped by the layer they belong to.
+
+<TypeTable type={{
+    "[Node](/docs/api/classes/node)": { description: "Scene graph node; the root of any drawn tree." },
+    "[Property](/docs/api/classes/property)": { description: "Observable value with change notification." },
+    "[Vector2](/docs/api/classes/vector2)": { description: "Immutable 2D vector used by the scene graph." },
+    "[Matrix3](/docs/api/classes/matrix3)": { description: "2D affine matrix for transforms and bounds." },
+    "[Shape](/docs/api/classes/shape)": { description: "Chainable path builder producing SVG path data." },
+    "[CoordinatePlane](/docs/api/classes/coordinate-plane)": { description: "Axes, ticks, and grid in model units." },
+    "[FunctionPlotter](/docs/api/classes/function-plotter)": { description: "Samples a function and renders it as a curve." },
+}} />
+
+## Scene graph and math
+
+<TypeTable type={{
+    "MathNode": { type: "scenery", description: "Places typeset mathematics at an anchor point; carries the LaTeX source, the display does the typesetting." },
+    "ModelViewTransform2": { type: "scenery", description: "Maps model coordinates to pixel coordinates and back." },
+    "Vector2D": { type: "math", description: "Mutable 2D vector for hot loops; plotting and physics use this rather than Vector2." },
+    "CalculusEngine": { type: "math", description: "Numerical derivative and definite integral over a sampled function." },
+}} />
+
+## Animation and time
+
+<TypeTable type={{
+    "Tween": { type: "twixt", description: "Interpolates one value over a duration with an easing function." },
+    "PropertyAnimation": { type: "twixt", description: "Steps several tweens together against one clock." },
+    "AnimationTimeline": { type: "twixt", description: "Ordered sequence of animations with delays and overlap." },
+    "WriteShape": { type: "twixt", description: "Draws a shape stroke by stroke on `step`; drops into any Steppable container." },
+    "Timeline": { type: "runtime", description: "Media timeline with anchors for navigating timestamped content." },
+    "Clock": { type: "sim", description: "Frame clock that owns dt and drives a Sim." },
+    "SimScreen": { type: "sim", description: "Model and view pair assembled by createScreen; steps the model." },
+    "Sim": { type: "sim", description: "Simulation loop that advances screens at a fixed dt." },
+}} />
+
+## Disciplines
+
+<TypeTable type={{
+    "ProjectileSimulation": { type: "physics", description: "Projectile trajectory with gravity, drag, and range helpers." },
+    "Molecule2D": { type: "chemistry", description: "Atom and bond graph laid out in 2D for drawing." },
+}} />
+
+## React views
+
+`MathCanvas`, `CoordinateSystemView`, and `FunctionPlotView` are React components, not classes. They
+live in `@medu/lerno/remotion` and are not re-exported from the root entry.
+
+## Errors
+
+`LernoValidationError` is thrown by `defineDocument` when input fails schema validation; the
+`issues` array carries the failing paths.
+
+## See also
+
+- [Types](/docs/api/types): interfaces and type aliases
+- [Functions](/docs/api/functions): entry points

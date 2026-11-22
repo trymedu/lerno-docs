@@ -1,0 +1,63 @@
+---
+title: Readout
+description: Read-only value card for live variables.
+---
+
+import { ReadoutDemo } from '@/components/react/ComponentDemos';
+
+A readout is the output half of an interaction: it never writes, it only shows the values the scene is
+already using.
+
+<ReadoutDemo />
+
+## Manifest layer
+
+```json
+{
+  "id": "values",
+  "component": "lab.readout",
+  "fromMs": 0,
+  "props": {
+    "title": "Live values",
+    "rows": [
+      { "label": "Air", "value": { "$var": "airOn" } },
+      { "label": "g", "value": "10 m/s²" }
+    ]
+  }
+}
+```
+
+## JavaScript
+
+```js
+import { createSession, createInteractionRuntime } from '@medu/lerno';
+
+const runtime = createInteractionRuntime(document, createSession(document));
+const item = runtime.layersAt('clip', video.currentTime * 1000)
+  .find((entry) => entry.layer.id === 'values');
+
+const list = document.createElement('dl');
+for (const row of item.props.rows) {
+  const term = document.createElement('dt');
+  term.textContent = row.label;
+  const value = document.createElement('dd');
+  value.textContent = String(row.value);
+  list.append(term, value);
+}
+```
+
+## Props
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `title` | `string` | `Live values` |
+| `rows` | `{ label: string; value: unknown }[]` | `[]` |
+| `tone` | `'light' \| 'dark'` | `light` |
+
+## Behaviour
+
+- Booleans render as **On / Off**, numbers use the `en-US` locale, strings pass through.
+- Unknown or missing values render as `-`.
+- Values can come from `{ "$var": "id" }` props, so the same readout works in a manifest layer or as a
+  plain React component.
+- No `value` / `onChange`: if you need editing, use a control component.

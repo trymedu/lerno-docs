@@ -1,0 +1,94 @@
+---
+title: Interactive video
+description: Interactions triggered by video time.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+Interactions triggered by video time.
+
+## Usage
+
+```ts
+interactiveVideo('video-1', { title: 'The Cell' }, 'asset-1', [
+  { id: 'a1', atMs: 4000, kind: 'question', label: 'Pause', item: { kind: 'true-false', prompt: 'The membrane is selective.', correct: true } },
+]);
+```
+
+## Embedded Example
+
+<LernoPlayer document={contentTypeDemos['interactive-video']} />
+
+## How It Is Built
+
+It is not a separate engine; it is a recipe that assembles the right nodes:
+
+- A `media` node with `anchors`
+- Optional `layers` for timed controls over the video
+- Document-level `components` and `variables` for those layers
+
+## Anchors and layers
+
+An anchor is a point event: the player pauses at `atMs` and shows an info panel or question. A layer
+is a time range: it renders a component between `fromMs` and `toMs`.
+
+```json
+{
+  "components": [{ "type": "ui.switch", "version": 1 }],
+  "variables": {
+    "airOn": { "type": "boolean", "initial": false }
+  },
+  "nodes": [{
+    "type": "media",
+    "assetId": "clip",
+    "anchors": [
+      { "id": "q1", "atMs": 26000, "kind": "question", "label": "Check", "item": { "kind": "true-false", "prompt": "…", "correct": true } }
+    ],
+    "layers": [{
+      "id": "air",
+      "component": "ui.switch",
+      "fromMs": 12000,
+      "placement": { "x": 0.7, "y": 0.1, "w": 0.25, "h": 0.12 },
+      "props": { "label": "Air resistance" },
+      "bind": { "value": "airOn" }
+    }]
+  }]
+}
+```
+
+`bind.value` writes the session variable; `{ "$var": "id" }` inside `props` reads one. Layer resolution
+is framework-agnostic: `createInteractionRuntime(document, session).layersAt('clip', currentMs)`
+returns the visible layers with resolved props, so a vanilla renderer can draw them without React.
+
+## Captions
+
+A media node can declare WebVTT tracks. The player hands them to the video element, so the browser's
+own captions menu appears.
+
+```json
+{
+  "captions": [
+    { "src": "/media/lesson.tr.vtt", "lang": "tr", "label": "Türkçe", "default": true },
+    { "src": "/media/lesson.en.vtt", "lang": "en", "label": "English" }
+  ]
+}
+```
+
+The MP4 and HTML exports read the same file: the MP4 burns the cue into the frame, the HTML page shows
+it as an overlay.
+
+## Layer fades
+
+`fadeMs` fades a layer inside its own range. It reaches full opacity at `fromMs + fadeMs` and starts
+leaving at `toMs - fadeMs`; the layer is never mounted outside `[fromMs, toMs)`.
+
+```json
+{ "id": "air", "component": "ui.switch", "fromMs": 0, "toMs": 8000, "fadeMs": 250 }
+```
+
+## One clock
+
+Layers read the stage time, not the video element's. When a media node is rendered directly, pass the
+stage to `InteractiveVideo`; `LernoPlayer` does it for you. Without a stage the component keeps its own
+timer, which is fine for a standalone demo and wrong next to a session.

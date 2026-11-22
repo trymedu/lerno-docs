@@ -1,0 +1,69 @@
+---
+title: FunctionPlotter
+description: Samples a function over a domain and turns it into SVG path data.
+---
+
+`FunctionPlotter` samples a function over a domain and turns the samples into an SVG path. It is
+deliberately separate from the scene graph: the same plotter feeds an SVG `PathNode`, a canvas, or a
+headless test without changing anything.
+
+Sampling happens once per `generatePath` call. Discontinuities outside the domain are skipped rather
+than thrown, so a function with a pole still produces a usable path.
+
+## Constructor
+
+<TypeTable type={{
+    "new FunctionPlotter(options)": { description: "Creates a plotter for one function." },
+}} />
+
+### Options
+
+<TypeTable type={{
+    "fn": { type: "(x: number) => number", description: "The function to sample. Required." },
+    "domain": { type: "[number, number]", description: "Closed interval to sample. Defaults to [-10, 10]." },
+    "samples": { type: "number", description: "How many points to take across the domain. Defaults to 200." },
+    "color": { type: "string", description: "Stroke colour for renderers that honour it. Defaults to #10B981." },
+    "strokeWidth": { type: "number", description: "Stroke width for renderers that honour it. Defaults to 3." },
+    "drawProgress": { type: "number", description: <>Fraction of the domain to draw, clamped to 0…1. Used for progressive reveal; defaults to 1.</> },
+}} />
+
+## Properties
+
+<TypeTable type={{
+    "fn": { type: "(x: number) => number", description: "The sampled function; replace it to redraw a different curve." },
+    "domain": { type: "[number, number]", description: "Current sampling interval." },
+    "samples": { type: "number", description: "Current point count across the domain." },
+    "color": { type: "string", description: "Stroke colour." },
+    "strokeWidth": { type: "number", description: "Stroke width." },
+    "drawProgress": { type: "number", description: "0…1 reveal fraction. At 0.5 the curve stops halfway through the domain." },
+}} />
+
+## Methods
+
+<TypeTable type={{
+    "generatePath(plane)": {
+      type: "{ pathData, points }",
+      description: <>Samples the function and converts every point through <code>plane.toPixels</code>. Returns the SVG <code>d</code> attribute and the model/pixel point pairs.</>,
+    },
+}} />
+
+## Usage
+
+```ts
+import { CoordinatePlane, FunctionPlotter, Shape } from '@medu/lerno';
+
+const plane = new CoordinatePlane({ width: 480, height: 320 });
+const plotter = new FunctionPlotter({ fn: (x) => x * x, domain: [-3, 3], color: '#3B82F6' });
+
+const { pathData, points } = plotter.generatePath(plane);
+// pathData: 'M 40.00 48.00 L 62.11 …'
+// points  : [{ x: -3, y: 9, px, py }, …]
+```
+
+`drawProgress` is what a reveal animation drives: animating it from 0 to 1 grows the curve along the
+domain without recomputing the shape.
+
+## See also
+
+- [CoordinatePlane](/docs/api/classes/coordinate-plane): the transform the plotter converts through
+- [Function graph](/docs/disciplines/mathematics/function-graph): a worked example

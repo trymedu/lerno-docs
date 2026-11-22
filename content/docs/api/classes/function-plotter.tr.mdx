@@ -1,0 +1,69 @@
+---
+title: FunctionPlotter
+description: Bir fonksiyonu domain üzerinde örnekleyip SVG yol verisine dönüştürür.
+---
+
+`FunctionPlotter` bir fonksiyonu domain üzerinde örnekler ve örnekleri SVG yoluna çevirir. Sahne
+grafiğinden bilinçli olarak ayrıdır: aynı plotter bir SVG `PathNode`'una, bir canvas'a veya başsız
+bir teste hiçbir şey değiştirmeden beslenir.
+
+Örnekleme `generatePath` çağrısı başına bir kez olur. Domain dışındaki süreksizlikler hata
+fırlatılmadan atlanır; kutup noktası olan bir fonksiyon bile kullanılabilir bir yol üretir.
+
+## Constructor
+
+<TypeTable type={{
+    "new FunctionPlotter(options)": { description: "Tek bir fonksiyon için plotter oluşturur." },
+}} />
+
+### Seçenekler
+
+<TypeTable type={{
+    "fn": { type: "(x: number) => number", description: "Örneklenecek fonksiyon. Zorunlu." },
+    "domain": { type: "[number, number]", description: "Örneklenecek kapalı aralık. Varsayılan [-10, 10]." },
+    "samples": { type: "number", description: "Domain boyunca alınacak nokta sayısı. Varsayılan 200." },
+    "color": { type: "string", description: "Çizen render'lar için kontur rengi. Varsayılan #10B981." },
+    "strokeWidth": { type: "number", description: "Çizen render'lar için kontur kalınlığı. Varsayılan 3." },
+    "drawProgress": { type: "number", description: <>Çizilecek domain oranı, 0…1 aralığına kırpılır. Kademeli gösterim için kullanılır; varsayılan 1.</> },
+}} />
+
+## Özellikler
+
+<TypeTable type={{
+    "fn": { type: "(x: number) => number", description: "Örneklenecek fonksiyon; değiştirip başka bir eğri çizebilirsiniz." },
+    "domain": { type: "[number, number]", description: "Geçerli örneklemenin aralığı." },
+    "samples": { type: "number", description: "Domain boyunca geçerli nokta sayısı." },
+    "color": { type: "string", description: "Kontur rengi." },
+    "strokeWidth": { type: "number", description: "Kontur kalınlığı." },
+    "drawProgress": { type: "number", description: "0…1 gösterim oranı. 0,5 iken eğri domainin ortasında durur." },
+}} />
+
+## Metodlar
+
+<TypeTable type={{
+    "generatePath(plane)": {
+      type: "{ pathData, points }",
+      description: <>Fonksiyonu örnekler ve her noktayı <code>plane.toPixels</code> üzerinden çevirir. SVG <code>d</code> özniteliğini ve model/piksel nokta çiftlerini döndürür.</>,
+    },
+}} />
+
+## Kullanım
+
+```ts
+import { CoordinatePlane, FunctionPlotter, Shape } from '@medu/lerno';
+
+const plane = new CoordinatePlane({ width: 480, height: 320 });
+const plotter = new FunctionPlotter({ fn: (x) => x * x, domain: [-3, 3], color: '#3B82F6' });
+
+const { pathData, points } = plotter.generatePath(plane);
+// pathData: 'M 40.00 48.00 L 62.11 …'
+// points  : [{ x: -3, y: 9, px, py }, …]
+```
+
+`drawProgress`, bir gösterim animasyonunun sürdüğü değerdir: 0'dan 1'e çıkarılması, eğriyi şekli
+yeniden hesaplamadan domain boyunca büyütür.
+
+## İlgili
+
+- [CoordinatePlane](/tr/docs/api/classes/coordinate-plane): plotter'ın çevirdiği dönüşüm
+- [Fonksiyon Grafiği](/tr/docs/disciplines/mathematics/function-graph): çalışan bir örnek

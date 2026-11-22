@@ -1,0 +1,24 @@
+---
+title: Overview
+description: The components that place things on the scene and the primitive drawing parts.
+---
+
+This section collects two groups that go straight into a scene: components that build the layout,
+and primitive parts that draw themselves. Both sit on top of the `Node` tree; this is not a ready-made
+visual library, it is how you assemble your own layout.
+
+| Page | Covers |
+| --- | --- |
+| [Scene and coordinate grid](/docs/react/components/scene) | Responsive canvas, axes, and grid drawing |
+| [Primitive components](/docs/react/components/primitives) | `FunctionCurve`, `VectorArrow`, `TangentLine`, `RiemannSum`, `ProjectileTrajectory`, `MoleculeView` |
+
+## Usage
+
+Components are used inside a scene rather than alone. The typical arrangement is `[Scene]` plus
+`[CoordinateGrid]` plus a drawing part, and every part takes a shared input such as `plane` or
+`state`.
+
+## What it is not
+
+These components are not a dashboard or a chart library. A component only draws; data, scale, and
+color selection belong to the caller.

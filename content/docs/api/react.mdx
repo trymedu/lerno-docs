@@ -1,0 +1,62 @@
+---
+title: React API
+description: Display, LernoPlayer, and the options of every hook.
+---
+
+The React layer sits on top of the core and replaces none of its types. This page lists the
+properties of the components and hooks the package exports; usage scenarios live in
+[Lerno React](/docs/react).
+
+## Display
+
+The single component that draws a `Node` tree as SVG.
+
+<TypeTable type={{
+  "node": { type: "Node", required: true, description: "Root of the scene graph to draw." },
+  "width": { type: "number", default: "960", description: "Width of the SVG view box in scene units." },
+  "height": { type: "number", default: "540", description: "Height of the SVG view box in scene units." },
+  "className": { type: "string", description: "Class applied to the root `<svg>` element." },
+  "style": { type: "CSSProperties", description: "Inline style applied to the root `<svg>` element." },
+  "backgroundColor": { type: "string", description: "Background of the view box; transparent by default." },
+  "title": { type: "string", description: "Accessible name announced for the scene." },
+}} />
+
+## LernoPlayer
+
+Plays a `LernoDocument` from the first node to the end.
+
+<TypeTable type={{
+  "document": { type: "LernoDocument", required: true, description: "The document to play." },
+  "host": { type: "LernoHost", description: "Persistence, telemetry, media, and flow adapters." },
+  "extensions": { type: "LernoExtension[]", description: "Extensions attached during setup." },
+  "components": { type: "LernoComponentMap", description: "Component map used by media layers." },
+  "componentVersions": { type: "Record<string, number>", description: "Registered component versions for manifest checks." },
+  "nodeRenderers": { type: "CustomNodeRendererMap", description: "Renderers for `custom` nodes." },
+  "tone": { type: "'light' | 'dark'", description: "Layer surface for dark or light footage." },
+  "className": { type: "string", description: "Class applied to the root element." },
+  "style": { type: "CSSProperties", description: "Inline style applied to the root element." },
+}} />
+
+## useSimStep options
+
+<TypeTable type={{
+  "running": { type: "boolean", default: "true", description: "When false the loop is suspended and the component stops re-rendering." },
+  "maxDelta": { type: "number", default: "0.05", description: "Upper bound on the step length in seconds; prevents a background tab from jumping ahead." },
+}} />
+
+## Hooks
+
+| Signature | Returns | Description |
+| --- | --- | --- |
+| `useProperty(property)` | `T` | Subscribes to the value and triggers a repaint on change. |
+| `useSimStep(sim, options?)` | `number` | Advances the simulation on `requestAnimationFrame`; returns the frame count. |
+| `useDrag(node, handlers)` | `void` | Attaches a `DragListener` to a node and tears it down on unmount. |
+| `usePlayback(options?)` | `Playback` | Deterministic timeline: `progress`, `playing`, `play`, `pause`, `reset`. |
+| `useMotionValue(initial)` | `Property<T>` | Reactive value owned by the component lifetime. |
+| `useAnimate()` | `{ animate }` | Starts a tween or a spring with one call; all animations run on a single loop. |
+| `useSpring(source, options?)` | `Property<number>` | Produces a value that converges on a source with spring physics. |
+| `useLernoSession(document, options?)` | `Session` | Document session without the player chrome. |
+| `useLessonStage(document, options?)` | `LessonStageState` | Session plus timeline, variables, and layer resolution. |
+
+`useProperty` and `useDrag` are covered in [Getting started](/docs/react/getting-started);
+`usePlayback` and the animation hooks are covered in [Core concepts](/docs/react/concepts).

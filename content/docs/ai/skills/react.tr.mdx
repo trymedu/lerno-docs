@@ -1,0 +1,85 @@
+---
+title: "Skill: lerno-react"
+description: 'React katmanı skill''i: kompozisyon deseni, hook seçimi ve bileşen kuralları.'
+---
+
+Bu sayfa `skills/lerno-react/SKILL.md`'nin içeriğidir. Görev bir React bileşeni, hook, HeroUI
+kontrolü veya laboratuvarıysa yükleyin. İçerik belgeleri, değerlendiriciler ve React dışı işler
+[Skill: lerno](/tr/docs/ai/skills/lerno) sayfasına gider.
+
+`@medu/lerno-react` bir **ince bağlayıcıdır**, framework değildir. React bileşenlerini ve
+hook'larını çekirdek tiplerin üstüne ekler ve hiçbirini değiştirmez. Bir bileşen fizik, değerlendirme
+veya modele ait durumu sahiplenmez.
+
+## Kompozisyon deseni
+
+Her sahne aynı üç adımı izler: durumu kur, ağacı bir kez oluştur, abone ol.
+
+```tsx
+'use client';
+
+import { useMemo } from 'react';
+import { CircleNode, Node, Property } from '@medu/lerno';
+import { Display, useProperty } from '@medu/lerno-react';
+
+export function Scene() {
+  const radius = useMemo(() => new Property(40), []);
+  const root = useMemo(() => {
+    const circle = new CircleNode(240, 160, radius.get(), { fill: 'var(--accent)' });
+    radius.link((value) => (circle.radius = value));
+    return new Node({ children: [circle] });
+  }, [radius]);
+
+  useProperty(radius);
+  return <Display node={root} width={480} height={320} />;
+}
+```
+
+Ağaç için `useMemo` zorunludur: `root` her render'da yeniden kurulursa dinleyiciler atılır ve yapılan
+iş kaybolur. `link` hemen çalışır; ilk kare zaten doğrudur.
+
+## Hook'lar ve hangisine ne zaman başvurulur
+
+| Hook | Ne zaman | Not |
+| --- | --- | --- |
+| `useProperty(p)` | Bir bileşen değer değişince yeniden boyanmalı | Geçerli değeri döndürür; başka hiçbir şey render olmaz |
+| `useSimStep(sim, opts)` | Durum `requestAnimationFrame` ile ilerliyorsa | `maxDelta`, sekme geri geldiğindeki sıçramayı sınırlar |
+| `useDrag(node, handlers)` | Bir tutamaç model durumunu hareket ettirmeli | Kaldırıldığında temizlenir; `inputEnabled`'ı açar |
+| `usePlayback(opts)` | Sabit süreli bir zaman çizelgesi gerekiyorsa | Deterministiktir; aynı ilerleme tekrar üretilebilir |
+| `useAnimate()` | Birkaç tween veya spring aynı döngüyü paylaşıyorsa | `animate(prop, to, { spring: true })` |
+| `useSpring(src, opts)` | Bir değerin hedefe yakınsaması gerekiyorsa | Kaynak sayı ya da `Property` olabilir |
+
+## Kurallar
+
+- **Bileşenler `'use client'`'dır.** `Property` okurlar ve `requestAnimationFrame` kullanırlar.
+- **Bileşen dışına ulaşılmaz.** Her şey props ile gelir: belge, `host`, sahne fabrikası. Paketin
+  içinde fetch yok, modül düzeyinde singleton yok.
+- **HeroUI ve tema token'larıyla stil verin.** Renkler `sceneColors` / CSS değişkenlerinden gelir,
+  sert hex'ten değil; böylece açık ve koyu tema çalışmaya devam eder.
+- **Çiz, hesaplama yapma.** Geometri ve fizik çekirdeğe aittir; bileşen bir durumu okur ve çizer.
+
+## Doğrulama
+
+```bash
+bunx turbo run type-check --filter=@medu/lerno-react
+bunx turbo run test --filter=@medu/lerno-react
+cd apps/lerno-docs && bun run build
+```
+
+Docs derlemesi gömülü her örneği de tip kontrolünden geçirir; bozuk bir prop derleme hatası olarak
+yüzeye çıkar.
+
+## Sık hatalar
+
+| Hata | Düzeltme |
+| --- | --- |
+| Ağacı her render'da yeniden kurmak | Girdilerine bağlı `useMemo`'ya sarın |
+| Fiziği bileşene koymak | `Property`'de modelleyin, görünümde okuyun |
+| Sert kodlanmış renkler | `sceneColors` veya CSS değişkeni kullanın |
+| `state`'i yalnızca mount'ta okumak | `useProperty` ile abone olun; değer sonra değişir |
+| Her prop değişiminde `key` sıfırlamak | Animasyon değerine değil kimliğe bağlayın |
+
+## İlgili
+
+- [Genel Bakış](/tr/docs/ai/skills): skill'lerin kurulumu ve doğrulaması
+- [Skill: lerno](/tr/docs/ai/skills/lerno): çekirdek karşılığı

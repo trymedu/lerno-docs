@@ -1,0 +1,86 @@
+---
+title: Sorun giderme
+description: Lerno'nun fırlattığı hatalar, nedenleri ve çözümleri.
+---
+
+## Hızlı tablo
+
+| Mesaj | Neden | Çözüm |
+| --- | --- | --- |
+| `Invalid Lerno document` | Şema doğrulaması düştü | `error.issues` okuyun; aşağıya bakın |
+| `Document schema version N; this runtime supports M.` | Belge çalışma zamanından yeni | Paketi yükseltin veya `schemaVersion` düşürün |
+| `No migration defined for version N.` | O sürüm için adım yok | `DocumentMigration` ekleyin veya belgeyi yeniden kaydedin |
+| `Component not registered: ui.switch` | Manifest tipi bileşen haritasında yok | `createComponentMap({ 'ui.switch': Switch })` |
+| `no canvas painter for: app.custom` | Özel katmanın canvas karşılığı yok | Karşılık yazın veya atlanmasını kabul edin |
+| `Could not register font "Arial" from /path` | Font dosyası yok veya okunamıyor | `registerFont` yolunu düzeltin |
+| `Font family "X" cannot render: ş ı` | Font bu glifleri içermiyor | Kapsayan bir font kullanın |
+| `Audio track not found: /path` | `audio` var olmayan dosyayı gösteriyor | Yolu düzeltin |
+| `ffmpeg could not decode /path` | Bozuk dosya veya desteklenmeyen kodek | `ffprobe` ile denetleyin |
+| `Three.js scenes cannot be exported headlessly` | 2B dışa aktarıcıya bir Three.js sahnesi verildi | 3B katmanı ayrı çıkarın ve `exportMp4({ video })` ile birleştirin |
+| `Cannot find module '@medu/lerno'` | Paket derlenmemiş (import dist'e bakar) | `packages/lerno` içinde `bun run build` |
+
+## Doğrulama hataları
+
+`defineDocument` tek bir `LernoValidationError` fırlatır; mesaj geneldir, nedenler `issues` içindedir:
+
+```ts
+try {
+  defineDocument(input);
+} catch (error) {
+  for (const issue of (error as LernoValidationError).issues) {
+    console.error(issue.path.join('.'), issue.message);
+  }
+}
+```
+
+Kontrol edilenler: node, seçenek, katman ve anchor id'lerinin tekilliği; `next` ve dal `target`
+hedeflerinin varlığı; çoktan seçmeli `correct` id'sinin seçenekler arasında olması; katman
+bileşeninin `components` içinde bildirilmesi; `$var`, `bind.value` ve `visibleWhen` değişkenlerinin
+tanımlı olması.
+
+## Belge sürümü
+
+Çalışma zamanı gelecekten gelen belgeyi, uyduğu şema varmış gibi okumak yerine reddeder. Belge
+`schemaVersion: 2` diyor ve çalışma zamanı 1 ise ya paket yükseltilir ya belge desteklenen sürüme
+çekilir.
+
+Eski belge için `defineDocument` önce `migrateDocument` çalıştırır. Zincirde boşluk varsa
+`No migration defined for version N` hatası gelir; eksik adım eklenir:
+
+```ts
+import { migrateDocument, type DocumentMigration } from '@medu/lerno';
+
+const steps: DocumentMigration[] = [
+  { from: 0, migrate: (doc) => ({ ...doc, schemaVersion: 1 }) },
+];
+```
+
+## Görünmeyen katmanlar
+
+1. Bileşen kayıtlı mı? Kayıtsız tip “Component not registered” gösterir.
+2. Zaman aralığı doğru mu? `fromMs <= zaman < toMs`; sıfır uzunluktaki aralık hiç görünmez.
+3. `visibleWhen` sağlanıyor mu? Değişken beklenen değere eşit olmalı.
+4. Export'ta `layers` seçeneğine belge verildi mi? Verilmezse MP4'te katman olmaz.
+
+## Video ile katmanlar kayıyor
+
+Oynatıcı tek saate ihtiyaç duyar. `InteractiveVideo` veya `LernoPlayer` bileşenine stage'i geçirin;
+video zamanı stage'e yazılır ve katmanlar oradan okur. Stage yoksa bileşen kendi zamanını tutar; bu
+oyuncak bir demo için yeterli, oturumun yanında yanlıştır.
+
+## Export uygulamadan farklı görünüyor
+
+Uygulama React bileşenlerini, export canvas karşılıklarını çizer. Renkler ve geometri yerleşik
+tabloyu izler, ama özel bileşenin karşılığı yoktur ve uyarıyla atlanır. Dosyada görünmesi gereken özel
+görseller sahne grafiğinin içinde kalmalıdır.
+
+## HTML sayfasında soru yok
+
+`exportHtml` anchor'lar için etiket ve gövde yazar; soru bileşeni ve puanlama sayfada yer almaz.
+Yanıt toplanması gerekiyorsa uygulamada `LernoPlayer` kullanılır; HTML çıktısı oynatma içindir.
+
+## İlgili
+
+- [SSS](/tr/docs/faq)
+- [Belge modeli](/tr/docs/content-types/model)
+- [Compositing](/tr/docs/export/compositing)

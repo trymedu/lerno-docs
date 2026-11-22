@@ -1,0 +1,40 @@
+---
+title: Örnekler
+description: 'Üç canlı örnek: switch, özel select ve slider.'
+---
+
+import { ComponentExamples } from '@/components/react/ComponentExamples';
+
+Canlı önizlemeler React referans renderer'ıyla çiziliyor. Sözleşme çekirdekte; her component sayfası
+düz JavaScript sürümünü gösteriyor. Select özel bir listbox kullanır; açıp ok tuşlarıyla deneyebilirsin.
+
+## 7 saniyelik video demoları
+
+Bu klipler aynı Lerno sahne grafiğinden üretiliyor. Bir değişken (`airOn`, `g`, `mass`) zamanlanmış
+olarak değişiyor, sahne yeniden hesaplanıyor; elle çizilmiş kare yok.
+
+<div className="not-prose grid gap-4 md:grid-cols-3">
+  <figure className="m-0 flex flex-col gap-2">
+    <video src="/media/examples/switch.mp4" autoPlay loop muted playsInline className="w-full rounded-xl border border-zinc-200 bg-[#FAF8F1]" />
+    <figcaption className="mt-1 text-xs leading-relaxed text-zinc-400"><strong className="text-zinc-100">Switch → airOn</strong>: boolean döner; toplar hava direncinde ayrışır.</figcaption>
+  </figure>
+  <figure className="m-0 flex flex-col gap-2">
+    <video src="/media/examples/select.mp4" autoPlay loop muted playsInline className="w-full rounded-xl border border-zinc-200 bg-[#FAF8F1]" />
+    <figcaption className="mt-1 text-xs leading-relaxed text-zinc-400"><strong className="text-zinc-100">Select → g</strong>: aynı düşme 9,8 m/s² için yeniden hesaplanır.</figcaption>
+  </figure>
+  <figure className="m-0 flex flex-col gap-2">
+    <video src="/media/examples/slider.mp4" autoPlay loop muted playsInline className="w-full rounded-xl border border-zinc-200 bg-[#FAF8F1]" />
+    <figcaption className="mt-1 text-xs leading-relaxed text-zinc-400"><strong className="text-zinc-100">Slider → mass</strong>: sayısal değişken vurguyu taşır; düşme eşit kalır.</figcaption>
+  </figure>
+</div>
+
+<ComponentExamples />
+
+## Her örnek ne gösteriyor
+
+1. **Switch**: boolean değişken; okuma kartı anında yansıtır.
+2. **Select**: seçili öğeyi işaretleyen, klavyeyle gezilebilen özel menü.
+3. **Slider**: sayısal aralık; değer bağlı değişkene yazılır.
+
+Üçü de aynı yüzey kurallarını kullanır: nötr border, 10px radius, beyaz zemin ve focus-visible halkası.
+Bir layer bunları `bind.value` ile bağladığında player yerel state yerine oturum değişkenini kullanır.

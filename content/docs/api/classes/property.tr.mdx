@@ -1,0 +1,66 @@
+---
+title: Property
+description: 'Gözlemlenebilir değer: okuma, yazma, dinleyiciler ve türetilmiş değer.'
+---
+
+`Property`, model katmanının tek değişim kapısıdır. Değer okunur, yazılır ve dinleyicilere duyurulur;
+view bu değeri `link` ile okur. Model view'ı tanımadığı için bir değeri iki ayrı görünüm besleyebilir
+ve aynı property başsız olarak bir testte sürülebilir.
+
+Yazma eşitlik denetiminden geçer: yeni değer eskisiyle aynıysa dinleyiciler çağrılmaz. Bu, sahne
+grafiğinde gereksiz yeniden çizimi engeller.
+
+## Constructor
+
+<TypeTable type={{
+    "new Property(value, options?)": { description: <><code>options.equals</code> verilirse eşitlik testi o fonksiyona devredilir.</> },
+}} />
+
+`PropertyOptions.equals?: (a, b) => boolean`. Varsayılan karşılaştırma `===`'dir; vektör ve nesne
+değerlerinde bu genellikle yeterli değildir, çünkü `Vector2` zaten değişmezdir.
+
+## Properties
+
+<TypeTable type={{
+    "value": { type: "T", description: <>Okuma ve yazma erişimcisi. Yazma, <code>set</code> ile aynı davranışı gösterir.</> },
+    "initial": { type: "T", description: <>Oluşturulurken verilen değer; <code>reset</code> bunu geri yükler.</> },
+    "listenerCount": { type: "number", description: "Abone sayısı." },
+}} />
+
+## Metodlar
+
+<TypeTable type={{
+    "get()": { type: "T", description: "Güncel değeri okur." },
+    "set(next)": { type: "void", description: "Değeri yazar ve dinleyicileri çağırır. Değer değişmediyse hiçbir şey olmaz." },
+    "reset()": { type: "void", description: <><code>initial</code> değerine döner.</> },
+    "link(listener)": { type: "() => void", description: "Dinleyici ekler ve **mevcut değerle hemen** çağırır. Dönüş, abonelikten çıkarır." },
+    "lazyLink(listener)": { type: "() => void", description: "Dinleyicisiz abonelik; yalnızca değişimde çağrılır. Türetilmiş değerlerde kullanılır." },
+    "unlink(listener)": { type: "void", description: "Belirtilen dinleyiciyi çıkarır; olmayan dinleyici sessizce yok sayılır." },
+    "dispose()": { type: "void", description: "Tüm dinleyicileri düşürür; property bir daha haber vermez." },
+}} />
+
+`link` ile `lazyLink` arasındaki fark, ilk kareyi belirler. UI tarafı `link` ister (anında çizim),
+türetilmiş değer `lazyLink` ister (kurulumda gereksiz güncelleme olmasın).
+
+## Türetilmiş değer
+
+`DerivedProperty`, başkalarından hesaplanan salt-okunur bir değerdir.
+
+<TypeTable type={{
+    "new DerivedProperty(dependencies, derive)": { description: <><code>dependencies</code> sırasına göre okur; <code>derive</code> saf olmalıdır.</> },
+    "get isDisposed()": { description: <><code>dispose</code> çağrıldıysa <code>true</code>.</> },
+    "dispose()": { description: "Bağımlılık aboneliklerini ve tüm dinleyicileri düşürür." },
+}} />
+
+Bağımlılıklar `lazyLink` ile bağlanır; bu yüzden türetilmiş bir değeri kurmak mevcut değeri
+değiştirmez.
+
+## React tarafı
+
+`useProperty(property)` bu nesneyi React'e bağlar: değeri okur, değişimde yeniden çizim tetikler.
+Ayrıntı: [Display ve hook'lar](/tr/docs/react/concepts/scenery).
+
+## İlgili
+
+- Sahne grafiği ile ilişki: [Reaktif Model](/tr/docs/concepts/model)
+- Event yayını için ayrı bir sınıf: [Emitter](/tr/docs/concepts/model)

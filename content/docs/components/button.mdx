@@ -1,0 +1,56 @@
+---
+title: Button
+description: One-shot action that writes true to its bound variable.
+---
+
+import { ButtonDemo } from '@/components/react/ComponentDemos';
+
+A button is intentionally narrow: clicking it writes `true` to the bound variable. It is not a
+general-purpose callback API; arbitrary actions belong to an application component.
+
+<ButtonDemo />
+
+## Manifest layer
+
+```json
+{
+  "id": "confirm",
+  "component": "ui.button",
+  "fromMs": 0,
+  "bind": { "value": "confirmed" },
+  "props": { "label": "Confirm", "variant": "primary" }
+}
+```
+
+## JavaScript
+
+```js
+import { createSession, createInteractionRuntime } from '@medu/lerno';
+
+const runtime = createInteractionRuntime(document, createSession(document));
+const item = runtime.layersAt('clip', video.currentTime * 1000)
+  .find((entry) => entry.layer.id === 'confirm');
+
+const action = document.createElement('button');
+action.type = 'button';
+action.textContent = String(item.props.label);
+action.addEventListener('click', () => runtime.change(item.layer, true));
+```
+
+## Props
+
+| Prop | Type | Default |
+| --- | --- | --- |
+| `label` | `string` | `Devam` |
+| `variant` | `'primary' \| 'secondary'` | `primary` |
+| `value` | `boolean` | None |
+| `onChange` | `(value: boolean) => void` | None |
+| `disabled` | `boolean` | `false` |
+| `tone` | `'light' \| 'dark'` | `light` |
+
+## Behaviour
+
+- A click always writes `true`; reset the variable from outside (a new scene, a timer, or another
+  control).
+- `primary` is the dark filled button, `secondary` is the outlined surface.
+- The button has no internal loading state; use `disabled` while a host action is in flight.

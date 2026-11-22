@@ -1,0 +1,62 @@
+---
+title: Low-level scene graph
+description: Build a scene from scratch with Display, useProperty, useSimStep, and a custom node registry.
+---
+
+import { CustomScene } from '@/components/react/CustomScene';
+
+`@medu/lerno-react` is a thin layer that connects the core scene graph to React and the DOM. A content
+type is not required; a `Node` tree and a model can be built directly.
+
+The scene below is written entirely at the low level: a `Property` model, a `Node` tree, a
+`DragListener`, and an `animateVector2` tween. No `LernoDocument`.
+
+<CustomScene />
+
+## Display
+
+```tsx
+import { Display } from '@medu/lerno-react';
+
+<Display node={root} width={960} height={540} />;
+```
+
+`Display` lowers `node.toRender()` (the framework-agnostic render tree) to SVG. Pointer events are
+forwarded to nodes with `inputEnabled`.
+
+## Hooks
+
+```tsx
+import { useProperty, useSimStep } from '@medu/lerno-react';
+
+function View({ model, sim }) {
+  const x = useProperty(model.x); // re-render when the Property changes
+  useSimStep(sim);               // advance sim.step(dt) inside a rAF loop
+  return <Display node={scene} />;
+}
+```
+
+| Hook | Role |
+| --- | --- |
+| `useProperty(property)` | Subscribes to a `Property` and returns its value |
+| `useSimStep(sim, { running })` | Advances the simulation on rAF and returns the frame count |
+
+## Your own node
+
+When the core has no visual for a requirement, `ExtensionNode` plus `registerNodeRenderer` allows
+supply the drawing:
+
+```tsx
+import { ExtensionNode } from '@medu/lerno';
+import { Display, registerNodeRenderer } from '@medu/lerno-react';
+
+registerNodeRenderer('sparkline', (data) => (
+  <polyline points={(data as number[]).map((v, i) => `${i * 10},${100 - v}`).join(' ')} fill="none" stroke="var(--accent)" />
+));
+
+const node = new ExtensionNode('sparkline', [10, 40, 20, 80, 55]);
+<Display node={node} />;
+```
+
+This is the mechanism that makes Lerno **fully customizable**: adding a new kind of visual does not
+require changing the core.

@@ -1,0 +1,130 @@
+---
+title: 'Comparison: Newton’s laws in 20 seconds'
+description: The same three-beat storyboard built with Lerno, Remotion, and Manim, plus the measured render times.
+---
+
+import { ComparisonVideo } from '@/components/react/ComparisonVideo';
+
+The same 20-second scene was built three times: a puck, two blocks, two skaters. The comparison is not
+a ranking. It records how each tool renders the same footage and how long the render takes.
+
+<div className="not-prose grid gap-5 lg:grid-cols-3">
+  <figure className="m-0 flex flex-col gap-2">
+    <ComparisonVideo src="/media/comparison/lerno.mp4" poster="/media/comparison/lerno.jpg" label="Lerno" />
+    <figcaption className="text-xs leading-relaxed text-zinc-400">
+      <strong className="text-zinc-100">Lerno</strong>: scene graph, Timeline, and lerno-export. Rendering
+      is fast, but the layout is written by hand.
+    </figcaption>
+  </figure>
+  <figure className="m-0 flex flex-col gap-2">
+    <ComparisonVideo src="/media/comparison/remotion.mp4" poster="/media/comparison/remotion.jpg" label="Remotion" />
+    <figcaption className="text-xs leading-relaxed text-zinc-400">
+      <strong className="text-zinc-100">Remotion</strong>: one React component per frame. The most
+      comfortable authoring model, and the slowest render of the three.
+    </figcaption>
+  </figure>
+  <figure className="m-0 flex flex-col gap-2">
+    <ComparisonVideo src="/media/comparison/manim.mp4" poster="/media/comparison/manim.jpg" label="Manim" />
+    <figcaption className="text-xs leading-relaxed text-zinc-400">
+      <strong className="text-zinc-100">Manim</strong>: Python mobjects. Fast for this scene, but the
+      output is a video, not a lesson.
+    </figcaption>
+  </figure>
+</div>
+
+## Render numbers
+
+| | Lerno | Remotion | Manim |
+| --- | ---: | ---: | ---: |
+| Wall time, 20 s @ 720p30 | **1.4 s** | **62 s** | **4.4 s** |
+| Output size | 127 KB | 227 KB | 194 KB |
+| Source lines | 190 | 121 | 122 |
+| First-run setup | workspace + ffmpeg | Remotion CLI + Chrome | `uvx`, Cairo/Pango |
+| Second render | 1.4 s | 62 s | 4.4 s |
+
+Measured on an Apple M5, macOS 26.4, 1280×720, 30 fps, 600 frames, silent. Wall time includes
+encoding; for Remotion it also includes browser startup. It does not include writing the code.
+Manim’s number covers circles and rectangles; adding LaTeX or 3D changes it. Writing time was not
+measured, so source lines are the only available proxy.
+
+## Results
+
+- **Lerno** has the fastest loop. Change a number, rerun, done. The cost is a hand-built scene: no
+  preview panel and no timeline editor. The 1.4 seconds is export time, not the time spent placing
+  labels.
+- **Remotion** has the slowest render and the most comfortable authoring experience. React, preview,
+  and ecosystem. For a polished promo, it remains the starting point.
+- **Manim** renders twenty seconds of simple vectors in 4.4 seconds. Once equations, LaTeX, and 3D
+  appear, the number changes. It has no session, variables, or grading.
+
+## Side by side
+
+| | Lerno | Remotion | Manim |
+| --- | --- | --- | --- |
+| Input | `LernoDocument` + `Node` tree | React TSX components | Python `Scene` |
+| Time model | `Timeline` / `seek` | `useCurrentFrame()` | scene playback |
+| Render path | SVG in React; canvas in export | React DOM → browser renderer | Cairo → video |
+| Interactivity | variables, layers, session, grading | custom code | none |
+| This demo’s output | MP4 from `lerno-export` | MP4 from `@remotion/renderer` | MP4 from Manim |
+| Best at | lesson runtime and interaction | video production and React | mathematical typesetting |
+| Trade-off | newer ecosystem; hand-built scenes | React + browser required | no session or grading |
+
+## When each tool fits
+
+- A lesson that must react to a student: **Lerno**.
+- A short promotional video with produced visuals: **Remotion**.
+- Mathematical animation without interaction: **Manim**.
+
+## Code shape
+
+<details>
+<summary>Lerno</summary>
+
+```ts
+const scene = {
+  root,
+  step(dt) {
+    root.clearChildren();
+    root.addChild(build(time += dt));
+  },
+};
+
+await exportMp4(scene, { out: 'lerno.mp4', width: 1280, height: 720, fps: 30, duration: 20, fontFamily });
+```
+
+</details>
+
+<details>
+<summary>Remotion</summary>
+
+```tsx
+const NewtonVideo = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const t = frame / fps;
+  return <AbsoluteFill>{/* SVG driven by t */}</AbsoluteFill>;
+};
+
+registerRoot(() => (
+  <Composition id="Newton" component={NewtonVideo} durationInFrames={600} fps={30} width={1280} height={720} />
+));
+```
+
+</details>
+
+<details>
+<summary>Manim</summary>
+
+```python
+class NewtonComparison(Scene):
+    def construct(self):
+        self.camera.background_color = "#101418"
+        puck = Circle(radius=0.28, color=TEAL, fill_opacity=1)
+        force = Arrow(puck.get_right(), puck.get_right() + RIGHT * 1.8, color=BLUE)
+        self.play(GrowArrow(force))
+        self.play(puck.animate.shift(RIGHT * 5.2), run_time=2.5, rate_func=linear)
+```
+
+</details>
+
+Clips are in `public/media/comparison/`. The page only embeds them.

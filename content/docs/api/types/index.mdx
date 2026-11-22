@@ -1,0 +1,120 @@
+---
+title: Types
+description: Interfaces and type aliases exported by @medu/lerno, grouped by domain.
+---
+
+Interfaces and type aliases describe the shapes the runtime accepts and produces. Nothing here is a
+value at runtime: these types exist for the compiler and disappear after compilation.
+
+Every type below is exported from `@medu/lerno`.
+
+## Document
+
+The content contract: what a `LernoDocument` is made of.
+
+<TypeTable type={{
+    "LernoDocument": { description: "A validated document: metadata, nodes, flow, scoring, assets." },
+    "LernoNode": { description: "Union of the eight node archetypes." },
+    "SlideNode | QuestionNode | MediaNode | BranchNode": { description: "Archetypes that carry content." },
+    "InfoNode | CardsNode | HotspotNode | CustomNode": { description: "Archetypes drawn by a viewer or an extension." },
+    "SlideBlock": { description: "Union of heading, text, image, callout, and question blocks." },
+    "MediaAnchor": { description: "A timestamp that highlights part of a media node." },
+    "BranchChoice": { description: "One branch option: label plus target node id." },
+    "Card | CardsMode | Hotspot": { description: "Payload types for cards and hotspot nodes." },
+    "DocumentMetadata": { description: "Title, subject, grade, language, and authoring fields." },
+    "Theme | Scoring | Flow": { description: "Document-level settings." },
+    "AssetRef | OutcomeRef": { description: "References to media assets and to results." },
+}} />
+
+### Inputs
+
+Input types mirror the runtime types but accept partial data: `LernoDocumentInput` is what
+`defineDocument` takes before defaults are applied.
+
+<TypeTable type={{
+    "LernoDocumentInput": { description: "Raw document input accepted by defineDocument." },
+    "LernoNodeInput": { description: "Raw node input accepted by the preset helpers." },
+    "QuestionItemInput": { description: "Raw question item before defaults are applied." },
+    "SlideBlockInput | MediaAnchorInput | CardInput | HotspotInput": { description: "Raw inputs for the corresponding payload types." },
+}} />
+
+## Questions
+
+Every question kind is a discriminated member of `QuestionItem`, narrowed by its `kind`.
+
+<TypeTable type={{
+    "QuestionItem": { description: "Union of all thirteen question kinds." },
+    "QuestionKind": { description: "The literal union of kind values." },
+    "MultipleChoiceItem | TrueFalseItem | PollItem": { description: "Choice and truth questions." },
+    "ShortAnswerItem | OpenItem": { description: "Free text." },
+    "NumericItem | ScaleItem": { description: "Numbers." },
+    "FillBlanksItem | OrderingItem | MatchingItem": { description: "Structured answers." },
+    "EquationItem | ConceptMapItem | SolutionStepsItem": { description: "Math and concept questions." },
+    "Choice | ConceptRelation | SolutionStep": { description: "Entry shapes inside the items above." },
+    "RubricCriterion | Feedback": { description: "Scoring detail attached to an item." },
+}} />
+
+## Grading
+
+<TypeTable type={{
+    "GradeStatus": { description: "'correct' | 'incorrect' | 'partial' | 'pending' | 'ungraded'." },
+    "GradeOutcome": { description: "What every grade call returns: status, score, maxScore, detail, misconceptions." },
+    "QuestionDefinition": { description: "A registered kind: item schema, response schema, and grade function." },
+    "QuestionRef": { description: "A question found in a document: node id, item, and points." },
+}} />
+
+## Session
+
+<TypeTable type={{
+    "LernoSession": { description: "The object createSession returns: cursor, answering, scoring, subscription." },
+    "LernoSessionState": { description: "Serializable snapshot: cursor, visited, answers, status." },
+    "AnswerRecord": { description: "One graded answer: response, outcome, and the node it belongs to." },
+    "SessionScore": { description: "Earned points, available points, ratio, and the passing flag." },
+    "SessionOptions": { description: "host, registry, and a state to resume from." },
+}} />
+
+## Host adapters
+
+The interfaces an application implements to supply persistence, telemetry, and identity. Their
+contract is described in [Extensions](/docs/extensions).
+
+<TypeTable type={{
+    "LernoHost": { description: "Bundle of every adapter with no-op defaults." },
+    "TelemetryEvent | TelemetrySink": { description: "Event shape and its consumer." },
+    "SessionStorage": { description: "Save and load of session state by document id." },
+    "MediaResolver": { description: "Resolves an asset id to a playable URL." },
+    "RealtimeChannel": { description: "Minimal publish/subscribe surface for live classrooms." },
+    "IdentityProvider": { description: "Returns the learner id used in records." },
+    "FlowResolver": { description: "Picks the next node in adaptive mode." },
+}} />
+
+## Registry and extension
+
+<TypeTable type={{
+    "LernoRegistry": { description: "Maps node kinds, question kinds, and flow modes to their implementations." },
+    "LernoExtension": { description: "What an extension contributes to the registry." },
+    "LernoOptions | LernoInstance": { description: "createLerno's input and return value." },
+    "NodeDefinition": { description: "How a custom node kind validates and renders." },
+}} />
+
+## Options and supporting types
+
+<TypeTable type={{
+    "CoordinateOptions": { description: "CoordinatePlane dimensions, ranges, and tick settings." },
+    "FunctionPlotOptions": { description: "FunctionPlotter sampling options." },
+    "TimelineOptions | TimelineAnchor": { description: "Timeline construction and its markers." },
+    "PresetOptions": { description: "type, scoring, assets, and theme accepted by every preset helper." },
+    "VirtualLabStep": { description: "One step of the virtual lab preset." },
+    "AtomNode | ChemicalBond": { description: "Molecule graph entries for Molecule2D." },
+}} />
+
+## Zod schemas
+
+Each of the types above is backed by a `*Schema` constant: `LernoDocumentSchema`,
+`QuestionItemSchema`, `ScoringSchema`, and so on. They are exported for applications that need to
+validate untrusted input at their own boundary; the library validates internally with them.
+
+## See also
+
+- [Classes](/docs/api/classes): stateful exports
+- [Functions](/docs/api/functions): entry points

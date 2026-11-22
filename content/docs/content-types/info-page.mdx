@@ -1,0 +1,27 @@
+---
+title: Information page
+description: Panels and information cards.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+Panels and information cards.
+
+## Usage
+
+```ts
+infoPage('info-1', { title: 'Summary' }, [
+  { title: 'Rule', body: 'Derivative of x^n is n·x^(n−1)' },
+]);
+```
+
+## Embedded Example
+
+<LernoPlayer document={contentTypeDemos['info-page']} />
+
+## How It Is Built
+
+It is not a separate engine; it is a recipe that assembles the right nodes:
+
+- An `info` node

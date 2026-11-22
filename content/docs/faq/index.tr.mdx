@@ -1,0 +1,67 @@
+---
+title: SSS
+description: İlk ders yayına çıkmadan önce sorulan kısa soruların yanıtları.
+---
+
+## Hangi paketle başlamalıyım?
+
+Sahne, belge veya puanlama istiyorsanız React olmadan `@medu/lerno`. React arayüzü kuruyorsanız
+`@medu/lerno-react`. Yalnızca dosya çıktısı gerekiyorsa (MP4 veya HTML) `@medu/lerno-export`.
+
+## React olmadan kullanılabilir mi?
+
+Evet. Çekirdek ne React ne DOM içe alır. `createLessonStage`, `layersAt` ve `Display`'in render ağacı
+düz değerlerdir; `@medu/lerno-export` bunları canvas ile çizer.
+
+## Her şey neden fade ile beliriyor?
+
+Vuruş kararı verilmediğinde ajanın başvurduğu varsayılan budur. `lerno-motion` skill'i bunun için var:
+önce vuruş tablosu, sonra öğe başına tek ve bilinçli bir hareket. Bkz.
+[Skill: lerno-motion](/tr/docs/ai/skills/motion).
+
+## Zamanlayıcı, katman veya soru nerede durmalı?
+
+Belgede. Katman `fromMs`/`toMs` ile props ve isteğe bağlı bağdan oluşur; anchor bir zaman ve eylemdir;
+soru bir öğe ve notudur. Oynatıcı yalnızca belgenin söylediğini çizer.
+
+## ffmpeg gerekli mi?
+
+Yalnızca MP4 çıktısı için. `exportMp4` ikiliyi `FFMPEG_PATH`, `ffmpeg-static` veya `PATH` üzerinden
+bulur. HTML çıktısı ve oynatıcı ek bir şey istemez.
+
+## Tarayıcı olmadan export alabilir miyim?
+
+Evet. MP4 hattı ffmpeg ve `@napi-rs/canvas`; HTML hattı metin üretimi. Chromium, ekran görüntüsü veya
+headless sayfa yok.
+
+## Bir 3B sahneyi headless dışa aktarabilir miyim?
+
+Hayır. `@medu/lerno-three` tarayıcıda WebGL ile çizer ve render ağacı değil piksel üretir; bu nedenle
+`@medu/lerno-export` bir Three.js sahnesini özel bir hatayla reddeder. 3B katmanı tarayıcıda veya bir
+WebGL arka ucunda çıkarın, elde edilen videoyu `exportMp4({ video })` ile birleştirin.
+
+## `ScenePlayer` ile `LernoPlayer` arasındaki fark ne?
+
+`LernoPlayer` bir belgeyi yürütür: node'lar, sorular, puanlama, skor. `ScenePlayer` tek bir sahne
+grafiğini kendi saatiyle oynatır, oturum taşımaz. Çizilmiş bir görsel için ikincisi, ders için birincisi.
+
+## İlerlemeyi nasıl saklarım?
+
+Host depolamasını bağlayın. `createBrowserHost()` oturumu ve oynatma konumunu sürümlü bir zarfla
+`localStorage`'a yazar; `useLessonStage`'e `host` olarak verin.
+
+## Aynı ders neden MP4'te ve uygulamada farklı görünüyor?
+
+Uygulama React bileşenlerini, MP4 ise `@medu/lerno-export` içindeki canvas karşılıklarını çizer. Zaman
+aralığı, görünürlük kuralları ve bağlar ortaktır; pikseller değil. Karşılığı olmayan bileşen sessizce
+düşmez, uyarıyla atlanır.
+
+## İki katman üst üste binebilir mi?
+
+Evet, belge sırası belirler. Sonraki katman üste çizilir; `fadeMs` her birini kendi aralığında açar.
+
+## Belge biçimi değişir mi?
+
+`schemaVersion` taşır ve `defineDocument` eski belgeleri doğrulamadan önce `migrateDocument` ile
+yükseltir. Bilinmeyen gelecek sürüm, güncelmiş gibi okunmak yerine hata verir. Bkz.
+[Belge modeli](/tr/docs/content-types/model).

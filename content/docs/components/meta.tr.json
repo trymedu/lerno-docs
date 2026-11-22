@@ -1,0 +1,5 @@
+{
+  "title": "Bileşenler",
+  "description": "Player'ın manifestten çizdiği etkileşimli kontroller.",
+  "pages": ["index", "switch", "button", "select", "slider", "readout", "javascript", "examples"]
+}

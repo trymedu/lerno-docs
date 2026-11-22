@@ -1,0 +1,37 @@
+---
+title: Eğik Atış Laboratuvarı
+description: 'ProjectileLab: hız ve açıyı değiştirip uçuşu canlandırın.'
+---
+
+import { ProjectileLab } from '@medu/lerno-react';
+import { DocDemo } from '@/components/react/DocDemo';
+
+export const SOURCE = `import { ProjectileLab } from '@medu/lerno-react';
+
+// usage
+<ProjectileLab />;
+
+// inside the lab: a closed-form trajectory feeds a drawing component
+import { ProjectileSimulation } from '@medu/lerno';
+import { ProjectileTrajectory, sampleProjectile } from '@medu/lerno-react';
+
+const shot = new ProjectileSimulation(32, 45);
+const state = sampleProjectile(shot, 0.5); // half of the flight
+
+// the simulation owns the physics, the component only draws the path
+<ProjectileTrajectory plane={plane} projectile={shot} progress={0.5} />;`;
+
+`ProjectileLab`, `ProjectileSimulation` çekirdeğini interaktif kontrollerle sarar. Menzil, tepe noktası,
+uçuş süresi ve anlık hız anında güncellenir.
+
+**Preview** laboratuvarın kendisidir; **Code** iç kurulumunu gösterir: fizik `ProjectileSimulation`
+içinde, çizim `ProjectileTrajectory` bileşenindedir.
+
+<DocDemo source={SOURCE}>
+  <ProjectileLab />
+</DocDemo>
+
+<Callout type="info" title="Fizik bağlantısı">
+  Aynı menzile iki farklı açıyla ulaşılabildiğini göstermek için `30°` ve `60°` açılarını karşılaştırın
+  (tamamlayıcı açılar).
+</Callout>

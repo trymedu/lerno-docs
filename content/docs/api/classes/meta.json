@@ -1,0 +1,4 @@
+{
+  "title": "Classes",
+  "pages": ["index", "node", "property", "vector2", "matrix3", "shape", "coordinate-plane", "function-plotter"]
+}

@@ -1,0 +1,42 @@
+---
+title: Examples
+description: 'Three live examples: switch, custom select, and slider.'
+---
+
+import { ComponentExamples } from '@/components/react/ComponentExamples';
+
+The live previews are rendered by the React reference implementation. The contract is core; every
+component page shows the plain-JavaScript version. The select uses a custom listbox; open it and use
+the arrow keys.
+
+## 7-second video demos
+
+These clips are rendered from the same Lerno scene graph. A variable changes on a schedule
+(`airOn`, `g`, `mass`) and the scene recomputes; there is no hand-authored frame.
+
+<div className="not-prose grid gap-4 md:grid-cols-3">
+  <figure className="m-0 flex flex-col gap-2">
+    <video src="/media/examples/switch.mp4" autoPlay loop muted playsInline className="w-full rounded-xl border border-zinc-200 bg-[#FAF8F1]" />
+    <figcaption className="mt-1 text-xs leading-relaxed text-zinc-400"><strong className="text-zinc-100">Switch → airOn</strong>: boolean flips; balls separate under drag.</figcaption>
+  </figure>
+  <figure className="m-0 flex flex-col gap-2">
+    <video src="/media/examples/select.mp4" autoPlay loop muted playsInline className="w-full rounded-xl border border-zinc-200 bg-[#FAF8F1]" />
+    <figcaption className="mt-1 text-xs leading-relaxed text-zinc-400"><strong className="text-zinc-100">Select → g</strong>: the same fall is recomputed for 9.8 m/s².</figcaption>
+  </figure>
+  <figure className="m-0 flex flex-col gap-2">
+    <video src="/media/examples/slider.mp4" autoPlay loop muted playsInline className="w-full rounded-xl border border-zinc-200 bg-[#FAF8F1]" />
+    <figcaption className="mt-1 text-xs leading-relaxed text-zinc-400"><strong className="text-zinc-100">Slider → mass</strong>: a numeric variable moves the highlight; fall stays equal.</figcaption>
+  </figure>
+</div>
+
+<ComponentExamples />
+
+## What each example shows
+
+1. **Switch**: a boolean variable, immediately reflected by the readout.
+2. **Select**: a custom menu with a checked item and keyboard navigation.
+3. **Slider**: a numeric range; the value is written to the bound variable.
+
+All three share the same surface rules: neutral border, 10px radius, white background, and a
+focus-visible ring. When a layer binds them with `bind.value`, the player replaces the local state with
+the session variable.

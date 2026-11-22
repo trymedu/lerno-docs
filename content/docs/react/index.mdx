@@ -1,0 +1,65 @@
+---
+title: Overview
+description: '@medu/lerno-react. SVG components and interactive STEM labs.'
+---
+
+import { FunctionExplorer } from '@medu/lerno-react';
+
+`@medu/lerno-react` is the React layer built on top of the `@medu/lerno` core. It offers two kinds of
+output:
+
+1. **Primitive components**: SVG pieces arranged in place (`CoordinateGrid`, `FunctionCurve`,
+   `VectorArrow`, `TangentLine`, `RiemannSum`, `ProjectileTrajectory`, `MoleculeView`).
+2. **Interactive labs**: self-contained simulations with controls, embeddable directly into a page
+ (`FunctionExplorer`, `DerivativeExplorer`, `RiemannSumExplorer`, `ProjectileLab`, `MoleculeViewer`).
+
+There is also [`Display`](/docs/react/concepts/scenery), the low-level bridge from a `Node` tree to SVG,
+to build the scene directly.
+
+The low-level layer (`Display`, `useProperty`, `useDrag`) is covered in the
+[Getting started](/docs/react/getting-started) section; the components built on top of it are
+explained on these pages.
+
+## Install
+
+```bash
+bun add @medu/lerno-react
+```
+
+`react` and `react-dom` (18 or 19) are peer dependencies.
+
+## First component
+
+```tsx
+import { Scene, CoordinateGrid, FunctionCurve } from '@medu/lerno-react';
+import { CoordinatePlane, FunctionPlotter } from '@medu/lerno';
+
+export function Plot() {
+  const plane = new CoordinatePlane({ xRange: [-4, 4], yRange: [-1, 10] });
+  const plotter = new FunctionPlotter({ fn: (x) => x * x });
+
+  return (
+    <Scene title="f(x) = x²">
+      <CoordinateGrid plane={plane} />
+      <FunctionCurve plane={plane} plotter={plotter} />
+    </Scene>
+  );
+}
+```
+
+<Callout type="info" title="Client components">
+  Every `@medu/lerno-react` component carries `'use client'`. You can import them from a Next.js App
+  Router server component; the interaction runs in the browser.
+</Callout>
+
+## Design rules
+
+- **Hermetic**: components need no Tailwind, CSS-in-JS, or animation library of their own. The labs and
+  the player are drawn with HeroUI v3, which the consuming app provides.
+- **Responsive**: `Scene` uses a fixed `viewBox`, so it scales to any width.
+- **Theme-aware**: scene colors read the same tokens as the rest of the page, so light and dark mode
+  both work without extra code.
+
+## Live demo
+
+<FunctionExplorer />

@@ -1,0 +1,66 @@
+---
+title: Vector2
+description: 'Değişmez 2B vektör: aritmetik, uzunluk, açı ve serbest işlevler.'
+---
+
+`Vector2`, iki sayıdan oluşan **değişmez** bir değerdir. Hiçbir yöntem kendi özniteliğini değiştirmez;
+her işlem yeni bir nesne döndürür. Bu, sahne grafiğinde ortak paylaşımın güvenli olmasını sağlar:
+aynı vektör birden çok düğümde kullanılabilir ve kimsenin onu ezmesi mümkün değildir.
+
+Değişmezlik bedeli, sıcak döngülerde nesne üretimidir. Bu yüzden çizim ve animasyon döngüleri
+`Vector2` yerine değişken `Vector2D` kullanır; bkz. [Matematik](/tr/docs/concepts/math).
+
+## Constructor
+
+<TypeTable type={{
+    "new Vector2(x?, y?)": { description: <><code>x</code> ve <code>y</code> verilmezse <code>0</code> kullanılır.</> },
+    "v2(x?, y?)": { description: "Aynı değeri üretir; sınıfı içe aktarmadan kullanmak için." },
+}} />
+
+## Properties
+
+<TypeTable type={{
+    "x": { type: "number", description: "Yatay bileşen, salt okunur." },
+    "y": { type: "number", description: "Dikey bileşen, salt okunur." },
+    "magnitude": { type: "number", description: <>Uzunluk: <code>√(x² + y²)</code>.</> },
+    "magnitudeSquared": { type: "number", description: "Uzunluğun karesi; karşılaştırma yaparken kök maliyetinden kaçınır." },
+    "angle": { type: "number", description: "Pozitif x ekseninden itibaren radyan cinsinden yön." },
+    "ZERO, X_UNIT, Y_UNIT":  { type: "Vector2", description: "Sınıf sabitleri. Paylaşıldıkları için değiştirilmemelidir." },
+}} />
+
+## Metodlar
+
+<TypeTable type={{
+    "plus(other)": { type: "Vector2", description: "Vektör toplamı." },
+    "minus(other)": { type: "Vector2", description: <><code>this - other</code>.</> },
+    "times(scalar)": { type: "Vector2", description: "İki bileşeni çarpar." },
+    "dividedBy(scalar)": { type: "Vector2", description: "İki bileşeni böler." },
+    "negated()": { type: "Vector2", description: "İşaret tersi; orijine göre simetri." },
+    "dot(other)": { type: "number", description: "Nokta çarpımı, eşitlenen uzunlukların ve kosinüsün çarpımıdır." },
+    "cross(other)": { type: "number", description: <>2B dış çarpım; <code>other</code> bu vektörün solunda ise pozitiftir.</> },
+    "normalized()": { type: "Vector2", description: <>Birim vektör; uzunluk sıfırsa <code>(0, 0)</code> döner.</> },
+    "withMagnitude(magnitude)": { type: "Vector2", description: "İstenen uzunluğa ölçekler." },
+    "rotated(radians)": { type: "Vector2", description: "Orijine göre döndürür, saat yönünün tersine pozitif." },
+    "perpendicular()": { type: "Vector2", description: "90 derece saat yönünün tersine döndürür." },
+    "lerp(other, ratio)": { type: "Vector2", description: <>Doğrusal enterpolasyon.<code>ratio</code> kırpılmaz; <code>0</code> kendisi, <code>1</code> hedeftir.</> },
+    "distance(other)": { type: "number", description: "Euclidean uzaklık." },
+    "distanceSquared(other)": { type: "number", description: <>Uzaklığın karesi; karşılaştırmalarda <code>distance</code>'dan ucuzdur.</> },
+    "equals(other, epsilon?)": { type: "boolean", description: <>İki bileşeni toleransla karşılaştırır; varsayılan tolerans <code>0</code>.</> },
+    "toArray()": { type: "[number, number]", description: <><code>[x, y]</code> döndürür; JSON ve klonlama için uygundur.</> },
+    "copy()": { type: "Vector2", description: "Bağımsız kopya." },
+}} />
+
+## Modül işlevleri
+
+<TypeTable type={{
+    "degreesToRadians(degrees)": { type: "number", description: "Dereceyi radyana çevirir." },
+    "radiansToDegrees(radians)": { type: "number", description: "Radyanı dereceye çevirir." },
+    "clamp(value, min, max)": { type: "number", description: "Değeri aralıkta tutar; sınır dışındaysa ihlal edilen sınırı döndürür." },
+    "lerp(a, b, ratio)": { type: "number", description: "İki sayı arasında doğrusal enterpolasyon." },
+    "easeInOutRatio(ratio)": { type: "number", description: "İlerlemeye giriş-çıkış eğrisi uygular; değerler kırpılır." },
+}} />
+
+## İlgili
+
+- Dönüşümler: [Matrix3](/tr/docs/api/classes/matrix3)
+- Kullanım bağlamı: [Matematik](/tr/docs/concepts/math)

@@ -1,0 +1,49 @@
+{
+  "name": "lerno-docs",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Documentation site for Lerno: Next.js and Fumadocs, English with a Turkish mirror.",
+  "scripts": {
+    "dev": "bun run build:packages && next dev",
+    "build": "bun run build:packages && next build",
+    "start": "next start",
+    "type-check": "bun run build:packages && next typegen && tsc --noEmit",
+    "build:packages": "bun run --cwd vendor/lerno build && bun run --cwd vendor/lerno-motion build && bun run --cwd vendor/lerno-three build && bun run --cwd vendor/lerno-react build && bun run --cwd vendor/lerno-export build",
+    "deploy": "vercel deploy --prod"
+  },
+  "dependencies": {
+    "@heroui/react": "^3.2.4",
+    "@heroui/styles": "^3.2.4",
+    "@medu/lerno": "workspace:*",
+    "@medu/lerno-motion": "workspace:*",
+    "@medu/lerno-react": "workspace:*",
+    "@medu/lerno-three": "workspace:*",
+    "fumadocs-core": "^16.15.13",
+    "fumadocs-mdx": "^15.4.3",
+    "fumadocs-ui": "^16.15.13",
+    "katex": "^0.16.11",
+    "lucide-react": "^1.47.0",
+    "next": "^16.3.6",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "zod": "^4.6.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/mdx": "^2.0.14",
+    "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2"
+  },
+  "workspaces": [
+    "vendor/lerno",
+    "vendor/lerno-motion",
+    "vendor/lerno-three",
+    "vendor/lerno-react",
+    "vendor/lerno-export"
+  ]
+}

@@ -1,0 +1,55 @@
+---
+title: Shape
+description: SVG path komutları üreten şekil nesnesi ve fabrika yöntemleri.
+---
+
+`Shape`, çizilebilir bir 2B şekildir. Komutları biriktirir, `pathData` ile SVG path dizesini üretir
+ve sınır kutusunu hesaplar. `PathNode` bu çıktıyı sahneye koyar.
+
+Tüm çizim yöntemleri zincirlenir ve `this` döndürür; şekil değiştikçe sınır kutusu da güncellenir.
+
+## Constructor
+
+<TypeTable type={{
+    "new Shape()": { description: "Boş şekil. Ardından çizim yöntemleriyle doldurulur." },
+}} />
+
+## Statik metodlar
+
+<TypeTable type={{
+    "Shape.rect(x, y, width, height, radius?)": { type: "Shape", description: <>Dikdörtgen; <code>radius</code> sıfır ise köşeler sivridir.</> },
+    "Shape.circle(centerX, centerY, radius)": { type: "Shape", description: "Dört eğri ile daire." },
+    "Shape.polygon(points)": { type: "Shape", description: "Verilen noktaları sırayla gezer ve **kapatır**." },
+    "Shape.polyline(points)": { type: "Shape", description: "Noktaları sırayla gezer ve **açık bırakır**." },
+}} />
+
+## Metodlar
+
+<TypeTable type={{
+    "moveTo(x, y)": { type: "this", description: "Yeni bir alt yolun başlangıcını belirler." },
+    "lineTo(x, y)": { type: "this", description: "Mevcut noktaya doğru düzgün çizgi ekler." },
+    "quadraticCurveTo(cx, cy, x, y)": { type: "this", description: "Tek kontrol noktalı eğri ekler." },
+    "bezierCurveTo(c1x, c1y, c2x, c2y, x, y)": { type: "this", description: "İki kontrol noktalı kübik eğri ekler." },
+    "close()": { type: "this", description: "Alt yolu başlangıcına düz bir çizgiyle kapatır." },
+}} />
+
+## Properties
+
+<TypeTable type={{
+    "pathData": { type: "string", description: "Tüm komutlardan üretilen SVG path dizesi. Boş şekil boş dize döndürür, hata vermez." },
+    "commandList": { type: "readonly string[]", description: <>Ekleme sırasındaki ham komutlar (<code>M 0 0</code>, <code>L 10 0</code>, …). Geometri yardımcıları <code>pathData</code> ayrıştırmak yerine bunu okur; <code>morphShape</code> ve <code>revealShape</code> üzerinde çalıştığı da budur.</> },
+    "isEmpty": { type: "boolean", description: "Çizim komutu olup olmadığı." },
+    "bounds": { type: "Bounds2 | null", description: <><code>minX</code>, <code>minY</code>, <code>maxX</code>, <code>maxY</code> alanlarını taşıyan sınır kutusu; boş şekil için <code>null</code>.</> },
+}} />
+
+## Sınır kutusu
+
+Sınır kutusu izlemesi her `moveTo` / `lineTo` / eğri çağrısında çalışır. `bounds`, hit test ve
+yakalama alanı hesaplarında kullanılır; ayrıca `Text` ve `Image` için ayrı sınıflar sınırını kendi
+başına hesaplar.
+
+## İlgili
+
+- Sahneye yerleştirme: [Node](/tr/docs/api/classes/node)
+- Kullanım örneği: [Sahne Grafiği](/tr/docs/concepts/scene-graph)
+- Dönüşüm ve adım adım çizim: [Şekiller](/tr/docs/concepts/shapes)

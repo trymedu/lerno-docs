@@ -1,0 +1,27 @@
+---
+title: Cards
+description: Flip, match, or order.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+Flip, match, or order.
+
+## Usage
+
+```ts
+cardsDeck('cards-1', { title: 'Quick Review' }, [
+  { front: 'Derivative', back: 'Instantaneous rate of change' },
+], 'flip');
+```
+
+## Embedded Example
+
+<LernoPlayer document={contentTypeDemos['cards']} />
+
+## How It Is Built
+
+It is not a separate engine; it is a recipe that assembles the right nodes:
+
+- A `cards` node (flip / match / order)

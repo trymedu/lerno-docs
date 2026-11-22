@@ -1,0 +1,40 @@
+---
+title: Input and interaction
+description: Making scene nodes interactive with InputListener and DragListener.
+---
+
+A node gains interaction through `addInputListener`. The Display forwards pointer events to those
+listeners.
+
+```ts
+import { CircleNode, DragListener, v2 } from '@medu/lerno';
+
+const handle = new CircleNode(100, 100, 16, { fill: 'var(--accent)' });
+
+handle.addInputListener(
+  new DragListener({
+    start: () => { /* pressed */ },
+    drag: (pointer) => {
+      if (pointer.delta) handle.translation = handle.translation.plus(pointer.delta);
+    },
+    end: () => { /* released */ },
+  }),
+);
+```
+
+## InputListener
+
+```ts
+interface InputListener {
+  down?(pointer: PointerInfo): void;
+  move?(pointer: PointerInfo): void;
+  up?(pointer: PointerInfo): void;
+}
+```
+
+`PointerInfo` is `{ x, y, delta?, originalEvent? }`.
+
+## Custom interaction
+
+`DragListener` is only a helper. Implement any `InputListener` to build clicks, drawing, measurement, or
+zoom.

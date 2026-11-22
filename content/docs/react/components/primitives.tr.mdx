@@ -1,0 +1,67 @@
+---
+title: Primitif Bileşenler
+description: FunctionCurve, VectorArrow, TangentLine, RiemannSum, ProjectileTrajectory ve MoleculeView.
+---
+
+Tüm ilkel bileşenler `Scene` içinde kardeş olarak kullanılır. Her biri çekirdek motorun ürettiği veriyi
+SVG'ye çevirir.
+
+## `<FunctionCurve />`
+
+```tsx
+import { FunctionCurve } from '@medu/lerno-react';
+import { FunctionPlotter } from '@medu/lerno';
+
+<FunctionCurve plane={plane} plotter={new FunctionPlotter({ fn: Math.sin })} />;
+```
+
+`plotter.drawProgress` değerine saygı duyar; animasyon için her karede yeni bir `FunctionPlotter`
+oluşturun veya `drawProgress` alanını güncelleyin.
+
+## `<VectorArrow />`
+
+```tsx
+import { VectorArrow } from '@medu/lerno-react';
+import { Vector2D } from '@medu/lerno';
+
+<VectorArrow plane={plane} vector={new Vector2D(3, 2)} tail={{ x: 0, y: 0 }} label="v" />;
+```
+
+## `<TangentLine />`
+
+```tsx
+import { TangentLine } from '@medu/lerno-react';
+
+<TangentLine plane={plane} fn={(x) => x * x} x0={1.5} length={2} />;
+```
+
+## `<RiemannSum />`
+
+```tsx
+import { RiemannSum } from '@medu/lerno-react';
+
+<RiemannSum plane={plane} fn={(x) => x * x} a={0} b={3} n={12} method="midpoint" />;
+```
+
+## `<ProjectileTrajectory />`
+
+```tsx
+import { ProjectileTrajectory } from '@medu/lerno-react';
+import { ProjectileSimulation } from '@medu/lerno';
+
+<ProjectileTrajectory plane={plane} projectile={new ProjectileSimulation(30, 45)} progress={0.6} />;
+```
+
+## `<MoleculeView />`
+
+```tsx
+import { MoleculeView } from '@medu/lerno-react';
+import { Molecule2D } from '@medu/lerno';
+
+<MoleculeView molecule={Molecule2D.createWater(480, 260, 120)} />;
+```
+
+<Callout type="info" title="Bileşenleri birleştirin">
+  İlkel bileşenler kontrollüdür: hangi katmanın çizileceği, sırası ve rengi doğrudan belirlenir.
+  Hazır kontroller için ilgili laboratuvar kullanılabilir.
+</Callout>

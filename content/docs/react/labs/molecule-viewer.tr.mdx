@@ -1,0 +1,46 @@
+---
+title: Molekül Görüntüleyici
+description: 'MoleculeViewer: su, karbondioksit, metan ve amonyak arasında geçiş.'
+---
+
+import { MoleculeViewer } from '@medu/lerno-react';
+import { DocDemo } from '@/components/react/DocDemo';
+
+export const SOURCE = `import { MoleculeViewer } from '@medu/lerno-react';
+
+// usage
+<MoleculeViewer />;
+
+// how a molecule of your own is drawn
+import { Molecule2D } from '@medu/lerno';
+import { MoleculeView, Scene } from '@medu/lerno-react';
+
+const molecule = new Molecule2D:
+  'Hidrojen',
+  'H2',
+  [
+    { id: 'H1', symbol: 'H', x: 420, y: 270, color: '#3B82F6', radius: 24 },
+    { id: 'H2', symbol: 'H', x: 540, y: 270, color: '#3B82F6', radius: 24 },
+  ],
+  [{ fromId: 'H1', toId: 'H2', order: 1 }],
+);
+
+// geometry lives in the model, the view only reads it
+<Scene title="H2">
+  <MoleculeView molecule={molecule} />
+</Scene>;`;
+
+`MoleculeViewer`, hazır molekül ön ayarlarını `MoleculeView` bileşeniyle çizer. Polarite yükleri
+(`δ+`, `δ−`) ve bağ düzenleri (tek/çift) görünür.
+
+**Preview** laboratuvarın kendisidir; **Code** kendi molekülünüzü nasıl kuracağınızı gösterir:
+geometri `Molecule2D`'de durur, çizim yalnızca onu okur.
+
+<DocDemo source={SOURCE}>
+  <MoleculeViewer />
+</DocDemo>
+
+<Callout type="info" title="Polarite ve geometri">
+  `createCarbonDioxide`, `createMethane` ve `createAmmonia` fabrikaları paketten dışa aktarılır;
+  başka laboratuvarlarda doğrudan kullanılabilir.
+</Callout>

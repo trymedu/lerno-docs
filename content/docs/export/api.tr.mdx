@@ -1,0 +1,117 @@
+---
+title: API
+description: '@medu/lerno-export''ın her export''ı ve parçaların nasıl birleştiği.'
+---
+
+`exportMp4`, beş bağımsız parçanın üzerindeki bir kolaylıktır. Her biri tek başına kullanılabilir;
+boru hattını bölmek, test etmek veya yönünü değiştirmek için hiçbir şeyi yeniden yazmak gerekmez.
+
+## Export'lar
+
+<TypeTable type={{
+    "exportMp4(scene, options)": { type: "Promise<EncodeResult>", description: "Tek geçiş: rasterize et ve kodla. Önce font yoklamasını çalıştırır." },
+    "rgbaFrames(scene, options)": { type: "Generator<Uint8Array>", description: "Kare başına bir RGBA tampon. Hiç I/O yok." },
+    "renderToCanvas(ctx, tree, options)": { type: "void", description: "Render ağacını herhangi bir 2B bağlama çizer: `Display`'in başsız ikizi." },
+    "frameTrees(scene, options)": { type: "Generator<RenderElement>", description: "Deterministik render ağaçları; kare günlüğünün veya testin girdisi." },
+    "serializeTree(tree)": { type: "SerializedTree", description: "Ağacın JSON güvenli hâli: `Shape` `pathData`'ya iner, işlevler düşer." },
+    "encodeFrames(frames, options)": { type: "Promise<EncodeResult>", description: "Kareleri ffmpeg'e borular. Kodlamadan önce yanlış kare boyutunu yakalar." },
+    "resolveFfmpeg(override?)": { type: "string", description: "İkili yol: override, sonra `FFMPEG_PATH`, sonra `ffmpeg-static`, sonra PATH." },
+    "registerFont(descriptor)": { type: "string", description: "Bir font dosyasını aile adıyla kullanılabilir kılar; o adı döndürür." },
+    "missingGlyphs(family, text)": { type: "string[]", description: "Ailenin tofu olarak çizeceği karakterler." },
+    "collectText(tree)": { type: "string", description: "Render ağacının dizgileyeceği her dize." },
+    "assertGlyphCoverage(family, text)": { type: "void", description: "Her eksik karakteri ve çözümünü adlandırarak fırlatır." },
+}} />
+
+<TypeTable type={{
+    "RenderOptions.fontFamily": { type: "string", description: "Zorunlu; bkz. [Fontlar](/tr/docs/export/fonts)." },
+    "RenderOptions.resolveImage": { type: "(href) => unknown", description: "Önceden yüklenmiş bitmap döndürür; yükleme bilinçli olarak burada yapılmaz, çünkü asenkron ve render değil." },
+    "RenderOptions.extensions": { type: "Record<string, (ctx, data) => void>", description: "Özel düğüm tipleri için renderer'lar. Kayıtsız bir kimlik hata fırlatır." },
+    "EncodeOptions.crf": { type: "number", description: "H.264 kalitesi, varsayılan 20. `preset` varsayılanı `veryfast`." },
+}} />
+
+## Kendi boru hattınızı kurmak
+
+`exportMp4`'ün yaptığı dört çağrının aynısı, açıkça yazılmış hâli:
+
+```ts
+import { createCanvas } from '@napi-rs/canvas';
+import { encodeFrames, frameTrees, renderToCanvas } from '@medu/lerno-export';
+
+function* frames(scene: Scene, options: { width: number; height: number; fontFamily: string }) {
+  const canvas = createCanvas(options.width, options.height);
+  const ctx = canvas.getContext('2d');
+
+  for (const tree of frameTrees(scene, { fps: 60, duration: 4 })) {
+    ctx.fillStyle = '#0B0F19';
+    ctx.fillRect(0, 0, options.width, options.height);
+    renderToCanvas(ctx, tree, { fontFamily: options.fontFamily });
+    yield new Uint8Array(ctx.getImageData(0, 0, options.width, options.height).data);
+  }
+}
+
+await encodeFrames(frames(myScene, { width: 1280, height: 720, fontFamily: 'Helvetica' }), {
+  width: 1280,
+  height: 720,
+  fps: 60,
+  out: 'custom.mp4',
+});
+```
+
+Parçaları ayrı tutmak bir sonraki adımı mümkün kılar.
+
+## Worker'lara bölme
+
+`frameTrees` deterministiktir; bir worker'ın kendi başlangıcından önceki kareleri görme ihtiyacı
+yoktur: sıfırdan hedef kareye kadar `step(dt)` ile yeniden oynayıp oradan kodlayabilir:
+
+```ts
+// worker 2, 400..799 karelerini alır
+const scene = buildScene();
+for (let i = 0; i < 400; i += 1) scene.step(1 / 60);
+const chunk = framesFrom(scene, 400);
+```
+
+Her worker kendi parçasını yazar, parçalar sonra birleştirilir. 10 çekirdekli bir makinede bu, 600
+karelik ölçümdeki ~1,9 saniyeyi ~0,3 saniyeye doğru götürür; tam kazanç, sahnenin `step`'inin
+kodlamaya kıyasla ne kadar pahalı olduğuna bağlıdır.
+
+## Kodlamadan test etmek
+
+`serializeTree`, bir sahnenin hiç codec'e dokunmadan iddia altına alınabilmesi için var:
+
+```ts
+import { frameTrees, serializeTree } from '@medu/lerno-export';
+
+const run = () => JSON.stringify([...frameTrees(scene, { fps: 30, duration: 1 })].map(serializeTree));
+expect(run()).toBe(run()); // çalıştırmalar arası bayt aynısı
+```
+
+Bu kontrol milisaniyeler sürer ve kazara saat okuyan bir sahneyi yakalar.
+
+## İlgili
+
+- [Kullanım](/tr/docs/export/usage): fabrika deseni ve seçenekler
+- [Fontlar](/tr/docs/export/fonts): kapsam yoklaması
+
+## Compositing ve HTML
+
+<TypeTable type={{
+    "composeFrames(scene, options)": { type: "AsyncGenerator<Uint8Array>", description: "Video plakası, sahne, katmanlar, altyazı: kare başına bir RGBA tamponu." },
+    "videoFrames(path, options)": { type: "AsyncGenerator<Uint8Array>", description: "Videoyu export boyutunda ve kare hızında çözer; iki akış kaymaz." },
+    "parseVtt(source)": { type: "CaptionCue[]", description: "WebVTT ayrıştırır: saatsiz zaman damgası, virgüllü ondalık, NOTE/STYLE atlanır." },
+    "paintLayer(ctx, layer, props, value, frame, options)": { type: "boolean", description: "Yerleşik bileşeni çizer; karşılığı yoksa false döner." },
+    "layersAtTime(document, nodeId, timeMs, variables)": { type: "ResolvedLayerPaint[]", description: "Görünen katmanlar; `$var` çözülmüş, bağ değeri ve fade opaklığıyla." },
+    "unpaintedLayers(document)": { type: "string[]", description: "Canvas çizicisinin çizemediği bileşen tipleri." },
+    "exportHtml(document, options)": { type: "string", description: "Tek dosyalık oynatıcı sayfası: video, katmanlar, altyazı, anchor'lar, kontroller." },
+}} />
+
+<TypeTable type={{
+    "ExportMp4Options.video": { type: "string", description: "Sahnenin altına çizilen video plakası; ölçeklenir ve ortadan kırpılır." },
+    "ExportMp4Options.vtt": { type: "string", description: "Birleştirilen karelerin üstüne yakılan WebVTT dosyası." },
+    "ExportMp4Options.audio": { type: "string", description: "AAC olarak eklenen, kısa akışa göre kırpılan ses." },
+    "ExportMp4Options.layers": { type: "LayerBurnOptions", description: "Belge, medya node id'si, isteğe bağlı değişkenler ve ton." },
+    "ExportMp4Options.captionFontSize": { type: "number", description: "Altyazı boyutu; varsayılan yüksekliğin %4'ü." },
+}} />
+
+Hat için [Compositing](/tr/docs/export/compositing), sayfa üreteci için
+[HTML çıktısı](/tr/docs/export/html).

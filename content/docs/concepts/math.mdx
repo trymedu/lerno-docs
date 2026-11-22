@@ -1,0 +1,48 @@
+---
+title: Vector and matrix
+description: 'Vector2 and Matrix3: the algebra under every visualization.'
+---
+
+## Vector2
+
+An immutable 2D vector. Every operation returns a new vector.
+
+```ts
+import { Vector2, v2 } from '@medu/lerno';
+
+const a = v2(3, 4);
+const b = v2(1, -2);
+
+a.plus(b);        // (4, 2)
+a.times(2);       // (6, 8)
+a.dot(b);         // -5
+a.cross(b);       // -10
+a.magnitude;      // 5
+a.normalized();   // (0.6, 0.8)
+a.rotated(Math.PI / 2);
+a.lerp(b, 0.5);
+```
+
+## Matrix3
+
+A 2D affine transform (translate, rotate, scale). A `Node`'s transform is this matrix.
+
+```ts
+import { Matrix3, v2 } from '@medu/lerno';
+
+const matrix = Matrix3.translation(10, 20)
+  .times(Matrix3.rotation(Math.PI / 4))
+  .times(Matrix3.scaling(2));
+
+matrix.transformPoint(v2(1, 0)); // transforms a point, translation included
+matrix.transformDelta(v2(1, 0)); // transforms a direction, translation excluded
+matrix.inverted();
+matrix.toSVG(); // "matrix(a b c d e f)"
+```
+
+| Static | Description |
+| --- | --- |
+| `Matrix3.IDENTITY` | Identity matrix |
+| `Matrix3.translation(x, y)` | Translation |
+| `Matrix3.rotation(rad)` | Rotation |
+| `Matrix3.scaling(sx, sy?)` | Scale |

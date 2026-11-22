@@ -1,0 +1,77 @@
+---
+title: Math typography
+description: Typesetting LaTeX in a scene through MathNode and the KaTeX-backed display.
+---
+
+A `MathNode` places typeset mathematics at an anchor point. The node carries the LaTeX source and
+nothing else: turning glyphs into pixels is the display's job, so the core needs no TeX engine and a
+headless test can assert on the source it will hand over.
+
+## Usage
+
+```tsx
+import { MathNode, Node, Shape, PathNode } from '@medu/lerno';
+import { Display } from '@medu/lerno-react';
+
+const circle = new PathNode(Shape.circle(240, 200, 90), { stroke: 'var(--accent)', fill: 'none' });
+const label = new MathNode('x^2 + y^2 = r^2', 240, 200, { anchor: 'middle', fontSize: 20 });
+
+const root = new Node({ children: [circle, label] });
+
+<Display node={root} width={480} height={360} />;
+```
+
+## Loading the stylesheet
+
+Typesetting is done by KaTeX, which ships its own CSS. The display renders the HTML; the rules that
+make it look like mathematics have to be loaded once by the application:
+
+```ts
+import 'katex/dist/katex.min.css';
+```
+
+Without it the structure is correct but every fraction, integral, and superscript falls back to
+inline flow: the math is there, the layout is not.
+
+## What the node carries
+
+<TypeTable type={{
+    "latex": { type: "string", description: "LaTeX source, for example `\\frac{a}{b}`." },
+    "x, y": { type: "number", description: "Anchor point in scene units." },
+    "fontSize": { type: "number", description: "Size in scene units. Defaults to 16 in the display." },
+    "fill": { type: "string", description: "Text colour; a CSS variable keeps light and dark mode working." },
+    "anchor": { type: "'start' | 'middle' | 'end'", description: "Horizontal alignment on the anchor. Defaults to `middle`." },
+}} />
+
+Like every other node it also takes the shared options: `translation`, `rotation`, `scale`,
+`visible`, `opacity`, `children`.
+
+## How it reaches the screen
+
+The node lowers to a `math` entry in the render tree, which is plain data:
+
+```ts
+new MathNode('E = mc^2', 10, 20).toRender();
+// { type: 'math', latex: 'E = mc^2', x: 10, y: 20 }
+```
+
+The display wraps the KaTeX HTML in an SVG `foreignObject` positioned at the anchor. That is the
+one browser-facing decision in the pipeline; everything before it is testable without a DOM.
+
+## Limits
+
+- **Malformed input does not blank the scene.** KaTeX runs with `throwOnError: false`, so a typo
+  renders as the source in KaTeX's error colour.
+- **The box is estimated, not measured.** The display sizes the `foreignObject` from the source
+  length, padded generously and biased against clipping. A very long expression could still need a
+  real measurement; see `estimateMathWidth` in `@medu/lerno-react`.
+- **KaTeX is a dependency of the React package**, not of the core. An application that never draws
+  mathematics never imports it.
+- **No hand-written HTML.** KaTeX runs with its default `trust: false`, so `\href` and raw HTML in
+  the source are not emitted.
+
+## See also
+
+- [Shapes](/docs/concepts/shapes): paths, morphing, and progressive drawing
+- [Scene graph](/docs/concepts/scene-graph): how nodes lower into the render tree
+- [Text and labels](/docs/concepts/custom-nodes): plain text when typesetting is not needed

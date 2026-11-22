@@ -1,0 +1,43 @@
+---
+title: Yapay Zeka
+description: 'Yapay zekâ destekli çalışma için üç yüzey: LLM metin çıktısı, agent skill''leri ve doğrulama.'
+---
+
+Lerno üzerinde yapay zekâ destekli çalışma üç yüzey üzerinden yürütülür. Bunlar bilinçli olarak ayrıdır:
+biri modele bağlam, biri ajana talimat, üçüncüsü ikisine de sonucun doğru olup olmadığını söyler.
+
+## Üç yüzey
+
+| Yüzey | Nedir | Kim kullanır |
+| --- | --- | --- |
+| [LLM metin çıktısı](/docs/ai/llms) | `llms.txt`, `llms-full.txt` ve sayfa başına Markdown | Bir URL veya dosya okuyan her model |
+| [Agent skill'leri](/docs/ai/skills) | `skills/lerno`, `skills/lerno-react`, `skills/lerno-motion` | Depoyu düzenleyen kodlama ajanları |
+| Doğrulama | `type-check`, `test`, `build` | İkisi de, geri besleme döngüsü olarak |
+
+## Üçüncüsünün önemi
+
+Lerno tasarım gereği deterministir: zaman `step(dt)` olarak gelir, belgeler zod şemasıyla
+doğrulanır ve render ağacı saf veridir. Bu, bir ajanın yanlış sonuç üretmesi hâlinde **tarayıcıya
+gerek duymadan saniyeler içinde kanıtlamasını** mümkün kılar. Bir görsel ya doğrudur ya test öyle
+der.
+
+```bash
+bunx turbo run type-check --filter=@medu/lerno
+bunx turbo run test --filter=@medu/lerno
+cd apps/lerno-docs && bun run build
+```
+
+Docs derlemesi gömülü her örneği tip kontrolünden geçirir; bir rehberde bozuk bir prop yayına
+girmeden derleme hatası verir.
+
+## Modele ne verilir
+
+- Genel API, koddaki İngilizce JSDoc'tan türetilerek [API](/docs/api) bölümünde üye düzeyinde
+  belgelenmiştir.
+- Bir görselin uyması gereken kurallar [Temel Kavramlar](/docs/concepts) bölümündedir.
+- Canlı önizlemeli örnekler [Disiplinler](/docs/disciplines) bölümündedir.
+
+## Bilerek verilmeyenler
+
+Kod üretimi uç noktası veya doğal dilden sahneye derleyici yoktur. Kütüphane tipli primitifler
+sunar; kompozisyon ve pedagojik yargı yazarın kalır.

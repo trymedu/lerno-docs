@@ -1,0 +1,28 @@
+---
+title: Virtual lab
+description: A simulation and step questions.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { contentTypeDemos } from '@/lib/demos';
+
+A simulation and step questions.
+
+## Usage
+
+```ts
+virtualLab('lab-1', { title: 'Pendulum Lab' }, {
+  setup: 'Pendulum: L = 1.5 m, g = 9.8 m/s², initial angle 30°.',
+  steps: [{ instruction: 'Halve the length and observe the period.', question: { kind: 'equation', prompt: 'Period formula?', accepted: ['2*pi*sqrt(L/g)'] } }],
+});
+```
+
+## Embedded Example
+
+<LernoPlayer document={contentTypeDemos['virtual-lab']} />
+
+## How It Is Built
+
+It is not a separate engine; it is a recipe that assembles the right nodes:
+
+- `slide` (setup note) + step `slide`s + `question`

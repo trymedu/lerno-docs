@@ -1,0 +1,38 @@
+---
+title: First scene
+description: A first scene with Property, Node, and Display.
+---
+
+import { FirstSceneExample } from '@/components/react/examples/FirstSceneExample';
+
+This page shows a single `Property` value bound to a `Node` tree and drawn as SVG.
+
+## Example
+
+The component below draws a circle whose radius is managed by a `Property`. **Preview** shows the
+live scene, **Code** the code that builds it, and **JSON** the output of `root.toRender()`, that
+is, the render tree with no framework attached.
+
+<FirstSceneExample />
+
+## Behaviour
+
+Three behaviours are enough to read this example:
+
+- `link` calls the listener immediately with the current value, so `circle.radius` already holds the
+  correct value on the first frame.
+- Nodes are mutable. The assignment `circle.radius = value` does not create a new node; the scene
+  graph is a live object.
+- `useProperty(radius)` only triggers a React re-render. Drawing happens inside `Display` through
+  `root.toRender()`, which is exactly what the JSON tab returns.
+
+## What the JSON tab contains
+
+`toRender()` does not attach a `source` field on input nodes (no listener is installed in this
+example), so the output serialises directly. It has the shape `{ type, geometry, paint, transform,
+children }` and contains no React or SVG types.
+
+## Next step
+
+For the notion of a simulation, continue with
+[First simulation](/docs/getting-started/first-simulation).

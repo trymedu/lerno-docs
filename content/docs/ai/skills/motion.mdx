@@ -1,0 +1,143 @@
+---
+title: "Skill: lerno-motion"
+description: 'The motion skill: a storyboard before code, a frame review before delivery.'
+---
+
+This is the body of `skills/lerno-motion/SKILL.md`. Load it when the task is the motion itself:
+easing, springs, keyframes, holds, pacing, or a request to make an animation feel right. Scene and
+document APIs belong to [Skill: lerno](/docs/ai/skills/lerno); React components belong to
+[Skill: lerno-react](/docs/ai/skills/react).
+
+A Lerno animation is a pure function of time: `step(dt)` in, frame out, identical on every run.
+That removes the usual excuse for bad motion. If it looks wrong, it is wrong in the code.
+
+The skill exists because good animation is not API knowledge. It is the decision about what moves,
+when it moves, and when it stops.
+
+## Non-negotiables
+
+1. **No code before a storyboard.** If the beat table cannot be filled, there is no animation yet.
+2. **Time is a parameter.** No `Date.now`, `performance.now`, `Math.random`, `setTimeout`,
+   `setInterval`, or `requestAnimationFrame`. `motion-lint` fails on these.
+3. **One accent.** One color means "look here". Everything else is neutral.
+4. **Every arrival needs a hold.** Motion that never rests cannot be read. 0.4–1.2 s minimum.
+5. **Nothing fades in by default.** Fade is the absence of a decision. Use a move, a draw, a scale,
+   or a wipe: whichever states what changed.
+6. **A render that was not looked at is not a render.** Extract frames at the beat times and open them.
+
+## Workflow
+
+| Command | Output | Refuses to continue when |
+| --- | --- | --- |
+| `/storyboard` | Beat table: time, beat, what moves, what stays, why | Fewer than two beats or no holds |
+| `/build` | One scene module following the contract below | `motion-lint` reports an error |
+| `/critique` | Rubric score plus named defects | Frames were not extracted |
+| `/polish` | The same scene, motion and timing only | The layout changes |
+| `/export` | MP4, wall time, frame sheet | Duration drifts more than 5% |
+
+## Scene contract
+
+`scripts/frames.ts` imports a module that exports `meta`, `createScene`, and `beats`. Keep the scene
+in one file.
+
+```ts
+import { Node } from '@medu/lerno';
+
+export const meta = {
+  width: 1280,
+  height: 720,
+  fps: 30,
+  duration: 5.8,
+  background: '#FAF8F1',
+  font: { family: 'Arial', path: '/System/Library/Fonts/Supplemental/Arial.ttf' },
+};
+
+export const beats = [0.8, 2.6, 3.6, 4.6];
+
+export function createScene() {
+  let t = 0;
+  const root = new Node();
+  return {
+    root,
+    step(dt: number) {
+      t += dt;
+      root.clearChildren();
+      root.addChild(build(t));
+    },
+  };
+}
+```
+
+Scenes import only `@medu/lerno`, plus `@medu/lerno-motion` for springs. The runner resolves
+`@medu/lerno-export` itself and registers the declared font, so the scene describes the visual, not
+the export pipeline. `root` is re-read after every step, which is why rebuilding children per frame
+is correct here.
+
+## Timing budget
+
+One idea per 6–8 seconds. A 20-second lesson video is three sentences, not a chapter.
+
+| Length | Beats | Hold per beat |
+| --- | --- | --- |
+| 10 s | 2 | 0.6 s |
+| 20 s | 3 | 0.8 s |
+| 40 s | 5 | 1.0 s |
+
+## Motion vocabulary
+
+| Intent | Use | Not |
+| --- | --- | --- |
+| Something arrives | `keyframesNumber` on `x` with `Easings.easeOut` | opacity 0 → 1 |
+| Something settles | `springNumber` with defaults | a linear tween |
+| Something is emphasized | one scale pulse to 1.08 and back | a continuous wiggle |
+| Two things are compared | `stagger(n, 0.08)` with one easing | a different curve per item |
+| Something is drawn | `Shape` and a progressive `PathNode` | a fade of the finished shape |
+| Ambient looping | `Oscillator` with a period of at least 2 s | a 0.3 s loop |
+
+`sequence([...])` runs items one after another. Simultaneous motion means stepping each animation
+every frame in an array; this is the most common timing bug in a Lerno scene.
+
+## Critique
+
+Two failed axes mean the scene is not done, regardless of how it looks.
+
+| Axis | Passes when |
+| --- | --- |
+| Focus | One element is the only moving thing within the first second |
+| Rhythm | Moves and holds alternate; no continuous motion longer than 3 s |
+| Meaning | Every motion maps to a change the viewer should notice |
+| Hierarchy | One accent color; supporting elements are neutral |
+| Type | At most 60 characters per line, two weights, 24 px or larger at 720p |
+| Contrast | Text reaches 4.5:1 against what is behind it |
+| Determinism | `motion-lint` exits 0 |
+| Duration | Within 5% of the storyboard |
+
+Frames are judged, not intentions. A finding names the beat and the second it appears at: "at 3.6 s
+the labels collide" is a finding; "feels off" is not.
+
+## Verification
+
+```bash
+bun skills/lerno-motion/scripts/motion-lint.ts apps/lerno-docs/scenes/horizontal-throw.ts
+
+bun skills/lerno-motion/scripts/frames.ts apps/lerno-docs/scenes/horizontal-throw.ts --out .motion
+```
+
+`frames.ts` prints wall time, frame count, and output size, then extracts one PNG per beat. The
+numbers are reported, not estimated: a 6 s 720p30 scene on an M-series laptop renders in under a
+second.
+
+## Reference files
+
+| File | Contents |
+| --- | --- |
+| `skills/lerno-motion/references/storyboard.md` | Beat table format, duration math, the cut list |
+| `skills/lerno-motion/references/critique.md` | Procedure, rubric, anti-slop catalog |
+| `skills/lerno-motion/scripts/motion-lint.ts` | Static checks over a scene file |
+| `skills/lerno-motion/scripts/frames.ts` | MP4 render and beat-frame extraction |
+
+## Related
+
+- [Overview](/docs/ai/skills): installing and verifying the skills
+- [Skill: lerno](/docs/ai/skills/lerno): scene graph, documents, grading
+- [Comparison](/docs/getting-started/comparison): the same story built with three tools

@@ -1,0 +1,9 @@
+{
+  "title": "Fizik",
+  "pages": [
+    "projectile",
+    "pendulum",
+    "wave",
+    "orbit"
+  ]
+}

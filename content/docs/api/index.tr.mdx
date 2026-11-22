@@ -1,0 +1,76 @@
+---
+title: API
+description: Sınıflar, tipler ve fonksiyonlar altında gruplanmış üye düzeyinde referans.
+---
+
+Bu bölüm rehber değildir; **üye düzeyinde bir referanstır**. `@medu/lerno`'nun export ettiği her
+şey üç başlık altında toplanır (sınıflar, tipler, fonksiyonlar) ve her detay sayfası aynı sırayı
+izler: constructor, özellikler, metodlar.
+
+Rehberler "bunu nasıl kurarım" sorusuna cevap verir; bu sayfalar "hangi üyeler var" sorusuna.
+Kavramsal arka plan [Temel Kavramlar](/tr/docs/concepts) bölümünde, çalışan örnekler
+[Disiplinler](/tr/docs/disciplines) bölümündedir.
+
+## Sınıflar
+
+Çekirdek otuzdan fazla sınıf export eder. Yedisinin kendi sayfası var:
+
+<TypeTable type={{
+    "[Node](/tr/docs/api/classes/node)": { description: "Sahne grafiği düğümü; çizilen ağacın kökü." },
+    "[Property](/tr/docs/api/classes/property)": { description: "Değişim bildirimi taşıyan gözlemlenebilir değer." },
+    "[Vector2](/tr/docs/api/classes/vector2)": { description: "Sahne grafiğinin kullandığı değişmez 2B vektör." },
+    "[Matrix3](/tr/docs/api/classes/matrix3)": { description: "Dönüşümler ve sınırlar için 2B afin matris." },
+    "[Shape](/tr/docs/api/classes/shape)": { description: "SVG yol verisi üreten zincirleme yol oluşturucu." },
+    "[CoordinatePlane](/tr/docs/api/classes/coordinate-plane)": { description: "Model birimlerinde eksen, aralık ve ızgara." },
+    "[FunctionPlotter](/tr/docs/api/classes/function-plotter)": { description: "Bir fonksiyonu örnekleyip eğri olarak çizer." },
+}} />
+
+Kalan dışa aktarımlar (`Vector2D`, `CalculusEngine`, `ProjectileSimulation`, `Molecule2D`, `Timeline`,
+`ModelViewTransform2`, `Tween`, `WriteShape` ve LaTeX kaynağı taşıyan `MathNode` dahil alt sınıflar)
+imzalarıyla birlikte [Sınıflar](/tr/docs/api/classes) sayfasında listelenir.
+
+## Tipler
+
+Arayüz ve tip takma adları içerik sözleşmesini, değerlendirmeyi, host adaptörlerini ve oturumu
+kapsar. Alan bazında [Tipler](/tr/docs/api/types) sayfasında gruplanır.
+
+## Fonksiyonlar
+
+Giriş noktaları (`createSession`, `questionSet`, `defineDocument`, `defineQuestion`, `createLerno`)
+[Fonksiyonlar](/tr/docs/api/functions) sayfasında listelenir; `createSession`'ın kendi sayfası vardır,
+çünkü çoğu kod oradan başlar.
+
+## Alt yol importları
+
+Kök; içerik, runtime, sahne grafiği ve disiplin yardımcılarını yeniden export eder. React görünümleri
+ayrı bir alt yoldur; yalnızca çizen bir yüzey içerik şeması için ödeme yapmaz:
+
+| Giriş | İçerik | zod |
+| --- | --- | --- |
+| `@medu/lerno` | İçerik, runtime, sahne grafiği, yardımcılar | evet |
+| `@medu/lerno/core` | Sahne grafiği, gözlemlenebilirler, geometri, tween, sim döngüsü | **hayır** |
+| `@medu/lerno/session` | `createSession` ve oturum tipleri | evet |
+| `@medu/lerno/content` | Belge şeması, doğrulama, preset'ler | evet |
+| `@medu/lerno/grading` | Değerlendiriciler, `defineQuestion`, cevap şemaları | evet |
+| `@medu/lerno/extensions` | `createLerno`, `createHost`, `defineExtension` | evet (varsayılan grader'lar) |
+| `@medu/lerno/remotion` | React/SVG görünümleri (`MathCanvas`, `CoordinateSystemView`, `FunctionPlotView`) | evet (React) |
+
+```ts
+import { Node, CircleNode, Property } from '@medu/lerno/core';
+import { createSession } from '@medu/lerno/session';
+```
+
+`exports` haritası dışındaki her yol kapalıdır; bir import kazayla `dist/` içine ulaşamaz.
+
+## Nasıl okunur
+
+Üye adları, tipler, `@param` ve `@returns` girdileri TypeScript kaynağıyla birebir aynıdır.
+Üye açıklamaları İngilizce kaynaktan gelir; sayfanın metni her dilde ayrı yazılır.
+
+## Kapsam dışı
+
+Aşağıdakilerin kendi sayfaları olduğu için burada işlenmez:
+
+- React bileşenleri ve hook'lar → [Lerno React](/tr/docs/react)
+- 3B sahne ve bağlamalar → [3B Sahne](/tr/docs/concepts/three)
+- Uzantı arayüzleri (`defineExtension`, `LernoHost`) → [Uzantılar](/tr/docs/extensions)

@@ -1,0 +1,87 @@
+---
+title: "Skill: lerno"
+description: 'The core-authoring skill: recipes, invariants, and the mistakes that break determinism.'
+---
+
+This is the body of `skills/lerno/SKILL.md`. Load it when the task is a scene, a simulation, a
+content document, a grader, or an extension: anything that is not a React component. The React
+tasks route to [Skill: lerno-react](/docs/ai/skills/react).
+
+Lerno is a **renderer-agnostic educational visualization runtime**. A scene is plain data: values
+live in `Property`, structure lives in a `Node` tree, and drawing is a `toRender()` lowering into a
+framework-free render tree. Nothing in the core imports React, the DOM, or a database.
+
+## The four recipes
+
+Pick the shortest one that fits; do not invent a fifth.
+
+| Goal | Recipe | Key types |
+| --- | --- | --- |
+| Draw something reactive | `Property` → `link(node)` → `Display` | `Property`, `Node`, `CircleNode`, `PathNode` |
+| Animate over time | `createScreen(name, model, view)` + `Sim` | `Sim`, `SimScreen`, `step(dt)` |
+| A curve, path, or diagram | `CoordinatePlane` + `FunctionPlotter` + `Shape` | `Shape.polyline/polygon/circle` |
+| Map model units to pixels | `ModelViewTransform2` | `toPixels`, `toCoords` |
+| Add an application concern | `defineExtension` + `LernoHost` | `registry.addNode/Question/Flow` |
+
+## Invariants
+
+Violating these breaks determinism, which breaks every test downstream.
+
+- **Time is a parameter.** `step(dt)` receives `dt`; never call `Date.now()` or `performance.now()`
+  in model code. The same `dt` sequence must produce the same state.
+- **Model never sees the view.** A model class must not mention `Node`, `CircleNode`, or React. The
+  view subscribes with `link`, never the reverse.
+- **Immutable where shared, mutable in hot loops.** `Vector2` (in `dot`) is immutable; `Vector2D`
+  (in `math`) mutates in place and is what plotting and physics loops should use.
+- **Serializable by construction.** A `LernoDocument` and every variable snapshot must round-trip
+  through JSON: no functions, no class instances, no DOM nodes.
+- **No `any`.** Type narrowing happens through `zod` schemas (`paramsSchema`, `itemSchema`,
+  `responseSchema`). Use `unknown` plus a type guard when the shape is not yet known.
+
+## Content documents
+
+A document is a node graph with scoring:
+
+```ts
+import { defineDocument, coursePresentation, questionSet } from '@medu/lerno';
+
+const doc = questionSet('quiz-1', { title: 'Title', subject: 'Math', grade: 10 }, [item]);
+```
+
+Node types: `slide`, `question`, `media`, `cards`, `hotspot`, `branch`, `info`, `custom`. The flow is
+one of `linear`, `graph`, or `adaptive`; grading returns a `GradeOutcome` with
+`correct | incorrect | partial | pending | ungraded`.
+
+## Extensions and the host
+
+The core knows no technology. Persistence, telemetry, media, and realtime arrive as `LernoHost`
+adapters with no-op defaults; new node kinds, question kinds, and flows arrive as extensions. An
+extension is added through `registry.*`, never by editing the core.
+
+## Verification
+
+Run these after any change; all three must pass.
+
+```bash
+bunx turbo run type-check --filter=@medu/lerno
+bunx turbo run test --filter=@medu/lerno
+cd apps/lerno-docs && bun run build
+```
+
+Tests are deterministic and run headless; if a visual cannot be asserted through its state, the test
+is wrong, not the renderer.
+
+## Common mistakes
+
+| Mistake | Fix |
+| --- | --- |
+| Rendering inside model code | Move the drawing into the view factory; the model returns plain data |
+| Reading the clock | Take `dt` from the caller and pass it to `step` |
+| Mutating a shared `Vector2` | Use `math.Vector2D` for loops, or reassign the immutable value |
+| Storing a function in a document | Put it behind an extension; documents hold data only |
+| New code with `any` | `unknown` + zod parse, or a narrower generic |
+
+## See also
+
+- [Overview](/docs/ai/skills): installing and verifying the skills
+- [Skill: lerno-react](/docs/ai/skills/react): the React counterpart

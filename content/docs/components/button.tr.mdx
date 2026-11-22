@@ -1,0 +1,56 @@
+---
+title: Button
+description: Bağlı değişkene true yazan tek seferlik aksiyon.
+---
+
+import { ButtonDemo } from '@/components/react/ComponentDemos';
+
+Button bilinçli olarak dardır: tıklanınca bağlı değişkene `true` yazar. Genel amaçlı callback API'si
+değildir; serbest aksiyonlar uygulama componentine aittir.
+
+<ButtonDemo />
+
+## Manifest katmanı
+
+```json
+{
+  "id": "confirm",
+  "component": "ui.button",
+  "fromMs": 0,
+  "bind": { "value": "confirmed" },
+  "props": { "label": "Onayla", "variant": "primary" }
+}
+```
+
+## JavaScript
+
+```js
+import { createSession, createInteractionRuntime } from '@medu/lerno';
+
+const runtime = createInteractionRuntime(document, createSession(document));
+const item = runtime.layersAt('clip', video.currentTime * 1000)
+  .find((entry) => entry.layer.id === 'confirm');
+
+const action = document.createElement('button');
+action.type = 'button';
+action.textContent = String(item.props.label);
+action.addEventListener('click', () => runtime.change(item.layer, true));
+```
+
+## Prop'lar
+
+| Prop | Tip | Varsayılan |
+| --- | --- | --- |
+| `label` | `string` | `Devam` |
+| `variant` | `'primary' \| 'secondary'` | `primary` |
+| `value` | `boolean` | Yok |
+| `onChange` | `(value: boolean) => void` | Yok |
+| `disabled` | `boolean` | `false` |
+| `tone` | `'light' \| 'dark'` | `light` |
+
+## Davranış
+
+- Tıklama her zaman `true` yazar; değişkeni dışarıdan (yeni sahne, zamanlayıcı veya başka kontrol)
+  sıfırla.
+- `primary` koyu dolgulu buton, `secondary` çerçeveli yüzeydir.
+- İçinde loading durumu yoktur; host aksiyonu sürerken `disabled` kullan.

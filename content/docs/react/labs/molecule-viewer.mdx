@@ -1,0 +1,46 @@
+---
+title: Molecule viewer
+description: 'MoleculeViewer: switch between water, carbon dioxide, methane, and ammonia.'
+---
+
+import { MoleculeViewer } from '@medu/lerno-react';
+import { DocDemo } from '@/components/react/DocDemo';
+
+export const SOURCE = `import { MoleculeViewer } from '@medu/lerno-react';
+
+// usage
+<MoleculeViewer />;
+
+// how a molecule of your own is drawn
+import { Molecule2D } from '@medu/lerno';
+import { MoleculeView, Scene } from '@medu/lerno-react';
+
+const molecule = new Molecule2D:
+  'Hidrojen',
+  'H2',
+  [
+    { id: 'H1', symbol: 'H', x: 420, y: 270, color: '#3B82F6', radius: 24 },
+    { id: 'H2', symbol: 'H', x: 540, y: 270, color: '#3B82F6', radius: 24 },
+  ],
+  [{ fromId: 'H1', toId: 'H2', order: 1 }],
+);
+
+// geometry lives in the model, the view only reads it
+<Scene title="H2">
+  <MoleculeView molecule={molecule} />
+</Scene>;`;
+
+`MoleculeViewer` draws preset molecular geometries with the `MoleculeView` component. Polarities
+(`δ+`, `δ−`) and bond orders (single, double) are visible.
+
+**Preview** is the lab itself; **Code** shows how a molecule of your own is built: geometry lives in
+`Molecule2D`, and the view only reads it.
+
+<DocDemo source={SOURCE}>
+  <MoleculeViewer />
+</DocDemo>
+
+<Callout type="info" title="Polarity and geometry">
+  The `createCarbonDioxide`, `createMethane`, and `createAmmonia` factories are exported from the
+  package and can be used directly in other labs.
+</Callout>

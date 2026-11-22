@@ -1,0 +1,79 @@
+---
+title: Agent skills
+description: Three skills that tell a coding agent how to author with the core, with React, and with motion.
+---
+
+A skill is a Markdown file a coding agent loads before touching the repository. Lerno ships three:
+one for the core library, one for the React layer, one for motion. They are **instructions, not
+code**: they name the files to read, the invariants to respect, and the commands that prove the
+work.
+
+## The three skills
+
+| Skill | Path | Route to it when the task is |
+| --- | --- | --- |
+| [`lerno`](/docs/ai/skills/lerno) | `skills/lerno/SKILL.md` | A scene, simulation, content document, grader, host adapter, or extension |
+| [`lerno-react`](/docs/ai/skills/react) | `skills/lerno-react/SKILL.md` | A React component, a hook, a HeroUI control, or a lab |
+| [`lerno-motion`](/docs/ai/skills/motion) | `skills/lerno-motion/SKILL.md` | Easing, springs, keyframes, holds, pacing, or the feel of an animation |
+
+`lerno` and `lerno-react` describe the same composition table, so an agent that reads the wrong one
+still produces valid code; it just writes more of it. `lerno-motion` does not repeat that table. It
+requires a storyboard before the code and a frame review before delivery. Each linked page is the
+skill rendered as documentation, so the content can be read here and copied from the file.
+
+## What each skill contains
+
+| Section | Purpose |
+| --- | --- |
+| Recipe table | The shortest path from intent to a working visual |
+| Invariants | Time as a parameter, model never sees the view, serializable documents, no `any` |
+| API inventory | The exports worth knowing, pointing at [API](/docs/api) for the rest |
+| Verification | The exact commands that must pass before a change is reported |
+| Common mistakes | The failures that compile but behave wrong |
+
+## Installing
+
+Copy a skill into the agent's skill directory so it is discovered by name:
+
+```bash
+mkdir -p ~/.agents/skills/lerno
+cp skills/lerno/SKILL.md ~/.agents/skills/lerno/
+
+mkdir -p ~/.agents/skills/lerno-motion
+cp -R skills/lerno-motion/. ~/.agents/skills/lerno-motion/
+```
+
+The motion skill is not a single file; it carries its `references/` and `scripts/` directories. All
+files live in this repository under `skills/`, so they travel with the source and can be reviewed in
+the same pull request as the code they describe.
+
+## Verification is part of the skill
+
+`lerno` and `lerno-react` end with the same three commands. They are the contract: an agent that
+cannot make them pass has not finished the task.
+
+```bash
+bunx turbo run type-check --filter=@medu/lerno --filter=@medu/lerno-react
+bunx turbo run test --filter=@medu/lerno --filter=@medu/lerno-react
+cd apps/lerno-docs && bun run build
+```
+
+`lerno-motion` carries its own gate. The static check enforces determinism, and the frame extraction
+enforces that the render was actually inspected.
+
+```bash
+bun skills/lerno-motion/scripts/motion-lint.ts <scene.ts>
+bun skills/lerno-motion/scripts/frames.ts <scene.ts> --out .motion
+```
+
+## Keeping a skill honest
+
+A skill rots when the API it describes changes. Two rules keep it aligned:
+
+- The API inventory points at the generated reference rather than restating every signature.
+- The recipe table cites file paths, so a moved file fails loudly instead of silently.
+
+## See also
+
+- [Overview](/docs/ai): the three surfaces for AI-assisted work
+- [LLM text output](/docs/ai/llms): Markdown routes for a model

@@ -1,0 +1,91 @@
+---
+title: Genel Bakış
+description: Soru tipleri, GradeOutcome durumları ve puanlama oranı.
+---
+
+Soruların değerlendirmesi çekirdekteki **registry** üzerinden yapılır. Her soru tipi bir
+`QuestionDefinition`'dır; `item` şeması soruyu, `response` şeması cevabı doğrular ve `grade`
+işlevi ikisini karşılaştırır.
+
+## Kayıtlı soru tipleri
+
+| Grup | Tipler |
+| --- | --- |
+| Seçim ve doğruluk | `multiple-choice`, `true-false`, `poll` |
+| Serbest metin | `short-answer`, `open` |
+| Sayısal | `numeric`, `scale` |
+| Yapılandırılmış | `fill-blanks`, `ordering`, `matching` |
+| Matematik ve kavram | `equation`, `concept-map`, `solution-steps` |
+
+## GradeOutcome
+
+Her `grade` çağrısı bir sonuç döndürür. Bu sonuca bir cevabı puanlayarak ulaşırsınız:
+
+```ts
+import { questionSet, createSession } from '@medu/lerno';
+
+const document = questionSet('quiz-1', { title: 'Quiz' }, [
+  { kind: 'equation', prompt: 'x² türevini yazın.', accepted: ['2x'] },
+]);
+
+const { outcome } = createSession(document).answer('q1', { text: '2x' });
+// { status: 'correct', score: 1, maxScore: 1 }
+```
+
+Tipi:
+
+```ts
+interface GradeOutcome {
+  status: 'correct' | 'incorrect' | 'partial' | 'pending' | 'ungraded';
+  score: number;
+  maxScore: number;
+  detail?: string;
+  misconceptions?: string[];
+}
+```
+
+| Durum | Ne anlama gelir |
+| --- | --- |
+| `correct` | `score`, `maxScore`'ye eşit. |
+| `incorrect` | `score` sıfır. |
+| `partial` | Sıfır ile tam puan arasında. Kısmi kredi veren her soru tipi bu durumu üretir. |
+| `pending` | Cevap henüz verilmedi; oturum cevabı bekler. |
+| `ungraded` | `poll` ve `scale` gibi puanlanmayan tipler; açık uçlu soru da buraya düşebilir. |
+
+`poll` ve `scale` hiç puanlanmaz; paydadan tamamen çıkar. Açık uçlu soru, rubrik puanı gelene kadar
+`pending` kalır; o ana kadar sıfır katkı verir ama puanı paydada kalır. Cevaplanmayan puanlanabilir soru
+bu yüzden sıfır sayılır ve oranı düşürür.
+
+## Puanlama modları
+
+`document.scoring.mode` oranı belirler:
+
+| Mod | Oran |
+| --- | --- |
+| `sum` (varsayılan) | Ağırlıklı puan: `earned / max` |
+| `average` | Soru başına oranların ortalaması; her soru eşit ağırlıkta |
+| `pass-fail` | Ağırlıklı puan; `passed` değeri `passingRatio`'dan gelir |
+
+`earned` her zaman ağırlıklı puan toplamı, `max` puanlanabilir soruların toplam puanıdır. Sorunun
+`points` değeri, grader oranını ağırlıklandırır; grader'ın kendi `maxScore` değeri belge toplamına
+eklenmez.
+
+## Puan oranı
+
+Her cevap `score / maxScore` oranına çevrilip sorunun `points` değeriyle çarpılır. Kısmi kredi üreten
+tipler şunlardır:
+
+- `multiple-choice`: çok seçimli sorularda doğru cevaplar eksi yanlışlar (`hits - misses`)
+- `ordering` / `matching`: doğru sıra veya eşleşme oranıyla `partial` durum üretir
+- `concept-map`: doğru ilişkiler eksi yanlış ilişkiler
+- `solution-steps`: doğru adım sayısı
+
+## Alt sayfalar
+
+| Sayfa | Ne anlatır |
+| --- | --- |
+| [Kavram Yanılgısı Etiketleri](/tr/docs/grading/misconceptions) | Çeldirici etiketleri nasıl raporlanır |
+| [Denklem Sorusu](/tr/docs/grading/equation) | Gösterim normalization kuralları |
+| [Kavram Haritası Sorusu](/tr/docs/grading/concept-map) | İlişki kümesi karşılaştırması ve yanlış ilişki cezası |
+| [Adım Adım Çözüm](/tr/docs/grading/solution-steps) | Adım bazında kısmi puanlama |
+| [Özel Değerlendirici](/tr/docs/grading/custom-grader) | `defineQuestion` ile yeni tip eklemek |

@@ -1,0 +1,106 @@
+---
+title: Lerno Oynatıcı
+description: LernoPlayer ile bir LernoDocument'i canlı oynatın.
+---
+
+import { LernoPlayer } from '@medu/lerno-react';
+import { demoDocument } from '@/lib/lerno-demo';
+
+`LernoPlayer`, bir `LernoDocument`'i baştan sona oynatır: node'ları çizer, cevapları çekirdekte
+değerlendirir, puanı ve ilerlemeyi gösterir. Aşağıdaki gömülü oynatıcı gerçek `@medu/lerno-react`
+kodudur.
+
+<LernoPlayer document={demoDocument} />
+
+## Kullanım
+
+```tsx
+import { LernoPlayer } from '@medu/lerno-react';
+import { defineDocument } from '@medu/lerno';
+
+const document = defineDocument({ /* … */ });
+
+<LernoPlayer document={document} />;
+```
+
+## Host ve Extension
+
+Oynatıcı herhangi bir uygulamadan bağımsızdır. Kalıcılık, telemetri veya canlı yayın gerekiyorsa host adaptörleri
+veya extension'lar verilir:
+
+```tsx
+<LernoPlayer
+  document={document}
+  host={{ telemetry: myTelemetry, storage: myStorage }}
+  extensions={[myExtension]}
+/>;
+```
+
+`useLernoSession` hook'u ile aynı oturumu kendi arayüzünüzde de kullanabilirsiniz:
+
+```tsx
+const { state, answer, next, back, score } = useLernoSession(document);
+```
+
+## Custom node
+
+Belge `custom` node taşıyabilir. `extension:kind` (veya yalnız `kind`) başına bir renderer kaydet;
+renderer node'u, oturum değişkenlerini ve setter'ı alır:
+
+```tsx
+import type { CustomNodeRendererProps } from '@medu/lerno-react';
+
+function FreeFallScene({ variables, setVariable }: CustomNodeRendererProps) {
+  // variables.airOn / variables.g ile sahneyi çiz
+}
+
+<LernoPlayer
+  document={document}
+  nodeRenderers={{ 'scene:freefall': FreeFallScene }}
+/>;
+```
+
+Kayıtlı olmayan custom node hata fırlatmaz; görünür fallback basar.
+
+## Sahne oynatıcı
+
+`ScenePlayer` tek bir `Node` grafiğini kendi saatiyle oynatır ve `Display` ile çizer. Video dosyası ve
+oturum yoktur; tek durum zamandır.
+
+```tsx
+import { ScenePlayer } from '@medu/lerno-react';
+
+<ScenePlayer
+  createScene={createScene}
+  meta={{ width: 1280, height: 720, fps: 30, duration: 20, background: '#FAF8F1' }}
+  beats={[1.6, 8.2, 15.8]}
+  title="Serbest düşme"
+  tone="dark"
+/>;
+```
+
+`createScene` `{ root, step(dt) }` döndürür ve ilk kareyi kurulumda oluşturur. Sarma, sahneyi sıfırdan
+sabit adımla yeniden oynatır; önizleme böylece export'un ürettiği duruma düşer. `beats` çubuğa
+storyboard tikleri çizer, `labels` kontrolleri yerelleştirir.
+
+## Tek saat
+
+`useMediaClock(stage, videoRef)` bir medya öğesini `LessonStage`'e bağlar: video zamanı her karede
+stage'e yazılır, stage'te yapılan sarma videoyu oynatır. Stage'i `InteractiveVideo` veya `LernoPlayer`'a
+geçirdiğinizde katmanlar ikinci bir zamanlayıcı yerine videoyu izler.
+
+## Anlatımın altında müzik
+
+`createAudioMixer` videonun sesini ve müzik öğesini tek `AudioContext` üzerinden geçirir. Video
+oynarken müzik kısılır; anlatım üstte kalır.
+
+```tsx
+import { useAudioMixer } from '@medu/lerno-react';
+
+const mixer = useAudioMixer({ music: { src: '/media/bed.mp3' }, duckLevel: 0.3 });
+
+<video ref={mixer.attachVoice} src="/media/ders.mp4" controls />
+<button onClick={mixer.toggle}>{mixer.playing ? 'Müziği duraklat' : 'Müziği çal'}</button>;
+```
+
+Bağlam ilk kullanıcı hareketinde açılır; tarayıcılar aksi hâlde sesi başlatmaz.

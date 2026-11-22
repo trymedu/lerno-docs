@@ -1,0 +1,64 @@
+---
+title: Concept map question
+description: Direction-insensitive comparison of relation sets and the penalty for wrong relations.
+---
+
+`concept-map` expects the learner to establish relations between concepts. The grader takes the
+answer as a **set of relations** and compares it with the expected set; order and direction do not
+matter.
+
+## Usage
+
+```ts
+import { questionSet, createSession } from '@medu/lerno';
+
+const document = questionSet('quiz-1', { title: 'Cell' }, [
+  {
+    kind: 'concept-map',
+    prompt: 'Relate the concepts.',
+    concepts: [{ id: 'cell', label: 'Cell' }, { id: 'membrane', label: 'Cell membrane' }],
+    relations: [{ from: 'membrane', to: 'cell', label: 'surrounds' }],
+  },
+]);
+
+const session = createSession(document);
+const { outcome } = session.answer('q1', { relations: [{ from: 'cell', to: 'membrane' }] });
+
+outcome.status; // 'correct': the pair is compared in both directions
+```
+
+The response carries relations only: `{ relations: [{ from, to }] }`. Reversing a pair changes
+nothing; adding a relation that is not in the definition is penalised.
+
+## Comparison
+
+The key is the sorted pair of identifiers:
+
+```
+relationKey(from, to) = [from, to].sort().join('|')
+```
+
+So `dice → cell` and `cell → dice` produce the same key and the relation is **undirected**. The
+`label` never enters the comparison; it is used for presentation only.
+
+## Scoring
+
+```
+maxScore = relations.length
+hits      = expected keys found in the answer
+misses    = keys present in the answer but not expected
+score     = clamp(hits - misses, 0, maxScore)
+```
+
+A wrong relation is **penalised**: an extra drawn connection costs the credit of a correct one. The
+`clamp` to zero means an entirely wrong answer still yields `incorrect`, never a negative score.
+
+## Maximum score
+
+`maxScore` is the number of relations in the definition. Relations cannot be **added** by the answer,
+which caps unbounded derivation.
+
+## See also
+
+- [Overview](/docs/grading): statuses and the scoring ratio
+- [Step-by-step solution](/docs/grading/solution-steps): ordered, per-step scoring

@@ -1,0 +1,99 @@
+---
+title: Compositing video, captions, and layers
+description: Burn a video plate, WebVTT captions, component layers, and an audio track into one MP4.
+---
+
+`exportMp4` started as a scene renderer. It now takes four optional pieces and composites them in a
+fixed order, still in one ffmpeg pass and without a browser:
+
+1. the video plate,
+2. the scene graph,
+3. the component layers,
+4. the captions.
+
+```ts
+import { exportMp4, registerFont } from '@medu/lerno-export';
+import { Node } from '@medu/lerno';
+
+const fontFamily = registerFont({ family: 'Arial', path: '/System/Library/Fonts/Supplemental/Arial.ttf' });
+
+await exportMp4(
+  { root: new Node(), step() {} },
+  {
+    out: 'lesson.mp4',
+    width: 1280,
+    height: 720,
+    fps: 30,
+    duration: 20,
+    fontFamily,
+    video: '/media/lesson.mp4',
+    vtt: '/media/lesson.tr.vtt',
+    audio: '/media/narration.m4a',
+    layers: { document, nodeId: 'clip', tone: 'light' },
+  },
+);
+```
+
+## Order matters
+
+The plate is drawn first, the scene graph over it, the layers over that, and the caption last. A scene
+without a background rectangle therefore works as an overlay; a scene with one hides the video.
+
+## Video plate
+
+`video` is decoded with ffmpeg at the export size and frame rate:
+
+```
+scale=W:H:force_original_aspect_ratio=increase, crop=W:H, fps=FPS
+```
+
+A 24 fps clip exported at 30 fps is resampled instead of drifting. Frames are read as raw RGBA, so the
+encoder never sees an intermediate image file.
+
+## Component layers
+
+`layers` takes the document, the media node id, an optional variable snapshot, and the tone:
+
+```ts
+layers: {
+  document,
+  nodeId: 'clip',
+  variables: { airOn: true, g: 9.8 },
+  tone: 'light',
+}
+```
+
+Every layer is resolved with the same functions the player uses: `activeLayers` for the time window
+and `visibleWhen`, `resolveLayerProps` for `$var`, and `layerOpacity` for `fadeMs`. The painter draws
+the five built-in components (`ui.switch`, `ui.button`, `ui.select`, `ui.slider`, `lab.readout`) with
+canvas primitives.
+
+A component with no painter is skipped and reported once:
+
+```
+[lerno-export] no canvas painter for: app.custom; those layers are not burned.
+```
+
+`unpaintedLayers(document)` returns that list ahead of time if the caller wants to fail instead.
+
+## Captions
+
+`vtt` is read at build time. Cues are drawn at the bottom on a dark plate, wrapped to 80% of the frame,
+with `captionFontSize` defaulting to 4% of the height. The font probe covers the cue text too, so a
+missing glyph fails before encoding instead of producing a tofu box.
+
+## Audio
+
+`audio` accepts any file ffmpeg can read. The track is encoded as AAC at 192 kbit/s and trimmed to the
+shorter stream. For an MP3 narration this is the whole setup; no mixer is involved.
+
+## Determinism
+
+The plate is resampled to the export frame rate, the scene advances by a fixed `dt`, and captions are
+selected by frame time. Two runs with the same inputs produce the same frames.
+
+## Related
+
+- [HTML output](/docs/export/html): the same lesson as a self-contained page
+- [API](/docs/export/api): every export and option
+- [Fonts](/docs/export/fonts): registering a family and the glyph probe

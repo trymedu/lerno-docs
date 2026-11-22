@@ -1,0 +1,62 @@
+---
+title: Scene graph
+description: The Node tree, shape nodes, and the framework-agnostic render tree.
+---
+
+import { SceneGraphExample } from '@/components/react/examples/SceneGraphExample';
+
+Every visual is a **Node tree**. Each node carries children, a transform (translate, rotate, scale),
+visibility, and opacity. `toRender()` lowers the tree into a framework-agnostic **render tree**, and any
+Display (React/SVG, Canvas, WebGL) draws it.
+
+The example below puts four different node types in one tree. **Preview** is the live scene,
+**Code** the code that builds the tree, and **JSON** the output of `root.toRender()`.
+
+<SceneGraphExample />
+
+## Nodes
+
+| Node | Visual |
+| --- | --- |
+| `Node` / `group()` | An empty group that holds children |
+| `RectNode` | Rectangle, rounded with `radius` |
+| `CircleNode` | Circle |
+| `LineNode` | Line with optional `dash` |
+| `PathNode` | A `Shape`-based path |
+| `TextNode` | Text with `anchor` and `baseline` |
+| `ImageNode` | Image |
+| `ExtensionNode` | Custom drawing |
+
+## Shared fields
+
+Every node carries the same six fields; these cover transform and visibility:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `translation` | `Vector2` | Offset in local space. An immutable vector, so it is re-assigned. |
+| `rotation` | `number` | Rotation in radians around the origin. |
+| `scale` | `Vector2` | Local scale; also usable to stretch a single axis. |
+| `opacity` | `number` | Opacity in the `0`–`1` range, composed down the subtree. |
+| `visible` | `boolean` | When `false` the subtree is not drawn at all. |
+| `children` | `Node[]` | The child list, managed by `addChild`, `removeChild`, and `clearChildren`. |
+
+```ts
+node.translation = v2(100, 50);
+node.rotation = Math.PI / 6;
+node.opacity = 0.5;
+node.visible = false;
+node.scale = v2(1.2, 1.2);
+```
+
+The methods that operate on the tree (`getTransform`, `toRender`, `addInputListener`) and the shape
+node constructors are documented member by member on the [Node API page](/docs/api/classes/node).
+
+## Drawing in React
+
+```tsx
+import { Display } from '@medu/lerno-react';
+
+<Display node={root} width={960} height={540} />;
+```
+
+`Display` lowers the render tree to SVG and forwards input events to the nodes that listen.
